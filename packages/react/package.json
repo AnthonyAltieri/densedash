@@ -1,6 +1,6 @@
 {
   "name": "@densedash/react",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "densedash React adapter: kernel context, render props and keymap parts.",
   "license": "MIT",
   "repository": {

@@ -1,6 +1,6 @@
 {
   "name": "@densedash/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Framework-agnostic densedash kernel, ports and plugin contracts.",
   "license": "MIT",
   "repository": {

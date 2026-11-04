@@ -108,7 +108,9 @@ function createAllRows(locate: { current: (index: number) => HTMLElement | null 
 
 // The first mounted row whose bottom edge is below the viewport's top edge (rows are in order).
 function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
-  const rows = viewport.querySelectorAll<HTMLElement>('[data-slot="tree-row"]');
+  const rows = viewport.querySelectorAll<HTMLElement>(
+    '[data-slot="tree-row"], [data-slot="table-row"]',
+  );
   const top = viewport.getBoundingClientRect().top + viewport.clientTop;
   let low = 0;
   let high = rows.length;

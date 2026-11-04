@@ -29,6 +29,11 @@ export function createTreeProps<T>({
   const rowId = (key: Key) =>
     `${id}-row-${Array.from(key, (character) => character.codePointAt(0)!.toString(16)).join("-")}`;
   const roving = () => model.options().focusStrategy === "roving";
+  const mode = () => model.options().mode ?? "tree";
+  const grid = () => mode() === "grid" || mode() === "treegrid";
+  const slot = (part: "root" | "row" | "toggle"): TreePartProps["data-slot"] =>
+    grid() ? `table-${part}` : `tree-${part}`;
+  const rootSelector = () => `[data-slot="${slot("root")}"]`;
   // Prop getters run once per visible row, so look rows up by key in O(1) per snapshot.
   const indexes = new WeakMap<readonly TreeRow<T>[], Map<Key, TreeRow<T>>>();
   const current = (key: Key) => {
@@ -59,7 +64,7 @@ export function createTreeProps<T>({
   function focusFromPointer(event: MouseEvent): void {
     const target = event.currentTarget;
     if (target && "closest" in target && typeof target.closest === "function") {
-      const element = target.closest('[data-slot="tree-root"]');
+      const element = target.closest(rootSelector());
       if (element && "focus" in element) {
         root = element as HTMLElement;
         mount(root);
@@ -107,7 +112,7 @@ export function createTreeProps<T>({
         target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
       )
         return;
-      if (target.closest('[data-slot="tree-root"]') !== event.currentTarget) return;
+      if (target.closest(rootSelector()) !== event.currentTarget) return;
     }
     const at = clock.now();
     const character = event.key;
@@ -132,9 +137,9 @@ export function createTreeProps<T>({
       const state = model.get();
       const highlighted = enabledHighlight();
       return {
-        ...part("tree-root"),
+        ...part(slot("root")),
         id,
-        role: model.options().mode ?? "tree",
+        role: mode(),
         tabIndex: roving() && state.rows.some((row) => !row.disabled) ? -1 : 0,
         "aria-activedescendant": !roving() && highlighted ? rowId(highlighted.key) : undefined,
         "aria-multiselectable": model.options().selectionMode === "multiple",
@@ -154,19 +159,21 @@ export function createTreeProps<T>({
     getRowProps(key: Key): TreeRowProps {
       const state = model.get();
       const row = current(key);
-      const mode = model.options().mode ?? "tree";
+      const rowMode = mode();
+      // Flat grids have no levels, sets or expansion; their rows are plain grid rows.
+      const leveled = rowMode === "tree" || rowMode === "treegrid";
       const focused =
         enabledHighlight()?.key ?? state.rows.find((candidate) => !candidate.disabled)?.key;
       return {
-        ...part("tree-row", row),
+        ...part(slot("row"), row),
         id: rowId(key),
-        role: mode === "listbox" ? "option" : mode === "treegrid" ? "row" : "treeitem",
+        role: rowMode === "listbox" ? "option" : grid() ? "row" : "treeitem",
         tabIndex: roving() && row && !row.disabled && focused === key ? 0 : -1,
-        "aria-level": mode !== "listbox" && row ? row.depth + 1 : undefined,
-        "aria-posinset": row?.posInSet,
-        "aria-setsize": row?.setSize,
-        "aria-rowindex": mode === "treegrid" && row ? row.index + 1 : undefined,
-        "aria-expanded": mode !== "listbox" && row?.hasChildren ? row.expanded : undefined,
+        "aria-level": leveled && row ? row.depth + 1 : undefined,
+        "aria-posinset": rowMode === "grid" ? undefined : row?.posInSet,
+        "aria-setsize": rowMode === "grid" ? undefined : row?.setSize,
+        "aria-rowindex": grid() && row ? row.index + 1 : undefined,
+        "aria-expanded": leveled && row?.hasChildren ? row.expanded : undefined,
         "aria-selected": state.selected.has(key),
         "aria-disabled": row?.disabled ?? true,
         onPointerMove(event) {
@@ -201,7 +208,7 @@ export function createTreeProps<T>({
     getToggleProps(key: Key): TreeToggleProps {
       const row = current(key);
       return {
-        ...part("tree-toggle", row),
+        ...part(slot("toggle"), row),
         type: "button",
         tabIndex: -1,
         disabled: !row || row.disabled || !row.hasChildren,

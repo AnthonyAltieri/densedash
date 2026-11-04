@@ -21,6 +21,8 @@ export const tradingPreset = definePreset({
   "tree.select": ["Space"],
   "tree.extend-selection": ["Shift+Space"],
   "tree.open": ["Enter"],
+  "table.sort": ["S"],
+  "table.next-column": ["Shift+S"],
   "tabs.select.1": ["1"],
   "tabs.select.2": ["2"],
   "tabs.select.3": ["3"],

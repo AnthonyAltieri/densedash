@@ -1,0 +1,139 @@
+/* <Table.*>: a focusable grid or treegrid, a header row and a scrolling viewport of rows. Header
+   and rows share the column tracks that Table.Root sets as --dd-table-columns; both reserve the
+   same scrollbar gutter so the header stays aligned over a scrolling viewport. */
+@layer dd.components {
+  [data-slot="table-root"] {
+    display: flex;
+    flex-direction: column;
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+  }
+
+  [data-slot="table-root"]:focus {
+    outline: none;
+  }
+
+  [data-slot="table-root"]:focus-visible {
+    outline: var(--dd-focus-width) solid var(--dd-color-focus);
+    outline-offset: var(--dd-focus-offset);
+  }
+
+  [data-slot="table-header"],
+  [data-slot="table-row"] {
+    display: grid;
+    grid-template-columns: var(--dd-table-columns);
+    align-items: center;
+    box-sizing: border-box;
+    block-size: var(--dd-row-height);
+    white-space: nowrap;
+  }
+
+  /* The header sits outside the viewport, so it never scrolls away. */
+  [data-slot="table-header"] {
+    flex: none;
+    overflow: hidden;
+    scrollbar-gutter: stable;
+    border-block-end: var(--dd-border-width) solid var(--dd-color-border);
+    color: var(--dd-color-text-muted);
+  }
+
+  /* The viewport keeps the highlighted row in place itself, so browser scroll anchoring is off. */
+  [data-slot="table-viewport"] {
+    flex: auto;
+    overflow: auto;
+    overflow-anchor: none;
+    scrollbar-gutter: stable;
+  }
+
+  [data-slot="table-row"] {
+    cursor: default;
+    user-select: none;
+    /* The default viewport mounts every row; the browser skips layout and paint off screen. */
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto var(--dd-row-height);
+  }
+
+  [data-slot="table-row"][data-selected] {
+    background: var(--dd-color-selection);
+  }
+
+  [data-slot="table-row"][data-highlighted] {
+    background: var(--dd-color-highlight);
+  }
+
+  [data-slot="table-row"][data-disabled] {
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="table-header-cell"],
+  [data-slot="table-cell"] {
+    overflow: hidden;
+    padding-inline: var(--dd-cell-padding-inline);
+    text-overflow: ellipsis;
+  }
+
+  [data-slot="table-header-cell"] {
+    font-weight: bold;
+  }
+
+  [data-slot="table-header-cell"][data-sortable] {
+    cursor: pointer;
+  }
+
+  [data-slot="table-header-cell"][data-chosen] {
+    color: var(--dd-color-text);
+    text-decoration: underline;
+  }
+
+  [data-slot="table-header-cell"][data-direction="ascending"]::after {
+    content: " ▲";
+  }
+
+  [data-slot="table-header-cell"][data-direction="descending"]::after {
+    content: " ▼";
+  }
+
+  [data-slot="table-header-cell"][data-align="end"],
+  [data-slot="table-cell"][data-align="end"] {
+    text-align: end;
+  }
+
+  [data-slot="table-cell"][data-numeric] {
+    font-family: var(--dd-font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Nesting indents the toggle by --dd-depth (set on each row by the core) times --dd-indent. */
+  [data-slot="table-toggle"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--dd-icon-size);
+    block-size: var(--dd-icon-size);
+    margin-inline-start: calc(var(--dd-depth) * var(--dd-indent));
+    margin-inline-end: var(--dd-gap);
+    padding: unset;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: var(--dd-line-height);
+    vertical-align: middle;
+    cursor: default;
+  }
+
+  [data-slot="table-toggle"]:empty::before {
+    content: "▸";
+  }
+
+  [data-slot="table-toggle"][data-expanded]:empty::before {
+    content: "▾";
+  }
+
+  /* Leaves keep the toggle's space for alignment but hide it from sight and assistive technology. */
+  [data-slot="table-toggle"][data-leaf] {
+    visibility: hidden;
+  }
+}

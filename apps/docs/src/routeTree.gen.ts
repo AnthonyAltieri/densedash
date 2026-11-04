@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from "./routes/__root.tsx";
 import { Route as IndexRouteImport } from "./routes/index.tsx";
+import { Route as ComponentRouteImport } from "./routes/$component.tsx";
+import { Route as ChangingKeysRouteImport } from "./routes/changing-keys.tsx";
 
 const IndexRoute = IndexRouteImport.update({
   id: "/",
   path: "/",
   getParentRoute: () => rootRouteImport,
 } as any);
+const ComponentRoute = ComponentRouteImport.update({
+  id: "/$component",
+  path: "/$component",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ChangingKeysRoute = ChangingKeysRouteImport.update({
+  id: "/changing-keys",
+  path: "/changing-keys",
+  getParentRoute: () => rootRouteImport,
+} as any);
 
 export interface FileRoutesByFullPath {
   "/": typeof IndexRoute;
+  "/$component": typeof ComponentRoute;
+  "/changing-keys": typeof ChangingKeysRoute;
 }
 export interface FileRoutesByTo {
   "/": typeof IndexRoute;
+  "/$component": typeof ComponentRoute;
+  "/changing-keys": typeof ChangingKeysRoute;
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport;
   "/": typeof IndexRoute;
+  "/$component": typeof ComponentRoute;
+  "/changing-keys": typeof ChangingKeysRoute;
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath;
-  fullPaths: "/";
+  fullPaths: "/" | "/$component" | "/changing-keys";
   fileRoutesByTo: FileRoutesByTo;
-  to: "/";
-  id: "__root__" | "/";
+  to: "/" | "/$component" | "/changing-keys";
+  id: "__root__" | "/" | "/$component" | "/changing-keys";
   fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
+  ComponentRoute: typeof ComponentRoute;
+  ChangingKeysRoute: typeof ChangingKeysRoute;
 }
 
 declare module "@tanstack/react-router" {
@@ -48,11 +68,27 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof IndexRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/$component": {
+      id: "/$component";
+      path: "/$component";
+      fullPath: "/$component";
+      preLoaderRoute: typeof ComponentRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/changing-keys": {
+      id: "/changing-keys";
+      path: "/changing-keys";
+      fullPath: "/changing-keys";
+      preLoaderRoute: typeof ChangingKeysRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ComponentRoute: ComponentRoute,
+  ChangingKeysRoute: ChangingKeysRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

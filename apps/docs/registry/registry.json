@@ -4,15 +4,150 @@
   "homepage": "https://github.com/AnthonyAltieri/densedash",
   "items": [
     {
-      "name": "placeholder",
-      "type": "registry:file",
-      "title": "Docs placeholder",
-      "description": "A small interactive example for the docs scaffold. Component APIs arrive later.",
+      "name": "theme",
+      "type": "registry:theme",
+      "title": "Theme",
+      "description": "Typed densedash tokens, system and explicit themes, and subtree densities. Import the installed tokens.css once.",
       "files": [
         {
-          "path": "registry/default/examples/placeholder.tsx",
+          "path": "../../packages/css/src/generated/tokens.css",
           "type": "registry:file",
-          "target": "src/components/densedash-placeholder.tsx"
+          "target": "components/densedash/styles/tokens.css"
+        }
+      ]
+    },
+    {
+      "name": "kbd",
+      "type": "registry:ui",
+      "title": "Kbd",
+      "description": "Densedash kbd parts with the canonical plain CSS.",
+      "dependencies": ["@densedash/react@0.0.0"],
+      "registryDependencies": ["@densedash/theme"],
+      "files": [
+        {
+          "path": "registry/default/ui/kbd.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/kbd.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/kbd.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/kbd.css"
+        }
+      ]
+    },
+    {
+      "name": "keymap",
+      "type": "registry:ui",
+      "title": "Keymap",
+      "description": "Densedash keymap parts with the canonical plain CSS.",
+      "dependencies": ["@densedash/react@0.0.0", "@densedash/core@0.0.0"],
+      "registryDependencies": ["@densedash/kbd"],
+      "files": [
+        {
+          "path": "registry/default/ui/keymap.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/keymap.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/keymap-scope.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/keymap-scope.css"
+        },
+        {
+          "path": "../../packages/css/src/components/keymap-legend.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/keymap-legend.css"
+        },
+        {
+          "path": "../../packages/css/src/components/keymap-chord-hint.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/keymap-chord-hint.css"
+        },
+        {
+          "path": "../../packages/css/src/components/keymap-confirm-prompt.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/keymap-confirm-prompt.css"
+        }
+      ]
+    },
+    {
+      "name": "tree",
+      "type": "registry:ui",
+      "title": "Tree",
+      "description": "Densedash tree parts with the canonical plain CSS.",
+      "dependencies": ["@densedash/react@0.0.0"],
+      "registryDependencies": ["@densedash/keymap"],
+      "files": [
+        {
+          "path": "registry/default/ui/tree.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/tree.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/tree.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/tree.css"
+        }
+      ]
+    },
+    {
+      "name": "list",
+      "type": "registry:ui",
+      "title": "List",
+      "description": "Densedash list parts with the canonical plain CSS.",
+      "dependencies": ["@densedash/react@0.0.0"],
+      "registryDependencies": ["@densedash/keymap"],
+      "files": [
+        {
+          "path": "registry/default/ui/list.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/list.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/tree.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/tree.css"
+        }
+      ]
+    },
+    {
+      "name": "table",
+      "type": "registry:ui",
+      "title": "Table",
+      "description": "Densedash table parts with the canonical plain CSS.",
+      "dependencies": ["@densedash/react@0.0.0"],
+      "registryDependencies": ["@densedash/keymap"],
+      "files": [
+        {
+          "path": "registry/default/ui/table.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/table.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/table.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/table.css"
+        }
+      ]
+    },
+    {
+      "name": "tabs",
+      "type": "registry:ui",
+      "title": "Tabs",
+      "description": "Densedash tabs parts with the canonical plain CSS.",
+      "dependencies": ["@densedash/react@0.0.0"],
+      "registryDependencies": ["@densedash/keymap"],
+      "files": [
+        {
+          "path": "registry/default/ui/tabs.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/tabs.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/tabs.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/tabs.css"
         }
       ]
     }

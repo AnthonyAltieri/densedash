@@ -1,9 +1,10 @@
 # Docs
 
-The private TanStack Start app hosts the docs overview and shadcn registry.
-Run commands from the repository root:
+The private TanStack Start app hosts the component docs and shadcn registry.
+Run commands from the repository root (build dependencies before first dev run):
 
 ```sh
+pnpm turbo run build --filter '@densedash/docs^...'
 pnpm --filter @densedash/docs dev
 pnpm --filter @densedash/docs registry:build
 pnpm turbo run build lint typecheck
@@ -34,7 +35,7 @@ Repository configuration:
   is built. A failed registry invocation removes `public/r` and exits nonzero,
   so Vercel fails the deployment and keeps the previous successful deployment.
 - Nitro emits `.vercel/output/config.json`, static assets under
-  `.vercel/output/static/` (including `r/placeholder.json`), and a serverless
+  `.vercel/output/static/` (including the seven `r/*.json` items), and a serverless
   function under `.vercel/output/functions/__server.func/`. Intermediate Vite
   files live in `node_modules/.nitro/`. No output-directory override or
   `vercel.json` is needed.
@@ -68,13 +69,16 @@ Vercel dashboard configuration, outside the repository:
 
 Inspect these settings with `vercel api /v9/projects/densedash-docs`.
 To recreate the project, import the repository in Vercel with the settings
-above. For protected previews, `vercel curl /r/placeholder.json --deployment
+above. For protected previews, `vercel curl /r/tree.json --deployment
 <preview-url>` uses the logged-in CLI. A downstream CLI such as shadcn needs
 an authorized protection bypass when checking a protected preview; never
 commit that credential. Production installs need no authentication:
 
 ```sh
-pnpm dlx shadcn@4.23.0 add https://densedash-docs.vercel.app/r/placeholder.json
+# components.json: "registries": {
+#   "@densedash": "https://densedash-docs.vercel.app/r/{name}.json"
+# }
+pnpm dlx shadcn@4.23.0 add @densedash/tree
 ```
 
 ## Live examples
@@ -105,9 +109,27 @@ tabs (arrow keys move between tabs). The choice is the preview's
 component state for the current page. Below 1000px side by side stacks the
 preview above the code.
 
-The placeholder is a docs example, not a published component API. The registry
-installs its TSX source without styles. The docs style its `data-slot` and
-`data-state` attributes with plain CSS and `--dd-*` variables.
+Every example imports `registry/default/ui/*`: these are the exact files embedded
+in registry output. Thin re-exports preserve the packages' generic component
+signatures. `keymap.tsx` adds a browser-only Provider that owns and disposes one
+kernel; keep its `keys` object stable. Apps with an existing kernel can instead
+use `Densedash.Provider` from the package.
+
+Wrappers import their installed CSS through `./styles/*.css`. Vite resolves these
+imports to the canonical package CSS, while the registry embeds those same files
+at explicit `components/densedash/styles/*` targets. No parallel CSS copy lives
+in docs. The preview plugin gives twoslash a filesystem root beside the examples
+so relative wrapper imports retain their real inferred types. It never suppresses
+example type errors.
+
+`scripts/reference-plugin.ts` emits `virtual:densedash-reference` at build time.
+It filters generated `tokens.json` rows using `var(--dd-*)` references read from
+component CSS (including Kbd where used). Theme shows the complete token catalog.
+The same plugin imports `tradingPreset` from the built core package and formats
+keys with the kernel keyboard port, then disposes the build kernel. Pages select
+command families from this generated data. Collection nesting depth and table
+column tracks are runtime values, not theme tokens. Parts metadata is transcribed
+from the React parts and core prop getters in `src/content/components.ts`.
 
 ## Registry
 
@@ -117,18 +139,32 @@ manifest and every item, reads all referenced source files, then writes
 commands run it first. Re-run `registry:build` after editing registry content
 while a dev server is running.
 
-The supported shadcn subset is intentionally small:
+The catalog contains `theme`, `keymap`, `kbd`, `tree`, `list`, `table`, and
+`tabs`; the scaffold placeholder was removed. `list` intentionally copies
+`tree.css` because List shares tree slots. Collection items depend on keymap,
+keymap depends on kbd, and kbd depends on theme. Registry dependency addresses
+stay namespaced so preview installations use the configured preview host too.
 
-- Manifest: `$schema`, `name`, `homepage`, and a nonempty `items` array.
-- Item: unique lowercase kebab-case `name`, `type: "registry:file"`,
-  nonempty `title`, `description`, and `files`.
-- File: nonempty `path`, `type: "registry:file"`, and required `target`.
-  Paths are relative to this app. The builder adds `content` from disk.
+The validated shadcn subset is:
 
-Unsupported fields fail validation. Extend the schema deliberately before
-adding other registry types or metadata. Effect's core validation API is
-`effect/Schema`; the lowercase `effect/schema` entry point groups additional
-schema utilities in Effect 4.1.2.
+- Manifest: `$schema`, `name`, `homepage`, and nonempty `items`.
+- Item: unique kebab-case `name`, `registry:ui` or `registry:theme`, nonempty
+  `title`, `description`, `files`, optional npm `dependencies`,
+  `registryDependencies`, and light/dark `cssVars` maps.
+- File: nonempty app-relative `path`, `registry:ui` or `registry:file`, required
+  `target`; the builder embeds `content` from disk.
+
+The theme's `cssVars` come directly from the generated package JSON. It also ships
+`tokens.css`: cssVars cannot express system theme media queries, explicit
+`data-theme` selectors, subtree densities, or cascade layer ordering. The registry
+Provider imports it once; when using your own provider, import the installed
+`components/densedash/styles/tokens.css` in your app entry. Tailwind's `.dark` and
+the package's `data-theme="dark"` are both supported; avoid conflicting settings.
+
+Unsupported fields fail validation. Effect's validation API is `effect/Schema`.
+Npm versions are pinned to the package versions represented by this catalog.
+A public CLI install requires those packages to have been published to npm;
+this repository's release workflow does not publish them yet.
 
 One build invocation owns `public/r`. It removes old output before validation
 and cleans up on failure, including write failures. Builds exit nonzero with
@@ -139,7 +175,8 @@ included in the app's Turbo build outputs.
 With the server running and a React/Tailwind app initialized with shadcn:
 
 ```sh
-pnpm dlx shadcn@4.23.0 add http://localhost:3000/r/placeholder.json
+# Set @densedash in components.json to http://localhost:3000/r/{name}.json
+pnpm dlx shadcn@4.23.0 add @densedash/tree
 ```
 
 ## Theme, density, and workspace checks

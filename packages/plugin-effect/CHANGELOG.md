@@ -1,5 +1,13 @@
 # @densedash/plugin-effect
 
+## 0.1.1
+
+### Patch Changes
+
+- [#24](https://github.com/densedash/densedash/pull/24) [`9034385`](https://github.com/densedash/densedash/commit/90343853812c90d7134431cefffc1fef610d5756) Thanks [@AnthonyAltieri](https://github.com/AnthonyAltieri)! - Publish with npm provenance from densedash/densedash.
+- Updated dependencies [[`9034385`](https://github.com/densedash/densedash/commit/90343853812c90d7134431cefffc1fef610d5756)]:
+  - @densedash/core@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes

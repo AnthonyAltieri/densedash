@@ -3,10 +3,32 @@ export * as Keymap from "./keymap/index.js";
 export * as Tabs from "./tabs/index.js";
 export * as Tree from "./tree/index.js";
 export * as List from "./list/index.js";
+export * as Table from "./table/index.js";
 export { useTree } from "./tree/handle.js";
 export type { TreeHandle, UseTreeOptions } from "./tree/handle.js";
 export { useList } from "./list/use-list.js";
 export type { UseListOptions } from "./list/use-list.js";
+export { useTable } from "./table/handle.js";
+export type {
+  TableCommands,
+  TableHandle,
+  TableSortControl,
+  TableState,
+  UseTableOptions,
+} from "./table/handle.js";
+export { columns, getSortedRows, inferKinds } from "./table/columns.js";
+export type {
+  Column,
+  ColumnAlign,
+  ColumnHelper,
+  ColumnKinds,
+  ColumnOptions,
+  GetSortedRowsOptions,
+  SortDirection,
+  SortedRows,
+  TableSort,
+  ValueKind,
+} from "./table/columns.js";
 export type { Virtualizer, ViewportMeasurements, ViewportRange } from "./tree/viewport.js";
 export { Kbd } from "./kbd.js";
 export type { KbdProps, KbdState } from "./kbd.js";

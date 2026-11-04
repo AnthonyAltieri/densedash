@@ -6,7 +6,10 @@ import type { tradingPreset } from "./trading-preset.js";
 export interface Register {}
 
 /** Commands that densedash parts register themselves, so apps can rebind them by id. */
-type PartCommandId = Extract<keyof typeof tradingPreset, `tree.${string}` | `tabs.${string}`>;
+type PartCommandId = Extract<
+  keyof typeof tradingPreset,
+  `tree.${string}` | `tabs.${string}` | `table.${string}`
+>;
 
 export type CommandId =
   | PartCommandId

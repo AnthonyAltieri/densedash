@@ -9,7 +9,7 @@ export type TreeChangeReason =
   | "typeahead"
   | "programmatic"
   | "items-changed";
-export type TreeMode = "tree" | "listbox" | "treegrid";
+export type TreeMode = "tree" | "listbox" | "treegrid" | "grid";
 export type TreeFocusStrategy = "active-descendant" | "roving";
 
 export interface TreeOptions<T> extends TreeSource<T> {
@@ -58,7 +58,14 @@ export interface TreeSnapshot<T> extends Readonly<TreeState> {
 }
 
 export interface TreePartProps {
-  "data-slot": "tree-root" | "tree-row" | "tree-toggle";
+  /** Grid and treegrid modes use the `table-*` slots. */
+  "data-slot":
+    | "tree-root"
+    | "tree-row"
+    | "tree-toggle"
+    | "table-root"
+    | "table-row"
+    | "table-toggle";
   "data-highlighted": "" | undefined;
   "data-selected": "" | undefined;
   "data-expanded": "" | undefined;

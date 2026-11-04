@@ -66,10 +66,12 @@ Props are plain attributes with `onKeyDown`-style handler names. Adapters map
 these through their `normalizeProps`. Data flags use an empty string when active
 and undefined otherwise; adapters must omit undefined attributes. Every part has
 `data-slot`, state flags, depth and `style: { "--dd-depth": depth }`. Slot names
-are `tree-root`, `tree-row` and `tree-toggle`. Toggle props target a native button.
+are `tree-root`, `tree-row` and `tree-toggle`; `grid` and `treegrid` modes use
+`table-root`, `table-row` and `table-toggle`. Toggle props target a native button.
 Render visible rows in preorder with the returned IDs. Treegrid adapters supply
 their own grid cells; the core supplies root and row semantics. Listbox rows use
-`option` without tree-only level/expanded attributes.
+`option` without tree-only level/expanded attributes. `grid` rows are flat `row`s
+without level, set or expansion attributes.
 
 `focusStrategy: "active-descendant"` is the default: root tabIndex is 0 and rows
 are -1. `"roving"` gives one enabled row tabIndex 0, root -1, and moves DOM focus

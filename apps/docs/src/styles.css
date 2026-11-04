@@ -49,7 +49,7 @@
   --dd-preview-height: 300px;
   --dd-tooltip-width: 440px;
   --dd-tooltip-shadow: 0 6px 24px #0002;
-  --dd-hover-gap: 8px;
+  --dd-hover-margin: 8px;
   --dd-layer-tooltip: 10;
   --dd-flex: 1;
   --dd-main-column: 1fr;
@@ -433,8 +433,8 @@ h1 span {
   top: var(--dd-hover-y, var(--dd-zero));
   left: var(--dd-hover-x, var(--dd-zero));
   margin: var(--dd-zero);
-  max-width: min(var(--dd-tooltip-width), calc(var(--dd-full) - var(--dd-hover-gap) * 2));
-  max-height: calc(var(--dd-full) - var(--dd-hover-gap) * 2);
+  max-width: min(var(--dd-tooltip-width), calc(var(--dd-full) - var(--dd-hover-margin) * 2));
+  max-height: calc(var(--dd-full) - var(--dd-hover-margin) * 2);
   overflow: auto;
   padding: calc(var(--dd-unit) * 2) calc(var(--dd-unit) * 3);
   background: var(--dd-code-background);

@@ -105,11 +105,11 @@ export function ComponentPreview({ name }: { name: string }) {
         </div>
         <div
           data-slot="source-code"
+          ref={hover.sourceRef}
           onPointerOver={hover.onPointerOver}
           onPointerOut={hover.onPointerOut}
           onFocus={hover.onFocus}
           onBlur={hover.onBlur}
-          onKeyDown={hover.onKeyDown}
           // HTML is produced by Shiki from trusted repository files at compile time.
           dangerouslySetInnerHTML={{ __html: html }}
         />
@@ -122,6 +122,7 @@ export function ComponentPreview({ name }: { name: string }) {
             id={typeHover.id}
             data-slot="type-hover"
             popover="manual"
+            onPointerLeave={hover.onHoverPointerLeave}
             // Shiki highlights twoslash type text from trusted repository files at compile time.
             dangerouslySetInnerHTML={{ __html: typeHover.html }}
           />
@@ -137,9 +138,12 @@ function tokenOf(target: EventTarget | null): HTMLElement | null {
 
 /**
  * Shows a token's type hover in the top layer, so the code panel's overflow
- * never clips it, and keeps it inside the viewport.
+ * never clips it, and keeps it inside the viewport. The token and its hover
+ * form one hover region: the pointer can move into the hover to scroll or
+ * select it. Escape anywhere hides it.
  */
 function useTypeHover() {
+  const sourceRef = useRef<HTMLDivElement>(null);
   const [token, setToken] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -149,38 +153,61 @@ function useTypeHover() {
     const place = () => {
       hover.style.setProperty("--dd-hover-x", "0px");
       hover.style.setProperty("--dd-hover-y", "0px");
-      const gap = Number.parseFloat(getComputedStyle(hover).getPropertyValue("--dd-hover-gap"));
+      const margin = Number.parseFloat(
+        getComputedStyle(hover).getPropertyValue("--dd-hover-margin"),
+      );
       const anchor = token.getBoundingClientRect();
       const box = hover.getBoundingClientRect();
       const viewport = document.documentElement;
-      const maxX = viewport.clientWidth - box.width - gap;
-      const x = Math.max(gap, Math.min(anchor.left, maxX));
-      const above = anchor.top - gap - box.height;
-      const y = above >= gap ? above : anchor.bottom + gap;
+      const x = Math.max(margin, Math.min(anchor.left, viewport.clientWidth - box.width - margin));
+      // Flush with the token, so the pointer crosses no gap on its way into the hover.
+      const roomAbove = anchor.top - margin;
+      const roomBelow = viewport.clientHeight - margin - anchor.bottom;
+      const above = box.height <= roomAbove || (box.height > roomBelow && roomAbove > roomBelow);
+      const y = above ? anchor.top - box.height : anchor.bottom;
+      const maxY = viewport.clientHeight - box.height - margin;
       hover.style.setProperty("--dd-hover-x", `${x}px`);
-      hover.style.setProperty("--dd-hover-y", `${y}px`);
+      hover.style.setProperty("--dd-hover-y", `${Math.max(margin, Math.min(y, maxY))}px`);
+    };
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setToken(null);
     };
     hover.showPopover();
     place();
     window.addEventListener("scroll", place, { capture: true, passive: true });
     window.addEventListener("resize", place);
+    document.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("scroll", place, { capture: true });
       window.removeEventListener("resize", place);
+      document.removeEventListener("keydown", onKeyDown);
       if (hover.matches(":popover-open")) hover.hidePopover();
     };
   }, [token]);
 
+  /** The pointer left the token or its hover for `next`. */
+  function leave(next: EventTarget | null) {
+    if (next instanceof Element) {
+      if (token?.contains(next) || next.closest('[data-slot="type-hover"]:popover-open')) return;
+    }
+    const focused = document.activeElement;
+    setToken(sourceRef.current?.contains(focused) ? tokenOf(focused) : null);
+  }
+
   return {
+    sourceRef,
     onPointerOver(event: PointerEvent<HTMLElement>) {
       const next = tokenOf(event.target);
       if (next) setToken(next);
     },
     onPointerOut(event: PointerEvent<HTMLElement>) {
       const current = tokenOf(event.target);
-      if (!current || current.contains(event.relatedTarget as Node | null)) return;
-      const focused = document.activeElement;
-      setToken(event.currentTarget.contains(focused) ? tokenOf(focused) : null);
+      if (current && !current.contains(event.relatedTarget as Node | null)) {
+        leave(event.relatedTarget);
+      }
+    },
+    onHoverPointerLeave(event: PointerEvent<HTMLElement>) {
+      leave(event.relatedTarget);
     },
     onFocus(event: FocusEvent<HTMLElement>) {
       const next = tokenOf(event.target);
@@ -188,9 +215,6 @@ function useTypeHover() {
     },
     onBlur() {
       setToken(null);
-    },
-    onKeyDown(event: KeyboardEvent<HTMLElement>) {
-      if (event.key === "Escape") setToken(null);
     },
   };
 }

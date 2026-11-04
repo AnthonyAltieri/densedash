@@ -89,12 +89,15 @@ invalidate the generated module and reload the page in development.
 
 Keep examples self-contained for twoslash's TypeScript environment.
 Type errors fail compilation. Hover or focus an underlined symbol to inspect
-its inferred type; Escape hides it. The plugin highlights each type with the
+its inferred type; move the pointer into the hover to scroll or select it, and
+press Escape to hide it. The plugin highlights each type with the
 same Shiki theme as the code and emits it as a separate `popover` element
 outside the code element. Each token references its hover by id, so the code
 element's text content preserves the entire file, including the trailing
 newline. The preview shows the hover in the top layer, positioned against the
 token and kept inside the viewport, so the code panel's overflow never clips it.
+Hover ids derive from the example name, so render each example at most once
+per page.
 
 Each preview starts side by side; its toolbar switches to Preview and Code
 tabs (arrow keys move between tabs). The choice is the preview's

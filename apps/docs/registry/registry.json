@@ -21,7 +21,7 @@
       "type": "registry:ui",
       "title": "Kbd",
       "description": "Densedash kbd parts with the canonical plain CSS.",
-      "dependencies": ["@densedash/react@0.0.0"],
+      "dependencies": ["@densedash/react@0.1.0"],
       "registryDependencies": ["@densedash/theme"],
       "files": [
         {
@@ -41,7 +41,7 @@
       "type": "registry:ui",
       "title": "Keymap",
       "description": "Densedash keymap parts with the canonical plain CSS.",
-      "dependencies": ["@densedash/react@0.0.0", "@densedash/core@0.0.0"],
+      "dependencies": ["@densedash/react@0.1.0", "@densedash/core@0.1.0"],
       "registryDependencies": ["@densedash/kbd"],
       "files": [
         {
@@ -76,7 +76,7 @@
       "type": "registry:ui",
       "title": "Tree",
       "description": "Densedash tree parts with the canonical plain CSS.",
-      "dependencies": ["@densedash/react@0.0.0"],
+      "dependencies": ["@densedash/react@0.1.0"],
       "registryDependencies": ["@densedash/keymap"],
       "files": [
         {
@@ -96,7 +96,7 @@
       "type": "registry:ui",
       "title": "List",
       "description": "Densedash list parts with the canonical plain CSS.",
-      "dependencies": ["@densedash/react@0.0.0"],
+      "dependencies": ["@densedash/react@0.1.0"],
       "registryDependencies": ["@densedash/keymap"],
       "files": [
         {
@@ -116,7 +116,7 @@
       "type": "registry:ui",
       "title": "Table",
       "description": "Densedash table parts with the canonical plain CSS.",
-      "dependencies": ["@densedash/react@0.0.0"],
+      "dependencies": ["@densedash/react@0.1.0"],
       "registryDependencies": ["@densedash/keymap"],
       "files": [
         {
@@ -136,7 +136,7 @@
       "type": "registry:ui",
       "title": "Tabs",
       "description": "Densedash tabs parts with the canonical plain CSS.",
-      "dependencies": ["@densedash/react@0.0.0"],
+      "dependencies": ["@densedash/react@0.1.0"],
       "registryDependencies": ["@densedash/keymap"],
       "files": [
         {

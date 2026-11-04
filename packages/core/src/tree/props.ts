@@ -29,7 +29,22 @@ export function createTreeProps<T>({
   const rowId = (key: Key) =>
     `${id}-row-${Array.from(key, (character) => character.codePointAt(0)!.toString(16)).join("-")}`;
   const roving = () => model.options().focusStrategy === "roving";
-  const current = (key: Key) => model.get().rows.find((row) => row.key === key);
+  // Prop getters run once per visible row, so look rows up by key in O(1) per snapshot.
+  const indexes = new WeakMap<readonly TreeRow<T>[], Map<Key, TreeRow<T>>>();
+  const current = (key: Key) => {
+    const rows = model.get().rows;
+    let index = indexes.get(rows);
+    if (index === undefined) {
+      index = new Map(rows.map((row) => [row.key, row]));
+      indexes.set(rows, index);
+    }
+    return index.get(key);
+  };
+  const enabledHighlight = () => {
+    const key = model.get().highlighted;
+    const row = key === null ? undefined : current(key);
+    return row?.disabled === false ? row : undefined;
+  };
   const interactive = (key: Key) => model.active() && current(key)?.disabled === false;
 
   function focusHighlighted(): void {
@@ -115,7 +130,7 @@ export function createTreeProps<T>({
   return {
     getRootProps(): TreeRootProps {
       const state = model.get();
-      const highlighted = state.rows.find((row) => row.key === state.highlighted && !row.disabled);
+      const highlighted = enabledHighlight();
       return {
         ...part("tree-root"),
         id,
@@ -141,8 +156,7 @@ export function createTreeProps<T>({
       const row = current(key);
       const mode = model.options().mode ?? "tree";
       const focused =
-        state.rows.find((candidate) => candidate.key === state.highlighted && !candidate.disabled)
-          ?.key ?? state.rows.find((candidate) => !candidate.disabled)?.key;
+        enabledHighlight()?.key ?? state.rows.find((candidate) => !candidate.disabled)?.key;
       return {
         ...part("tree-row", row),
         id: rowId(key),

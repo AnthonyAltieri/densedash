@@ -1,6 +1,13 @@
 export * as Densedash from "./densedash.js";
 export * as Keymap from "./keymap/index.js";
 export * as Tabs from "./tabs/index.js";
+export * as Tree from "./tree/index.js";
+export * as List from "./list/index.js";
+export { useTree } from "./tree/handle.js";
+export type { TreeHandle, UseTreeOptions } from "./tree/handle.js";
+export { useList } from "./list/use-list.js";
+export type { UseListOptions } from "./list/use-list.js";
+export type { Virtualizer, ViewportMeasurements, ViewportRange } from "./tree/viewport.js";
 export { Kbd } from "./kbd.js";
 export type { KbdProps, KbdState } from "./kbd.js";
 export { useKernel } from "./context.js";

@@ -1,0 +1,296 @@
+import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
+import type { Key, Tree as CoreTree, TreeRow, TreeSnapshot } from "@densedash/core";
+import { mergeProps } from "../merge-props.js";
+import { useRender } from "../use-render.js";
+import type { PartProps } from "../use-render.js";
+import { useStore } from "../use-store.js";
+import { useTreeContext } from "./context.js";
+import { getInternals } from "./handle.js";
+import type { TreeHandle } from "./handle.js";
+
+/** Visible row indices to mount: `start` inclusive, `end` exclusive. */
+export interface ViewportRange {
+  readonly start: number;
+  readonly end: number;
+}
+
+/** What the viewport tells its virtualizer after each render. */
+export interface ViewportMeasurements {
+  /** The viewport's scroll element. */
+  readonly element: HTMLElement;
+  /** The number of visible rows (expanded rows and their visible descendants). */
+  readonly count: number;
+}
+
+/**
+ * The viewport's rendering strategy. The default strategy mounts every row; pass a
+ * virtualizer through `<Tree.Viewport virtualizer={…}>` to mount only a range. Use one
+ * virtualizer per viewport.
+ *
+ * - `range()` and `padding()` are read during render; call the `subscribe` listener whenever
+ *   they would return something new (after a scroll or a measurement), and the viewport
+ *   re-renders.
+ * - `sync()` runs in a layout effect after each render that changes the scroll element or the
+ *   row count, before `scrollToIndex`.
+ * - `scrollToIndex()` brings the highlighted row into view after keyboard and programmatic
+ *   moves (never for pointer hover): `"auto"` scrolls the least distance, `"center"` centers it.
+ *   Mount that row once it is in range, since the root's `aria-activedescendant` points at it.
+ */
+export interface Virtualizer {
+  range(): ViewportRange;
+  scrollToIndex(index: number, align: "auto" | "center"): void;
+  sync?(measurements: ViewportMeasurements): void;
+  subscribe?(listener: () => void): () => void;
+  /** Pixels before the first mounted row and after the last, so the scroll height covers every row. */
+  padding?(): { readonly start: number; readonly end: number };
+}
+
+export interface ViewportState {
+  /** A virtualizer replaces the default strategy. */
+  readonly virtualized: boolean;
+}
+
+export interface ViewportProps<T>
+  extends
+    Omit<ComponentPropsWithRef<"div">, "className" | "style" | "children">,
+    PartProps<ViewportState> {
+  /** The tree passed to the enclosing root; its item type types `row.item`. */
+  readonly tree: TreeHandle<T>;
+  /**
+   * Renders one visible row, usually `(row) => <Tree.Row row={row}>…</Tree.Row>`. While this
+   * function keeps its identity (the React Compiler memoizes inline functions), rows whose data
+   * is unchanged skip rendering; highlight and selection re-render only the rows they touch.
+   */
+  readonly children: (row: TreeRow<T>) => ReactNode;
+  readonly virtualizer?: Virtualizer | undefined;
+}
+
+const selectRows = (state: TreeSnapshot<unknown>) => state.rows;
+const selectHighlighted = (state: TreeSnapshot<unknown>) => state.highlighted;
+
+function rowElement(core: CoreTree<unknown> | null, document: Document, key: Key) {
+  return core === null ? null : document.getElementById(core.getRowProps(key).id);
+}
+
+/** Scrolls `target` into the viewport's client box, or into the page when the viewport does not scroll. */
+function reveal(viewport: HTMLElement, target: HTMLElement, align: "auto" | "center"): void {
+  if (viewport.scrollHeight <= viewport.clientHeight) {
+    target.scrollIntoView({ block: align === "center" ? "center" : "nearest" });
+    return;
+  }
+  const box = viewport.getBoundingClientRect();
+  const top = box.top + viewport.clientTop;
+  const bottom = top + viewport.clientHeight;
+  const rect = target.getBoundingClientRect();
+  if (align === "center") viewport.scrollTop += (rect.top + rect.bottom) / 2 - (top + bottom) / 2;
+  else if (rect.top < top) viewport.scrollTop -= top - rect.top;
+  else if (rect.bottom > bottom) viewport.scrollTop += rect.bottom - bottom;
+}
+
+/** The default strategy: every row is mounted, and scrolling uses the row's element. */
+function createAllRows(locate: { current: (index: number) => HTMLElement | null }) {
+  let viewport: HTMLElement | null = null;
+  return {
+    // The viewport clamps the range to the row count.
+    range: () => ({ start: 0, end: Infinity }),
+    sync(measurements: ViewportMeasurements) {
+      viewport = measurements.element;
+    },
+    scrollToIndex(index: number, align: "auto" | "center") {
+      const target = locate.current(index);
+      if (viewport !== null && target !== null) reveal(viewport, target, align);
+    },
+  } satisfies Virtualizer;
+}
+
+// The first mounted row whose bottom edge is below the viewport's top edge (rows are in order).
+function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
+  const rows = viewport.querySelectorAll<HTMLElement>('[data-slot="tree-row"]');
+  const top = viewport.getBoundingClientRect().top + viewport.clientTop;
+  let low = 0;
+  let high = rows.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (rows[middle]!.getBoundingClientRect().bottom <= top) low = middle + 1;
+    else high = middle;
+  }
+  return rows[low] ?? null;
+}
+
+const fields = [
+  "key",
+  "item",
+  "index",
+  "depth",
+  "parentKey",
+  "hasChildren",
+  "expanded",
+  "posInSet",
+  "setSize",
+  "disabled",
+  "textValue",
+] as const satisfies readonly (keyof TreeRow<unknown>)[];
+
+interface SlotProps {
+  readonly row: TreeRow<unknown>;
+  readonly render: (row: TreeRow<unknown>) => ReactNode;
+}
+
+// Data updates create new row objects; rows whose fields are unchanged skip rendering. Row
+// state (highlight, selection) reaches each row through its own subscription.
+const RowSlot = memo(
+  function RowSlot({ row, render }: SlotProps): ReactNode {
+    return render(row);
+  },
+  (previous, next) =>
+    previous.render === next.render &&
+    fields.every((field) => Object.is(previous.row[field], next.row[field])),
+);
+
+function Follow({ strategy }: { strategy: Virtualizer }): null {
+  const { handle } = useTreeContext("<Tree.Viewport>");
+  const internals = getInternals(handle);
+  const highlighted = useStore(handle.state, selectHighlighted);
+  useLayoutEffect(() => {
+    if (highlighted === null || internals.highlightReason() === "pointer") return;
+    const index = handle.state.get().rows.findIndex((row) => row.key === highlighted);
+    if (index >= 0) strategy.scrollToIndex(index, "auto");
+  }, [handle, internals, highlighted, strategy]);
+  return null;
+}
+
+function useVersion(virtualizer: Virtualizer | undefined): number {
+  const [version, setVersion] = useState(0);
+  useLayoutEffect(() => {
+    if (virtualizer?.subscribe === undefined) return;
+    return virtualizer.subscribe(() => setVersion((current) => current + 1));
+  }, [virtualizer]);
+  return version;
+}
+
+// Read during render with the version as an argument, so memoizing compilers re-read it.
+function readLayout(strategy: Virtualizer, count: number, _version: number) {
+  const range = strategy.range();
+  const start = Math.max(0, Math.min(count, Math.floor(range.start)));
+  const end = Math.max(start, Math.min(count, Math.ceil(range.end)));
+  return { start, end, padding: strategy.padding?.() };
+}
+
+/**
+ * The scroll container. It renders visible rows through `children`, keeps the highlighted
+ * row in view and, when rows are inserted or removed above it, keeps the highlighted row (or
+ * the first visible row) at the same screen position.
+ */
+export function Viewport<T>({
+  tree,
+  children,
+  virtualizer,
+  render,
+  ref,
+  className,
+  style,
+  ...props
+}: ViewportProps<T>): ReactElement {
+  const context = useTreeContext("<Tree.Viewport>");
+  if (context.handle !== tree) {
+    throw new Error("densedash: pass the root's tree to its viewport.");
+  }
+  const { core } = context;
+  const rows = useStore(tree.state, selectRows);
+  const [element, setElement] = useState<HTMLElement | null>(null);
+  const locate = useRef((_index: number): HTMLElement | null => null);
+  const [allRows] = useState(() => createAllRows(locate));
+  const strategy: Virtualizer = virtualizer ?? allRows;
+  const version = useVersion(virtualizer);
+  const anchor = useRef<{ readonly id: string; readonly top: number } | null>(null);
+
+  useLayoutEffect(() => {
+    locate.current = (index) => {
+      const row = tree.state.get().rows[index];
+      return row === undefined || element === null
+        ? null
+        : rowElement(core, element.ownerDocument, row.key);
+    };
+  });
+
+  useLayoutEffect(() => {
+    if (element !== null) strategy.sync?.({ element, count: rows.length });
+  }, [strategy, element, rows.length]);
+
+  // Measure before React commits new rows: the store notifies while the old rows are on screen.
+  useLayoutEffect(() => {
+    if (element === null) return;
+    let previous = tree.state.get();
+    return tree.state.subscribe((next) => {
+      const before = previous;
+      previous = next;
+      anchor.current = null;
+      if (next.rows === before.rows || next.highlighted !== before.highlighted) return;
+      const target =
+        (before.highlighted === null
+          ? null
+          : rowElement(core, element.ownerDocument, before.highlighted)) ??
+        firstVisibleRow(element);
+      if (target === null || !element.contains(target)) return;
+      anchor.current = {
+        id: target.id,
+        top: target.getBoundingClientRect().top - element.getBoundingClientRect().top,
+      };
+    });
+  }, [tree, core, element]);
+
+  useLayoutEffect(() => {
+    const saved = anchor.current;
+    anchor.current = null;
+    if (saved === null || element === null) return;
+    const target = element.ownerDocument.getElementById(saved.id);
+    if (target === null || !element.contains(target)) return;
+    const moved = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
+    if (moved !== saved.top) element.scrollTop += moved - saved.top;
+  }, [rows, element]);
+
+  const { start, end, padding } = readLayout(strategy, rows.length, version);
+  const renderRow = children as (row: TreeRow<unknown>) => ReactNode;
+  const items = useMemo(
+    () =>
+      rows.slice(start, end).map((row) => <RowSlot key={row.key} row={row} render={renderRow} />),
+    [rows, start, end, renderRow],
+  );
+  const state: ViewportState = { virtualized: virtualizer !== undefined };
+  return useRender({
+    render,
+    ref: [ref, setElement],
+    state,
+    props: {
+      ...mergeProps(
+        {
+          "data-slot": "tree-viewport",
+          children: (
+            <>
+              {padding === undefined ? null : (
+                <div
+                  data-slot="tree-viewport-spacer"
+                  aria-hidden
+                  style={{ blockSize: padding.start }}
+                />
+              )}
+              {items}
+              {padding === undefined ? null : (
+                <div
+                  data-slot="tree-viewport-spacer"
+                  aria-hidden
+                  style={{ blockSize: padding.end }}
+                />
+              )}
+              <Follow strategy={strategy} />
+            </>
+          ),
+        },
+        props,
+      ),
+      className,
+      style,
+    },
+  });
+}

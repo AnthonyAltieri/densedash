@@ -5,11 +5,15 @@ import type { tradingPreset } from "./trading-preset.js";
 /** Augment through either public entry with `commands: { open: unknown; ... }`. */
 export interface Register {}
 
-export type CommandId = Register extends { commands: infer Commands }
-  ? Extract<keyof Commands, string>
-  : string;
+export type CommandId =
+  | Extract<keyof typeof tradingPreset, `tree.${string}`>
+  | (Register extends { commands: infer Commands } ? Extract<keyof Commands, string> : string);
 export type KeyOverrideId = Register extends { commands: infer Commands }
-  ? Extract<keyof Commands, string> | "confirm" | "cancel"
+  ?
+      | Extract<keyof Commands, string>
+      | Extract<keyof typeof tradingPreset, `tree.${string}`>
+      | "confirm"
+      | "cancel"
   : keyof typeof tradingPreset;
 
 export interface CommandContext {

@@ -8,6 +8,19 @@ function definePreset<const Id extends string>(
 
 /** Keys only: navigation handlers and confirmation prompts belong to the app. */
 export const tradingPreset = definePreset({
+  "tree.next": ["J", "ArrowDown", "Shift+ArrowDown"],
+  "tree.prev": ["K", "ArrowUp", "Shift+ArrowUp"],
+  "tree.first": ["Home"],
+  "tree.last": ["End"],
+  "tree.page-up": ["Control+U", "PageUp"],
+  "tree.page-down": ["Control+D", "PageDown"],
+  "tree.parent": ["Alt+ArrowUp"],
+  "tree.expand": ["L", "ArrowRight"],
+  "tree.collapse": ["H", "ArrowLeft"],
+  "tree.toggle": [],
+  "tree.select": ["Space"],
+  "tree.extend-selection": ["Shift+Space"],
+  "tree.open": ["Enter"],
   next: ["J", "ArrowDown"],
   previous: ["K", "ArrowUp"],
   first: ["Control+U"],

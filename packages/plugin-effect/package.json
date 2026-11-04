@@ -2,6 +2,7 @@
   "name": "@densedash/plugin-effect",
   "version": "0.0.0",
   "description": "Effect atom stores, logging and cancellable task and command helpers for densedash.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthonyAltieri/densedash.git",

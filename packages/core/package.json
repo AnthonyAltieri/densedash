@@ -2,6 +2,7 @@
   "name": "@densedash/core",
   "version": "0.0.0",
   "description": "Framework-agnostic densedash kernel, ports and plugin contracts.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthonyAltieri/densedash.git",

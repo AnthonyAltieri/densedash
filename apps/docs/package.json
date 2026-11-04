@@ -1,6 +1,7 @@
 {
   "name": "@densedash/docs",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "pnpm registry:build && vite dev --port 3000",

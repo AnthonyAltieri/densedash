@@ -1,0 +1,13 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@4.0.1/schema.json",
+  "$comment": "Only core, css and react are fixed. Future @densedash/plugin-* packages stay outside fixed/linked groups and version independently.",
+  "changelog": ["@changesets/changelog-github", { "repo": "AnthonyAltieri/densedash" }],
+  "commit": false,
+  "fixed": [["@densedash/core", "@densedash/css", "@densedash/react"]],
+  "linked": [],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "privatePackages": { "version": false, "tag": false },
+  "ignore": []
+}

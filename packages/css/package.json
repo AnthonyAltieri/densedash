@@ -1,0 +1,30 @@
+{
+  "name": "@densedash/css",
+  "version": "0.0.0",
+  "description": "densedash styles (scaffold).",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnthonyAltieri/densedash.git",
+    "directory": "packages/css"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "publint": "publint --strict",
+    "attw": "attw --pack --profile esm-only"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "densedash",
+  "homepage": "https://github.com/AnthonyAltieri/densedash",
+  "items": [
+    {
+      "name": "placeholder",
+      "type": "registry:file",
+      "title": "Docs placeholder",
+      "description": "A small interactive example for the docs scaffold. Component APIs arrive later.",
+      "files": [
+        {
+          "path": "registry/default/examples/placeholder.tsx",
+          "type": "registry:file",
+          "target": "src/components/densedash-placeholder.tsx"
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,6 @@
   "tasks": {
     "build": { "outputs": ["dist/**", ".vercel/output/**", "public/r/**"] },
     "lint": { "cache": false },
-    "typecheck": { "cache": false }
+    "typecheck": { "cache": false, "dependsOn": ["^build"] }
   }
 }

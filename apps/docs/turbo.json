@@ -1,7 +1,7 @@
 {
   "extends": ["//"],
   "tasks": {
-    "build": { "outputs": ["dist/**", "public/r/**"] },
+    "build": { "outputs": ["dist/**", ".vercel/output/**", "public/r/**"] },
     "lint": { "cache": false },
     "typecheck": { "cache": false }
   }

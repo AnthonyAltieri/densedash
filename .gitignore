@@ -2,8 +2,10 @@ node_modules/
 dist/
 .turbo/
 .output/
+.vercel/
 .claude/worktrees/
 tasks/todo.md
 apps/docs/public/r/
 apps/docs/.tanstack/
 .dd-7-scratch/
+.env.local

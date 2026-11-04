@@ -1,5 +1,5 @@
 import { resolveKernel } from "./kernel.js";
-import type { Kernel, KernelOptions, ResolvedPorts } from "./kernel.js";
+import type { CheckedKernelOptions, Kernel, KernelOptions, ResolvedPorts } from "./kernel.js";
 
 export type {
   BasePorts,
@@ -10,6 +10,7 @@ export type {
   Ports,
   ResolvedPorts,
 } from "./kernel.js";
+export * from "./commands/index.js";
 export type { ClockPort } from "./ports/clock.js";
 export type {
   KeyboardPort,
@@ -31,7 +32,7 @@ export type { ChangeDetails, Controllable } from "./controllable.js";
 
 /** No defaults: every port must be supplied by plugins or explicit ports. */
 export function createKernel<const Options extends KernelOptions = KernelOptions>(
-  options?: Options,
+  options?: Options & CheckedKernelOptions<Options>,
 ): Kernel<ResolvedPorts<Options>> {
   // The resolver applies the same precedence encoded by ResolvedPorts.
   return resolveKernel({ options: options ?? {} }) as Kernel<ResolvedPorts<Options>>;

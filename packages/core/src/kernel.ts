@@ -1,3 +1,5 @@
+import { createCommands } from "./commands/index.js";
+import type { Commands, KeyOverrideId, KeysOptions } from "./commands/types.js";
 import type { ClockPort } from "./ports/clock.js";
 import type { KeyboardPort } from "./ports/keyboard.js";
 import type { ReporterPort } from "./ports/reporter.js";
@@ -29,14 +31,23 @@ export interface Plugin {
 
 export interface Kernel<P = Ports> {
   readonly ports: P;
-  /** Runs setup cleanups in reverse order, then disposes the keyboard port, once. */
+  readonly commands: Commands;
+  /** Runs setup cleanups in reverse order, then disposes commands and the keyboard port, once. */
   dispose(): void;
 }
 
 export interface KernelOptions {
   plugins?: readonly Plugin[];
   ports?: Partial<Ports>;
+  keys?: KeysOptions;
 }
+
+/** Reject extra override ids even through the generic port-inference entrypoints. */
+export type CheckedKernelOptions<Options extends KernelOptions> = Options extends {
+  keys: { overrides: infer Overrides };
+}
+  ? Options & { keys: { overrides: Record<Exclude<keyof Overrides, KeyOverrideId>, never> } }
+  : Options;
 
 type PluginPort<Installed, Key extends keyof Ports> = Installed extends {
   provides: Record<Key, (...args: never[]) => infer Value extends Ports[Key]>;
@@ -126,9 +137,25 @@ export function resolveKernel({
     ),
   };
   const cleanups: (() => void)[] = [() => ports.keyboard.dispose()];
+  let commands: Commands;
+  try {
+    commands = createCommands({
+      ports,
+      ...(options.keys === undefined ? {} : { keys: options.keys }),
+    });
+  } catch (cause) {
+    try {
+      ports.keyboard.dispose();
+    } catch (cleanupCause) {
+      throw new AggregateError([cause, cleanupCause], "Command setup and keyboard cleanup failed.");
+    }
+    throw cause;
+  }
+  cleanups.push(() => commands.dispose());
   let disposed = false;
   const kernel: Kernel = {
     ports,
+    commands,
     dispose() {
       if (disposed) return;
       disposed = true;

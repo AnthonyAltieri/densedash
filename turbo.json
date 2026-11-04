@@ -4,9 +4,20 @@
   "globalEnv": ["ENABLE_EXPERIMENTAL_COREPACK"],
   "globalDependencies": ["tooling/tsdown-config/**", "tooling/tsconfig/**", "tsconfig.json"],
   "tasks": {
-    "build": { "dependsOn": ["^build"], "outputs": ["dist/**"] },
-    "//#lint": { "cache": false },
-    "//#typecheck": { "cache": false },
-    "//#test": { "cache": false }
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "//#lint": {
+      "cache": false
+    },
+    "//#typecheck": {
+      "cache": false,
+      "dependsOn": ["@densedash/core#build", "@densedash/css#build", "@densedash/react#build"]
+    },
+    "//#test": {
+      "cache": false,
+      "dependsOn": ["@densedash/core#build", "@densedash/css#build", "@densedash/react#build"]
+    }
   }
 }

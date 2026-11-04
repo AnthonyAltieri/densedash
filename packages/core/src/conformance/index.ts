@@ -1,4 +1,6 @@
 import type { StorePort } from "../ports/store.js";
+export { keyboardContract } from "./keyboard.js";
+export type { KeyboardContractOptions, MakeKeyboardPort } from "./keyboard.js";
 
 /** A fresh implementation per case keeps contract runs independent. */
 export type MakeStorePort = () => StorePort;

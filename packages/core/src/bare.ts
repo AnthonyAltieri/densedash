@@ -11,7 +11,20 @@ export type {
   ResolvedPorts,
 } from "./kernel.js";
 export type { ClockPort } from "./ports/clock.js";
-export type { KeyboardPort } from "./ports/keyboard.js";
+export type {
+  KeyboardPort,
+  KeyboardHotkey,
+  KeyboardHotkeyChord,
+  KeyboardPlatform,
+  KeyboardTarget,
+  KeyboardHandler,
+  KeyboardParseResult,
+  KeyboardScopeOptions,
+  KeyboardBindingOptions,
+  KeyboardBinding,
+  PendingKeyboardSequence,
+  KeyboardPendingStore,
+} from "./ports/keyboard.js";
 export type { ReporterPort } from "./ports/reporter.js";
 export type { Store, StorePort } from "./ports/store.js";
 export type { ChangeDetails, Controllable } from "./controllable.js";

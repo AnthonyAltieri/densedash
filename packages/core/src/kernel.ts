@@ -29,7 +29,7 @@ export interface Plugin {
 
 export interface Kernel<P = Ports> {
   readonly ports: P;
-  /** Runs every registered cleanup once, in reverse setup order. */
+  /** Runs setup cleanups in reverse order, then disposes the keyboard port, once. */
   dispose(): void;
 }
 
@@ -125,7 +125,7 @@ export function resolveKernel({
       overrides.keyboard ?? (providers.keyboard ?? defaults.keyboard)?.(base),
     ),
   };
-  const cleanups: (() => void)[] = [];
+  const cleanups: (() => void)[] = [() => ports.keyboard.dispose()];
   let disposed = false;
   const kernel: Kernel = {
     ports,

@@ -2,6 +2,7 @@ import {
   createKernel,
   version as coreVersion,
   type StorePort,
+  type KeyboardHotkey,
 } from "../../packages/core/src/index.js";
 import { version as cssVersion } from "../../packages/css/src/index.js";
 import { version as reactVersion } from "../../packages/react/src/index.js";
@@ -49,5 +50,8 @@ export function createWorkbenchKernel(store: StorePort) {
   });
   const storeKind: "instrumented" = kernel.ports.store.kind;
   const clockSource: "workbench" = kernel.ports.clock.source;
+  const shortcut: KeyboardHotkey = "Mod+K";
+  kernel.ports.keyboard.bind(shortcut, () => {});
+  kernel.ports.keyboard.bind(["G", "H"], () => {}, { scope: "workbench", enabled: true });
   return { kernel, storeKind, clockSource };
 }

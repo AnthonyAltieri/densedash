@@ -1,6 +1,7 @@
 import { Store as TanStackStore, batch } from "@tanstack/store";
 import type { PortProviders } from "../kernel.js";
 import type { Store, StorePort } from "../ports/store.js";
+import { createKeyboardPort } from "./keyboard.js";
 
 function createStorePort(): StorePort {
   return {
@@ -36,6 +37,5 @@ export const defaultProviders: PortProviders = {
     error: (cause, context) => console.error(cause, context),
     warn: (message) => console.warn(message),
   }),
-  // DD-3 replaces this placeholder with the keyboard default.
-  keyboard: () => ({}),
+  keyboard: createKeyboardPort,
 };

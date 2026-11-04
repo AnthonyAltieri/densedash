@@ -185,7 +185,11 @@ importers:
         specifier: 4.6.0
         version: 4.6.0
 
-  packages/core: {}
+  packages/core:
+    dependencies:
+      '@tanstack/store':
+        specifier: 0.11.2
+        version: 0.11.2
 
   packages/css:
     devDependencies:

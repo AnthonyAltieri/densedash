@@ -29,7 +29,13 @@ tooling/type-bench              Compiler workload and instantiation budget
 tasks/lessons                  One guardrail file per lesson
 ```
 
-The workspace globs already include apps, nested examples and tooling. Applications and examples have no packages yet. The three package stubs each export a version constant. There are no components or adapter dependencies yet.
+The workspace globs include apps, nested examples and tooling. React remains a stub; core exports the kernel, port contracts and pure collection helpers. All three library packages retain their version constant. There are no framework components or adapter dependencies yet.
+
+`@densedash/core` exports `createKernel()` with TanStack Store, real-time clock and console reporter defaults. Keyboard is an empty placeholder until DD-3. Plugins replace defaults, and explicit `ports` replace plugin providers. Duplicate plugin providers throw even when an explicit override exists. Clock and reporter factories take no arguments; store and keyboard factories receive only the resolved clock and reporter. Setup runs after all ports resolve. Call `kernel.dispose()` to run setup cleanups in reverse order, once; it attempts every cleanup even if one throws, and rolls back registered cleanups if setup fails.
+
+`@densedash/core/bare` exports the same contracts and a `createKernel` with no default implementations in its import graph. Supply all four ports through plugins or explicit `ports`; missing ports throw before providers run. Use `satisfies Plugin` when declaring reusable plugins to retain provider-specific types.
+
+`@densedash/core/conformance` exports `storeContract` and `runContract({ test, cases: storeContract, make })`. Each case calls `make()` for a fresh `StorePort`. The contract covers synchronous reads, notification order, batching and unsubscribe without importing a test runner. Store subscriptions run in registration order; `batch` publishes each changed store's final state once. Function-valued state is supported; use an updater such as `store.set(() => nextFunction)` to replace it.
 
 New library packages can reuse `tooling/tsdown-config/index.ts` through a local `tsdown.config.ts` and copy the existing package build and validation scripts. Published packages use `type: module`, `dist/` exports with declarations, `sideEffects: false` and a `files` allowlist. Builds preserve source modules with `unbundle: true` and emit ESM only. Root tooling owns the pinned development dependencies.
 

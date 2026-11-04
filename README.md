@@ -9,10 +9,10 @@ License: [MIT](LICENSE).
 Install the ESM packages with React 19:
 
 ```sh
-pnpm add @densedash/core@0.1.0 @densedash/css@0.1.0 @densedash/react@0.1.0
+pnpm add @densedash/core@0.1.1 @densedash/css@0.1.1 @densedash/react@0.1.1
 ```
 
-Import `@densedash/css/tokens.css` and the component styles you use, such as `@densedash/css/components/tree.css`. Optional plugins release independently: `@densedash/plugin-effect@0.1.0` requires `effect@^4.1.0`, and `@densedash/plugin-tanstack-virtual@0.1.0` requires `@tanstack/virtual-core@3.19.11`. See the [docs](https://densedash-docs.vercel.app) for examples and the shadcn registry.
+Import `@densedash/css/tokens.css` and the component styles you use, such as `@densedash/css/components/tree.css`. Optional plugins release independently: `@densedash/plugin-effect@0.1.1` requires `effect@^4.1.0`, and `@densedash/plugin-tanstack-virtual@0.1.1` requires `@tanstack/virtual-core@3.19.11`. See the [docs](https://densedash-docs.vercel.app) for examples and the shadcn registry.
 
 ## Development
 
@@ -130,4 +130,4 @@ Run `pnpm build` before `pnpm type-budget`. The budget runs pinned TypeScript wi
 
 See [.changeset/README.md](.changeset/README.md) for the fixed release group and independent plugin versioning. CI validates packed package exports with publint and the ESM-only attw profile. That attw profile intentionally ignores CommonJS consumers; its ignored CommonJS diagnostic is expected for this ESM-only project. Vitest also prints its upstream experimental type-checking notice; its version is pinned.
 
-The main release workflow maintains a Changesets version PR. Merging it builds and publishes the packages to npm with provenance, then creates package tags and GitHub releases with the generated notes. Packages include the [MIT license](LICENSE). Publication runs only in CI against the public source repository; never run `pnpm release` or `changeset publish` locally.
+The main release workflow maintains a Changesets version PR. Merging it builds and publishes the packages to npm with provenance, then creates package tags and GitHub releases with the generated notes. The release script scopes a pnpm wrapper to Changesets so every publish receives `--provenance`, which pinned pnpm 12.3.4 requires. Packages include the [MIT license](LICENSE). Publication runs only in CI against the public source repository; never run `pnpm release` or `changeset publish` locally.

@@ -44,6 +44,8 @@ export interface Virtualizer {
   subscribe?(listener: () => void): () => void;
   /** Pixels before the first mounted row and after the last, so the scroll height covers every row. */
   padding?(): { readonly start: number; readonly end: number };
+  /** Row start in scroll-content pixels, used to anchor data updates even if the row unmounts. */
+  offsetForIndex?(index: number): number;
 }
 
 export interface ViewportState {
@@ -148,23 +150,15 @@ const RowSlot = memo(
     fields.every((field) => Object.is(previous.row[field], next.row[field])),
 );
 
-function Follow({ strategy }: { strategy: Virtualizer }): null {
-  const { handle } = useTreeContext("<Tree.Viewport>");
-  const internals = getInternals(handle);
-  const highlighted = useStore(handle.state, selectHighlighted);
-  useLayoutEffect(() => {
-    if (highlighted === null || internals.highlightReason() === "pointer") return;
-    const index = handle.state.get().rows.findIndex((row) => row.key === highlighted);
-    if (index >= 0) strategy.scrollToIndex(index, "auto");
-  }, [handle, internals, highlighted, strategy]);
-  return null;
-}
-
 function useVersion(virtualizer: Virtualizer | undefined): number {
   const [version, setVersion] = useState(0);
   useLayoutEffect(() => {
     if (virtualizer?.subscribe === undefined) return;
-    return virtualizer.subscribe(() => setVersion((current) => current + 1));
+    const changed = () => setVersion((current) => current + 1);
+    const unsubscribe = virtualizer.subscribe(changed);
+    // The strategy may have changed between render and subscribing.
+    changed();
+    return unsubscribe;
   }, [virtualizer]);
   return version;
 }
@@ -198,12 +192,17 @@ export function Viewport<T>({
   }
   const { core } = context;
   const rows = useStore(tree.state, selectRows);
+  const highlighted = useStore(tree.state, selectHighlighted);
   const [element, setElement] = useState<HTMLElement | null>(null);
   const locate = useRef((_index: number): HTMLElement | null => null);
   const [allRows] = useState(() => createAllRows(locate));
   const strategy: Virtualizer = virtualizer ?? allRows;
   const version = useVersion(virtualizer);
-  const anchor = useRef<{ readonly id: string; readonly top: number } | null>(null);
+  const anchor = useRef<{
+    readonly id: string;
+    readonly key: Key;
+    readonly top: number;
+  } | null>(null);
 
   useLayoutEffect(() => {
     locate.current = (index) => {
@@ -214,9 +213,16 @@ export function Viewport<T>({
     };
   });
 
+  // Sync before following or anchoring, including the initial mount.
   useLayoutEffect(() => {
     if (element !== null) strategy.sync?.({ element, count: rows.length });
   }, [strategy, element, rows.length]);
+
+  useLayoutEffect(() => {
+    if (highlighted === null || getInternals(tree).highlightReason() === "pointer") return;
+    const index = rows.findIndex((row) => row.key === highlighted);
+    if (index >= 0) strategy.scrollToIndex(index, "auto");
+  }, [tree, highlighted, strategy, element, rows]);
 
   // Measure before React commits new rows: the store notifies while the old rows are on screen.
   useLayoutEffect(() => {
@@ -233,8 +239,11 @@ export function Viewport<T>({
           : rowElement(core, element.ownerDocument, before.highlighted)) ??
         firstVisibleRow(element);
       if (target === null || !element.contains(target)) return;
+      const row = before.rows.find((row) => core?.getRowProps(row.key).id === target.id);
+      if (row === undefined) return;
       anchor.current = {
         id: target.id,
+        key: row.key,
         top: target.getBoundingClientRect().top - element.getBoundingClientRect().top,
       };
     });
@@ -244,11 +253,18 @@ export function Viewport<T>({
     const saved = anchor.current;
     anchor.current = null;
     if (saved === null || element === null) return;
+    if (strategy.offsetForIndex !== undefined) {
+      const index = rows.findIndex((row) => row.key === saved.key);
+      if (index >= 0) {
+        element.scrollTop = strategy.offsetForIndex(index) + element.clientTop - saved.top;
+      }
+      return;
+    }
     const target = element.ownerDocument.getElementById(saved.id);
     if (target === null || !element.contains(target)) return;
     const moved = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
     if (moved !== saved.top) element.scrollTop += moved - saved.top;
-  }, [rows, element]);
+  }, [rows, element, strategy]);
 
   const { start, end, padding } = readLayout(strategy, rows.length, version);
   const renderRow = children as (row: TreeRow<unknown>) => ReactNode;
@@ -283,7 +299,6 @@ export function Viewport<T>({
                   style={{ blockSize: padding.end }}
                 />
               )}
-              <Follow strategy={strategy} />
             </>
           ),
         },

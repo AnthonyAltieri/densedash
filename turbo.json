@@ -13,11 +13,21 @@
     },
     "//#typecheck": {
       "cache": false,
-      "dependsOn": ["@densedash/core#build", "@densedash/css#build", "@densedash/react#build"]
+      "dependsOn": [
+        "@densedash/core#build",
+        "@densedash/css#build",
+        "@densedash/react#build",
+        "@densedash/plugin-tanstack-virtual#build"
+      ]
     },
     "//#test": {
       "cache": false,
-      "dependsOn": ["@densedash/core#build", "@densedash/css#build", "@densedash/react#build"]
+      "dependsOn": [
+        "@densedash/core#build",
+        "@densedash/css#build",
+        "@densedash/react#build",
+        "@densedash/plugin-tanstack-virtual#build"
+      ]
     }
   }
 }

@@ -1,11 +1,15 @@
 import { Component, useEffect, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { Keymap, List, Tree, useList, useStore, useTree } from "@densedash/react";
+import { tanstackVirtual } from "@densedash/plugin-tanstack-virtual";
 import type { TreeHandle } from "@densedash/react";
 import { createBook, createFill, instruments, parentKeys } from "./data.ts";
 import type { Holding } from "./data.ts";
 
-const sizes = [100, 1_000, 5_000] as const;
+const sizes = [100, 1_000, 5_000, 50_000] as const;
+// Share the estimate and CSS row height so spacer geometry matches the rendered rows.
+const rowHeight = 28;
+const rowStyle = { "--dd-row-height": `${rowHeight}px` } as CSSProperties;
 
 function Status({ tree, opened }: { tree: TreeHandle<Holding>; opened: string }) {
   const highlighted = useStore(tree.state, (state) => state.highlighted);
@@ -22,11 +26,14 @@ function Book({
   book,
   expanded,
   onExpandedChange,
+  virtualized,
 }: {
   book: readonly Holding[];
   expanded: ReadonlySet<string>;
   onExpandedChange: (expanded: ReadonlySet<string>) => void;
+  virtualized: boolean;
 }) {
+  const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
   const [opened, setOpened] = useState("nothing yet");
   const tree = useTree({
     roots: book,
@@ -39,8 +46,12 @@ function Book({
   return (
     <>
       <Status tree={tree} opened={opened} />
-      <Tree.Root tree={tree} aria-label="Book" className="tree">
-        <Tree.Viewport tree={tree} className="viewport">
+      <Tree.Root tree={tree} aria-label="Book" className="tree" style={rowStyle}>
+        <Tree.Viewport
+          tree={tree}
+          className="viewport"
+          virtualizer={virtualized ? virtualizer : undefined}
+        >
           {(row) => (
             <Tree.Row row={row}>
               <Tree.Indent />
@@ -55,7 +66,8 @@ function Book({
   );
 }
 
-function Watchlist() {
+function Watchlist({ virtualized }: { virtualized: boolean }) {
+  const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
   const [opened, setOpened] = useState("nothing yet");
   const list = useList({
     roots: instruments,
@@ -68,8 +80,12 @@ function Watchlist() {
       <p className="status">
         Opened <strong>{opened}</strong>
       </p>
-      <List.Root tree={list} aria-label="Watchlist" className="tree">
-        <List.Viewport tree={list} className="viewport">
+      <List.Root tree={list} aria-label="Watchlist" className="tree" style={rowStyle}>
+        <List.Viewport
+          tree={list}
+          className="viewport"
+          virtualizer={virtualized ? virtualizer : undefined}
+        >
           {(row) => (
             <List.Row row={row}>
               <span className="name">{row.item.ticker}</span>
@@ -110,6 +126,7 @@ export function App() {
   const [book, setBook] = useState(() => createBook(1_000));
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => parentKeys(book));
   const [live, setLive] = useState(false);
+  const [virtualized, setVirtualized] = useState(false);
   const [resets, setResets] = useState(0);
 
   // Create the fill outside the updater, which StrictMode runs twice.
@@ -146,6 +163,16 @@ export function App() {
               ))}
             </select>
           </label>
+          <label>
+            Viewport{" "}
+            <select
+              value={virtualized ? "virtualized" : "all"}
+              onChange={(event) => setVirtualized(event.target.value === "virtualized")}
+            >
+              <option value="all">All rows</option>
+              <option value="virtualized">Virtualized</option>
+            </select>
+          </label>
           <button type="button" aria-pressed={live} onClick={() => setLive((on) => !on)}>
             Live feed {live ? "on" : "off"}
           </button>
@@ -169,11 +196,16 @@ export function App() {
               setResets((count) => count + 1);
             }}
           >
-            <Book book={book} expanded={expanded} onExpandedChange={setExpanded} />
+            <Book
+              book={book}
+              expanded={expanded}
+              onExpandedChange={setExpanded}
+              virtualized={virtualized}
+            />
           </Boundary>
         </section>
         <section aria-label="Watchlist">
-          <Watchlist />
+          <Watchlist virtualized={virtualized} />
         </section>
       </div>
       <footer>

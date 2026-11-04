@@ -1,4 +1,4 @@
-name: Release rehearsal
+name: Release
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -30,19 +31,18 @@ jobs:
           cache: true
       - run: pnpm install --frozen-lockfile
       - run: pnpm changeset status --since origin/main
-      # No publish-script input or npm credentials: version PRs only.
       - uses: changesets/action@v2
         id: changesets
         with:
           version-script: pnpm version-packages
+          publish-script: pnpm release
           commit-message: |
             chore: version packages
 
             Co-Authored-By: Codex <noreply@openai.com>
           pr-title: "chore: version packages"
-          create-github-releases: false
-          push-git-tags: false
-      - name: Confirm rehearsal did not publish
-        run: |
-          test "${{ steps.changesets.outputs.published }}" != "true"
-          echo "Rehearsal complete; npm publishing is disabled."
+          create-github-releases: true
+          push-git-tags: true
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"

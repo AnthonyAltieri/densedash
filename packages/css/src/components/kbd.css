@@ -1,0 +1,18 @@
+/* <Kbd>: a key label. */
+@layer dd.components {
+  [data-slot="kbd"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--dd-icon-size);
+    padding-inline: var(--dd-gap);
+    border: var(--dd-border-width) solid var(--dd-color-border);
+    border-radius: var(--dd-radius);
+    background: var(--dd-color-surface);
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-mono);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+    white-space: nowrap;
+  }
+}

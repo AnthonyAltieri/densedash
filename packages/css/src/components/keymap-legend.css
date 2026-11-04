@@ -1,0 +1,31 @@
+/* <Keymap.Legend>: active commands and their keys, by group. */
+@layer dd.components {
+  [data-slot="keymap-legend"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--dd-gap) var(--dd-indent);
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+  }
+
+  [data-slot="keymap-legend-group"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--dd-gap) var(--dd-cell-padding-inline);
+  }
+
+  [data-slot="keymap-legend-group-label"] {
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="keymap-legend-item"],
+  [data-slot="keymap-legend-keys"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dd-gap);
+  }
+}

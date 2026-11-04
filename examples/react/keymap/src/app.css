@@ -1,0 +1,70 @@
+body {
+  margin: 0;
+  background: var(--dd-color-surface);
+  color: var(--dd-color-text);
+  font-family: var(--dd-font-sans);
+  font-size: var(--dd-font-size);
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 1rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: var(--dd-font-size);
+}
+
+.panes {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0.75rem;
+}
+
+.pane {
+  padding: 0.5rem;
+  border: var(--dd-border-width) solid var(--dd-color-border);
+  border-radius: var(--dd-radius);
+}
+
+.pane-active {
+  border-color: var(--dd-color-accent);
+}
+
+.badge {
+  color: var(--dd-color-text-muted);
+  font-weight: normal;
+}
+
+.messages {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.messages li {
+  height: var(--dd-row-height);
+  line-height: var(--dd-row-height);
+  padding-inline: var(--dd-cell-padding-inline);
+  cursor: default;
+}
+
+.messages li[data-selected] {
+  background: var(--dd-color-selection);
+}
+
+footer {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: var(--dd-border-width) solid var(--dd-color-border);
+}

@@ -1,0 +1,38 @@
+/* <Keymap.ConfirmPrompt>: the pending confirmation and its keys. */
+@layer dd.components {
+  [data-slot="keymap-confirm-prompt"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--dd-cell-padding-inline);
+    padding: var(--dd-cell-padding-block) var(--dd-cell-padding-inline);
+    border: var(--dd-border-width) solid var(--dd-color-warning);
+    border-radius: var(--dd-radius);
+    background: var(--dd-color-highlight);
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+  }
+
+  [data-slot="keymap-confirm-prompt-confirm"],
+  [data-slot="keymap-confirm-prompt-cancel"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dd-gap);
+    min-block-size: var(--dd-control-height);
+    padding-inline: var(--dd-cell-padding-inline);
+    border: var(--dd-border-width) solid var(--dd-color-border);
+    border-radius: var(--dd-radius);
+    background: var(--dd-color-surface);
+    color: var(--dd-color-text);
+    font: inherit;
+    cursor: pointer;
+  }
+
+  [data-slot="keymap-confirm-prompt-confirm"]:focus-visible,
+  [data-slot="keymap-confirm-prompt-cancel"]:focus-visible {
+    outline: var(--dd-focus-width) solid var(--dd-color-focus);
+    outline-offset: var(--dd-focus-offset);
+  }
+}

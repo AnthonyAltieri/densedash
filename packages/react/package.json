@@ -1,7 +1,7 @@
 {
   "name": "@densedash/react",
   "version": "0.0.0",
-  "description": "densedash React adapter (scaffold).",
+  "description": "densedash React adapter: kernel context, render props and keymap parts.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthonyAltieri/densedash.git",
@@ -26,5 +26,14 @@
     "build": "tsdown",
     "publint": "publint --strict",
     "attw": "attw --pack --profile esm-only"
+  },
+  "dependencies": {
+    "@densedash/core": "workspace:*"
+  },
+  "devDependencies": {
+    "react": "19.3.1"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
   }
 }

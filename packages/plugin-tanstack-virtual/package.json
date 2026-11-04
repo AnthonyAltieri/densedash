@@ -1,0 +1,40 @@
+{
+  "name": "@densedash/plugin-tanstack-virtual",
+  "version": "0.0.0",
+  "description": "Per-viewport TanStack Virtual strategy for densedash trees and lists.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnthonyAltieri/densedash.git",
+    "directory": "packages/plugin-tanstack-virtual"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "publint": "publint --strict",
+    "attw": "attw --pack --profile esm-only"
+  },
+  "devDependencies": {
+    "@densedash/core": "workspace:*",
+    "@densedash/react": "workspace:*",
+    "@tanstack/virtual-core": "3.19.11"
+  },
+  "peerDependencies": {
+    "@densedash/core": "workspace:^",
+    "@densedash/react": "workspace:^",
+    "@tanstack/virtual-core": "3.19.11"
+  }
+}

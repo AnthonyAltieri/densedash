@@ -1,7 +1,7 @@
 {
   "name": "@densedash/css",
   "version": "0.0.0",
-  "description": "densedash styles (scaffold).",
+  "description": "Typed design tokens, themes and density settings for densedash.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthonyAltieri/densedash.git",
@@ -11,20 +11,39 @@
     "dist"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./tokens.css": {
+      "types": "./dist/css.d.ts",
+      "default": "./dist/tokens.css"
+    },
+    "./components/*.css": {
+      "types": "./dist/css.d.ts",
+      "default": "./dist/components/*.css"
+    },
+    "./css-vars.json": "./dist/css-vars.json",
+    "./tokens.json": "./dist/tokens.json"
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "generate": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/generate.mjs",
+    "check:generated": "pnpm generate --check",
+    "lint:css": "node scripts/lint-css.mjs",
+    "lint": "pnpm check:generated && pnpm lint:css",
+    "build": "pnpm lint && tsdown && node scripts/copy-assets.mjs",
     "publint": "publint --strict",
     "attw": "attw --pack --profile esm-only"
+  },
+  "devDependencies": {
+    "css-tree": "3.2.1"
   }
 }

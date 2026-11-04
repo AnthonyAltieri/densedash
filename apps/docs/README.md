@@ -89,8 +89,18 @@ invalidate the generated module and reload the page in development.
 
 Keep examples self-contained for twoslash's TypeScript environment.
 Type errors fail compilation. Hover or focus an underlined symbol to inspect
-its inferred type. Tooltip text lives in an attribute, so the code element's
-text content preserves the entire file, including the trailing newline.
+its inferred type; Escape hides it. The plugin highlights each type with the
+same Shiki theme as the code and emits it as a separate `popover` element
+outside the code element. Each token references its hover by id, so the code
+element's text content preserves the entire file, including the trailing
+newline. The preview shows the hover in the top layer, positioned against the
+token and kept inside the viewport, so the code panel's overflow never clips it.
+
+Each preview starts side by side; its toolbar switches to Preview and Code
+tabs (arrow keys move between tabs). The choice is the preview's
+`data-layout="split|tabs"` and `data-tab="preview|code"` attributes, held in
+component state for the current page. Below 1000px side by side stacks the
+preview above the code.
 
 The placeholder is a docs example, not a published component API. The registry
 installs its TSX source without styles. The docs style its `data-slot` and

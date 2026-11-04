@@ -1,0 +1,30 @@
+/* <Keymap.ChordHint>: the keys that can follow a sequence in progress. */
+@layer dd.components {
+  [data-slot="keymap-chord-hint"] {
+    position: fixed;
+    inset-block-end: var(--dd-indent);
+    inset-inline-end: var(--dd-indent);
+    display: flex;
+    flex-direction: column;
+    gap: var(--dd-gap);
+    padding: var(--dd-cell-padding-block) var(--dd-cell-padding-inline);
+    border: var(--dd-border-width) solid var(--dd-color-border);
+    border-radius: var(--dd-radius);
+    background: var(--dd-color-surface);
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+  }
+
+  [data-slot="keymap-chord-hint-prefix"] {
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="keymap-chord-hint-option"],
+  [data-slot="keymap-chord-hint-keys"] {
+    display: flex;
+    align-items: center;
+    gap: var(--dd-gap);
+  }
+}

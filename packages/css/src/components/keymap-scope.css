@@ -1,0 +1,7 @@
+/* <Keymap.Scope>: a focusable container. Focus restoration and clicks focus it, so it draws no
+   outline; style [data-active] to show the scope that owns the keys. */
+@layer dd.components {
+  [data-slot="keymap-scope"]:focus {
+    outline: none;
+  }
+}

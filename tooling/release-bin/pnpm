@@ -1,0 +1,10 @@
+#!/bin/sh
+# Pass the flag explicitly: pinned pnpm ignores provenance config defaults.
+: "${DENSEDASH_PNPM:?Run pnpm release from the workspace root}"
+
+if [ "$1" = "publish" ]; then
+  shift
+  exec "$DENSEDASH_PNPM" publish --provenance "$@"
+fi
+
+exec "$DENSEDASH_PNPM" "$@"

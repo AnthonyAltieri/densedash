@@ -69,7 +69,7 @@ function RootDocument() {
             >
               Density: {density === "compact" ? "Compact" : "Comfortable"}
             </button>
-            <a href="https://github.com/AnthonyAltieri/densedash">GitHub ↗</a>
+            <a href="https://github.com/densedash/densedash">GitHub ↗</a>
           </div>
         </header>
         <div data-slot="site-layout">

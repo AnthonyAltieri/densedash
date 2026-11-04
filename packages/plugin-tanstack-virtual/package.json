@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AnthonyAltieri/densedash.git",
+    "url": "git+https://github.com/densedash/densedash.git",
     "directory": "packages/plugin-tanstack-virtual"
   },
   "files": [

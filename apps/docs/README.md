@@ -54,7 +54,7 @@ Vercel dashboard configuration, outside the repository:
 | ------------------------------------------- | ----------------------------------------------------------------------------- |
 | Project                                     | `densedash-docs` (`prj_H5fyuOmRbPxQaelzsrzAlKhACjwq`)                         |
 | Team                                        | `anthonyaltieri's projects`                                                   |
-| Git repository                              | `AnthonyAltieri/densedash`                                                    |
+| Git repository                              | `densedash/densedash`                                                         |
 | Production branch                           | `main`                                                                        |
 | Root Directory                              | `apps/docs`                                                                   |
 | Include source files outside Root Directory | Enabled, for workspace packages and root tooling                              |

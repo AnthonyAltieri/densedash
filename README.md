@@ -2,6 +2,16 @@
 
 An information-dense, keyboard-first UI framework. Work is tracked in Linear team DD.
 
+## Install
+
+Install the ESM packages with React 19:
+
+```sh
+pnpm add @densedash/core@0.1.0 @densedash/css@0.1.0 @densedash/react@0.1.0
+```
+
+Import `@densedash/css/tokens.css` and the component styles you use, such as `@densedash/css/components/tree.css`. Optional plugins release independently: `@densedash/plugin-effect@0.1.0` requires `effect@^4.1.0`, and `@densedash/plugin-tanstack-virtual@0.1.0` requires `@tanstack/virtual-core@3.19.11`. See the [docs](https://densedash-docs.vercel.app) for examples and the shadcn registry.
+
 ## Development
 
 Use Node 22.20.0 or a compatible newer LTS release and pnpm 12.3.4. The root `packageManager` pins pnpm. Dependency versions are exact, `saveExact` preserves that on additions, and CI installs the committed lockfile.
@@ -114,8 +124,8 @@ The root tsconfig covers workspace TypeScript and extends `tooling/tsconfig/base
 
 Run `pnpm build` before `pnpm type-budget`. The budget runs pinned TypeScript with `--extendedDiagnostics` over `tooling/type-bench/*.ts`, importing built declarations to measure the API consumers actually typecheck. Source implementations are checked separately by `pnpm typecheck`; Turbo orders type checking and type assertions after package builds so clean CI checkouts have those declarations. The gate fails on compiler errors, missing diagnostics, or more than 1,800 instantiations, as set in `budget.json`. Its workload grows with the API: `input.ts` exercises plugin and port inference, keyboard bindings, an augmented command registry, preset overrides, registration and invocation. Extend the workload as APIs arrive and explain any budget increase. Wall-clock time is diagnostic only, so machine speed does not determine the result.
 
-## Release rehearsal
+## Releases
 
 See [.changeset/README.md](.changeset/README.md) for the fixed release group and independent plugin versioning. CI validates packed package exports with publint and the ESM-only attw profile. That attw profile intentionally ignores CommonJS consumers; its ignored CommonJS diagnostic is expected for this ESM-only project. Vitest also prints its upstream experimental type-checking notice; its version is pinned.
 
-The main release workflow can maintain version PRs. It has no publish command or npm credentials and creates no release tags. npm publication is a later ticket.
+The main release workflow maintains a Changesets version PR. Merging it builds and publishes the packages to npm with provenance, then creates package tags and GitHub releases with the generated notes. Publication runs only in CI against the public source repository; never run `pnpm release` or `changeset publish` locally.

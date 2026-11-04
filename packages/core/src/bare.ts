@@ -28,6 +28,7 @@ export type {
 } from "./ports/keyboard.js";
 export type { ReporterPort } from "./ports/reporter.js";
 export type { Store, StorePort } from "./ports/store.js";
+export type { Task } from "./task.js";
 export type { ChangeDetails, Controllable } from "./controllable.js";
 
 /** No defaults: every port must be supplied by plugins or explicit ports. */

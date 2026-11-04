@@ -26,6 +26,7 @@ export type {
   ReporterPort,
   Store,
   StorePort,
+  Task,
   ChangeDetails,
   Controllable,
 } from "./bare.js";

@@ -1,0 +1,38 @@
+{
+  "name": "@densedash/plugin-effect",
+  "version": "0.0.0",
+  "description": "Effect atom stores, logging and cancellable task and command helpers for densedash.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnthonyAltieri/densedash.git",
+    "directory": "packages/plugin-effect"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "publint": "publint --strict",
+    "attw": "attw --pack --profile esm-only"
+  },
+  "devDependencies": {
+    "@densedash/core": "workspace:*",
+    "effect": "4.1.2"
+  },
+  "peerDependencies": {
+    "@densedash/core": "workspace:^",
+    "effect": "^4.1.0"
+  }
+}

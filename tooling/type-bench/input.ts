@@ -1,11 +1,19 @@
+// Measure the emitted API that consumers typecheck. Run pnpm build first.
 import {
   createKernel,
+  tradingPreset,
   version as coreVersion,
   type StorePort,
   type KeyboardHotkey,
-} from "../../packages/core/src/index.js";
-import { version as cssVersion } from "../../packages/css/src/index.js";
-import { version as reactVersion } from "../../packages/react/src/index.js";
+} from "../../packages/core/dist/index.js";
+import { version as cssVersion } from "../../packages/css/dist/index.js";
+import { version as reactVersion } from "../../packages/react/dist/index.js";
+
+declare module "../../packages/core/dist/index.js" {
+  interface Register {
+    commands: { next: unknown; open: unknown; approve: unknown };
+  }
+}
 
 export type PackageSurface = {
   core: typeof coreVersion;
@@ -23,6 +31,7 @@ export type SampleColumn = Columns<{ id: string; count: number; enabled: boolean
 // Reading the added field forces the compiler to exercise public plugin inference.
 export function createWorkbenchKernel(store: StorePort) {
   const kernel = createKernel({
+    keys: { preset: tradingPreset, overrides: { open: ["Space"], next: ["ArrowDown"] } },
     plugins: [
       {
         name: "instrumented-store",
@@ -53,5 +62,23 @@ export function createWorkbenchKernel(store: StorePort) {
   const shortcut: KeyboardHotkey = "Mod+K";
   kernel.ports.keyboard.bind(shortcut, () => {});
   kernel.ports.keyboard.bind(["G", "H"], () => {}, { scope: "workbench", enabled: true });
-  return { kernel, storeKind, clockSource };
+  const unregister = kernel.commands.register("workbench", [
+    { id: "next", label: "Next row", group: "rows", run: () => {} },
+    {
+      id: "open",
+      label: "Open row",
+      run: ({ event }) => {
+        event?.preventDefault();
+      },
+    },
+    {
+      id: "approve",
+      label: "Approve row",
+      confirm: { prompt: "Approve selected row?" },
+      run: () => {},
+    },
+  ]);
+  kernel.commands.invoke("open");
+  const keymap = kernel.commands.keymap.get();
+  return { kernel, storeKind, clockSource, keymap, unregister };
 }

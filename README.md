@@ -29,9 +29,9 @@ tooling/type-bench              Compiler workload and instantiation budget
 tasks/lessons                  One guardrail file per lesson
 ```
 
-The workspace globs include apps, nested examples and tooling. React remains a stub; core exports the kernel, port contracts and pure collection helpers. All three library packages retain their version constant. There are no framework components or adapter dependencies yet.
+The workspace globs include apps, nested examples and tooling. React remains a stub; core exports the kernel, commands, port contracts and pure collection helpers. All three library packages retain their version constant. There are no framework components or adapter dependencies yet.
 
-`@densedash/core` exports `createKernel()` with TanStack Store, TanStack Hotkeys, real-time clock and console reporter defaults. Plugins replace defaults, and explicit `ports` replace plugin providers. Duplicate plugin providers throw even when an explicit override exists. Clock and reporter factories take no arguments; store and keyboard factories receive only the resolved clock and reporter. Setup runs after all ports resolve. Call `kernel.dispose()` to run setup cleanups in reverse order and then dispose the keyboard port, once; it attempts every cleanup even if one throws, and rolls back registered cleanups if setup fails. The kernel owns the resolved keyboard port, including an explicit override; use a separate port per kernel.
+`@densedash/core` exports `createKernel()` with TanStack Store, TanStack Hotkeys, real-time clock and console reporter defaults. Plugins replace defaults, and explicit `ports` replace plugin providers. Duplicate plugin providers throw even when an explicit override exists. Clock and reporter factories take no arguments; store and keyboard factories receive only the resolved clock and reporter. Setup runs after all ports resolve. Call `kernel.dispose()` to run setup cleanups in reverse order and then dispose commands and the keyboard port, once; it attempts every cleanup even if one throws, and rolls back registered cleanups if setup fails. The kernel owns the resolved keyboard port, including an explicit override; use a separate port per kernel.
 
 Use `kernel.ports.keyboard.bind("Mod+K", handler, { target: document })` for chords, or `bind(["G", "H"], handler)` for sequences. Keys use Hotkeys' exported checked string types; `Mod` resolves to Command on macOS and Control elsewhere. `platform` reports that choice and `format(hotkey)` produces a display label. `parse(savedValue)` validates untrusted strings or arrays and returns `{ ok: true, hotkey }` or `{ ok: false, reason }` without throwing. Bind trusted typed keys directly. Bindings prevent the browser default and stop propagation on a match. Conflict warnings are disabled; command policy belongs to the command layer.
 
@@ -40,6 +40,36 @@ Use `kernel.ports.keyboard.bind("Mod+K", handler, { target: document })` for cho
 `keyboard.pending` exposes the read side of `Store`: `get()` and `subscribe(listener)`. It projects Hotkeys registrations into sequence entries with `id`, `hotkey`, `matchedStepCount`, `scope` and `target`; it clears on completion, timeout or disposal. Each default port owns an isolated Hotkeys manager, all subscriptions and DOM listeners. `keyboard.dispose()` releases them and any sequence timers idempotently. Only the default implementation imports Hotkeys at runtime; `bare` has no TanStack runtime dependencies.
 
 `@densedash/core/bare` exports the same contracts and a `createKernel` with no default implementations in its import graph. Supply all four ports through plugins or explicit `ports`; missing ports throw before providers run. Use `satisfies Plugin` when declaring reusable plugins to retain provider-specific types.
+
+Commands separate action definitions from key choices. Both core entries export `Command`, `Commands`, `Preset`, `KeysOptions`, `Register`, `createCommands` and `tradingPreset`. Each kernel owns `kernel.commands`; plugins can register commands during setup and return their unregister function. Commands declare an `id`, `label`, optional `group`, `enabled()` predicate, `hidden`, `confirm: { prompt }` and `run({ event })`. Keys live in a preset, never in a command. `tradingPreset` supplies j/k and arrows, Control+U/D, Enter, h/l and horizontal arrows, Shift+Y/X approval/rejection, history brackets and the trading app's `g` navigation sequences. Apps supply every action, including navigation.
+
+```ts
+import { createKernel } from "@densedash/core";
+
+declare module "@densedash/core" {
+  interface Register {
+    commands: { next: unknown; open: unknown; approve: unknown };
+  }
+}
+
+const app = createKernel({ keys: { overrides: { open: ["Space"] } } });
+const unregister = app.commands.register("rows", [
+  { id: "next", label: "Next row", group: "rows", run: () => moveRow(1) },
+  { id: "open", label: "Open row", run: () => openRow() },
+  { id: "approve", label: "Approve", confirm: { prompt: "Approve row?" }, run: () => approveRow() },
+]);
+app.commands.invoke("open");
+unregister();
+app.dispose();
+```
+
+`Register.commands` is a map whose keys constrain command ids and `invoke()` without generics. Without augmentation, command ids are strings and override ids autocomplete from `tradingPreset`; augment the registry for custom app-wide ids. `keys.preset` replaces the preset. Confirmation controls inherit the default `confirm` and `cancel` keys if a replacement omits them. `keys.overrides` replaces each named command's entire key list. Values can come from storage: the layer calls `keyboard.parse` on each key, warns once for an invalid command override and retains that command's preset keys. An explicit empty list unbinds a command. `commands.setOverrides(next)` replaces all overrides, rebinds live scopes and calls `keys.onChange` with the validated overrides for optional app persistence.
+
+`register(scope, commands, { parent, target, ignoreInputs, timeout, only })` activates a named scope and returns an idempotent unregister function. Give each scope one owner. Keyboard scope precedence chooses key handlers; a duplicate key within one scope warns with both command ids and keeps the first owner, including when disabled. `invoke(id, { scope?, event? })` uses the same descendant/latest scope policy, or selects an explicit active owner. Enabled predicates run on invocation and again on confirmation. Synchronous throws and rejected promises go to `reporter.error(cause, { source: "command", id })`. Already running commands are not cancelled by unregister or disposal.
+
+For a key layer, register just the allowed commands in a separate scope with `{ only: true }`. This rebinds their keys in an exclusive scope until unregister. `global` cannot be an exclusive layer. `commands.keymap` exposes `get()` and `subscribe()` over entries containing `command`, `label`, optional `group`, `scope` and formatted `keys`. It follows registered scope lifetimes, shadows duplicate keys, omits hidden commands and publishes exclusive-layer and confirmation changes. Element-target focus changes also update the keymap; each registration releases its focus subscriptions on unregister. The keyboard port remains responsible for dispatch and key matching.
+
+`commands.confirm` is a read-only store of `{ command, label, prompt, scope } | null`. A confirm command activates an exclusive scope with the preset's `confirm` keys (default y) and `cancel` keys (default n/Escape). `accept()` consumes pending intent before running; `cancel()` dismisses it. Confirmation also clears on owner unregister, override replacement and kernel disposal. Repeated keydown events cannot open or accept a confirmation. During confirmation the keymap contains its two controls. `createCommands({ ports, keys })` is available for owners outside a kernel and requires only keyboard, store and reporter interfaces; its owner must call `dispose()`.
 
 `@densedash/core/conformance` exports `storeContract` and `runContract({ test, cases: storeContract, make })`. Each case calls `make()` for a fresh `StorePort`. The contract covers synchronous reads, notification order, batching and unsubscribe without importing a test runner. Store subscriptions run in registration order; `batch` publishes each changed store's final state once. Function-valued state is supported; use an updater such as `store.set(() => nextFunction)` to replace it.
 
@@ -53,7 +83,7 @@ Vitest discovers unit files named `*.test.ts` or `*.test.tsx` under packages, ap
 
 The root tsconfig covers workspace TypeScript and extends `tooling/tsconfig/base.json`. It enables strict checking, `exactOptionalPropertyTypes`, `noUncheckedIndexedAccess` and `verbatimModuleSyntax`.
 
-`pnpm type-budget` runs pinned TypeScript with `--extendedDiagnostics` over `tooling/type-bench/*.ts`. It fails on compiler errors, missing diagnostics, or more than 1,000 instantiations, as set in `budget.json`. The initial workload is 14 instantiations. The headroom lets early APIs grow while catching runaway recursive types. Extend `input.ts` to exercise public API inference as real APIs arrive. Review the workload and explain any budget increase together. Wall-clock time is diagnostic only, so machine speed does not determine the result.
+Run `pnpm build` before `pnpm type-budget`. The budget runs pinned TypeScript with `--extendedDiagnostics` over `tooling/type-bench/*.ts`, importing built declarations to measure the API consumers actually typecheck. Source implementations are checked separately by `pnpm typecheck`; Turbo orders type checking and type assertions after package builds so clean CI checkouts have those declarations. The gate fails on compiler errors, missing diagnostics, or more than 1,800 instantiations, as set in `budget.json`. Its workload grows with the API: `input.ts` exercises plugin and port inference, keyboard bindings, an augmented command registry, preset overrides, registration and invocation. Extend the workload as APIs arrive and explain any budget increase. Wall-clock time is diagnostic only, so machine speed does not determine the result.
 
 ## Release rehearsal
 

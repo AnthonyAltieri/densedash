@@ -4,3 +4,6 @@ dist/
 .output/
 .claude/worktrees/
 tasks/todo.md
+apps/docs/public/r/
+apps/docs/.tanstack/
+.dd-7-scratch/

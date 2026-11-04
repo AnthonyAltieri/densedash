@@ -53,11 +53,12 @@ function Overview() {
           </a>
         </div>
         <p data-slot="section-description">
-          With the docs server running, add the placeholder to a React project initialized with
-          shadcn. The local docs server uses port 3000 by default.
+          Add the placeholder from the public registry to a React project initialized with shadcn.
         </p>
         <pre data-slot="install-command">
-          <code>pnpm dlx shadcn@4.23.0 add http://localhost:3000/r/placeholder.json</code>
+          <code>
+            pnpm dlx shadcn@4.23.0 add https://densedash-docs.vercel.app/r/placeholder.json
+          </code>
         </pre>
         <p data-slot="footnote">
           Registry items are validated with Effect before they are served. This placeholder

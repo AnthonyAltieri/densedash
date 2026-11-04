@@ -10,9 +10,72 @@ pnpm turbo run build lint typecheck
 ```
 
 The dev server defaults to port 3000. Pass `--port 4173` to the dev command
-to choose another port. The install command shown on the overview uses the
-default localhost address; adjust it if the server uses another port.
-Build output lives in `dist/client` and `dist/server`. Hosting is deferred.
+to choose another port. The overview's install command uses the public
+production registry. Use the localhost command below to install local changes.
+
+## Hosting
+
+Production: <https://densedash-docs.vercel.app>. The Vercel Git integration
+deploys pushes to `main` to production and gives each pull request a preview
+deployment and a Vercel check. Merge through GitHub after CI and the preview
+check pass. No deployment token belongs in the repository.
+
+Repository configuration:
+
+- `vite.config.ts` registers `nitro({ preset: "vercel" })` after the Start
+  plugin. Start 1.169.4 has no hosting `target` option; the
+  [Nitro Vite plugin](https://vercel.com/docs/frameworks/full-stack/tanstack-start)
+  adapts its server for Vercel. The explicit preset also makes local builds
+  produce the deployment format.
+- `package.json` pins the build adapter to `nitro@3.0.260903-beta`, whose Node
+  engine supports the repository's Node 22.20.0 CI runtime. Newer Nitro release
+  candidates require Node 22.22.0. The build command remains
+  `pnpm registry:build && vite build`: validation must succeed before the app
+  is built. A failed registry invocation removes `public/r` and exits nonzero,
+  so Vercel fails the deployment and keeps the previous successful deployment.
+- Nitro emits `.vercel/output/config.json`, static assets under
+  `.vercel/output/static/` (including `r/placeholder.json`), and a serverless
+  function under `.vercel/output/functions/__server.func/`. Intermediate Vite
+  files live in `node_modules/.nitro/`. No output-directory override or
+  `vercel.json` is needed.
+- `turbo.json` in this app caches `dist/**`, `.vercel/output/**`, and
+  `public/r/**` together. The root `turbo.json` declares
+  `ENABLE_EXPERIMENTAL_COREPACK` in `globalEnv` to prevent Vercel's environment
+  warning. Only the install step needs that variable.
+- The root `package.json` pins `pnpm@12.3.4` through `packageManager`.
+  The committed `pnpm-lock.yaml` fixes dependency resolution.
+- The root `.gitignore` excludes `.vercel/`, `node_modules/`, `dist/`, and
+  `apps/docs/public/r/`. Generated registry and deployment files stay out of git.
+
+Vercel dashboard configuration, outside the repository:
+
+| Setting                                     | Value                                                                         |
+| ------------------------------------------- | ----------------------------------------------------------------------------- |
+| Project                                     | `densedash-docs` (`prj_H5fyuOmRbPxQaelzsrzAlKhACjwq`)                         |
+| Team                                        | `anthonyaltieri's projects`                                                   |
+| Git repository                              | `AnthonyAltieri/densedash`                                                    |
+| Production branch                           | `main`                                                                        |
+| Root Directory                              | `apps/docs`                                                                   |
+| Include source files outside Root Directory | Enabled, for workspace packages and root tooling                              |
+| Framework preset                            | `tanstack-start`                                                              |
+| Node.js version                             | `22.x`                                                                        |
+| Environment variable                        | `ENABLE_EXPERIMENTAL_COREPACK=1`, production, preview, and development        |
+| Install command                             | Default, Corepack uses the pinned pnpm                                        |
+| Build command                               | Default, Vercel detects Turbo and runs `turbo build`                          |
+| Output Directory                            | Default, Nitro supplies the Vercel Build Output API files                     |
+| Preview deployments                         | Enabled for pull requests through the Git integration                         |
+| Deployment Protection                       | Vercel Authentication on preview/deployment URLs; production domain is public |
+
+Inspect these settings with `vercel api /v9/projects/densedash-docs`.
+To recreate the project, import the repository in Vercel with the settings
+above. For protected previews, `vercel curl /r/placeholder.json --deployment
+<preview-url>` uses the logged-in CLI. A downstream CLI such as shadcn needs
+an authorized protection bypass when checking a protected preview; never
+commit that credential. Production installs need no authentication:
+
+```sh
+pnpm dlx shadcn@4.23.0 add https://densedash-docs.vercel.app/r/placeholder.json
+```
 
 ## Live examples
 

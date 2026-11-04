@@ -5,15 +5,14 @@ import type { tradingPreset } from "./trading-preset.js";
 /** Augment through either public entry with `commands: { open: unknown; ... }`. */
 export interface Register {}
 
+/** Commands that densedash parts register themselves, so apps can rebind them by id. */
+type PartCommandId = Extract<keyof typeof tradingPreset, `tree.${string}` | `tabs.${string}`>;
+
 export type CommandId =
-  | Extract<keyof typeof tradingPreset, `tree.${string}`>
+  | PartCommandId
   | (Register extends { commands: infer Commands } ? Extract<keyof Commands, string> : string);
 export type KeyOverrideId = Register extends { commands: infer Commands }
-  ?
-      | Extract<keyof Commands, string>
-      | Extract<keyof typeof tradingPreset, `tree.${string}`>
-      | "confirm"
-      | "cancel"
+  ? Extract<keyof Commands, string> | PartCommandId | "confirm" | "cancel"
   : keyof typeof tradingPreset;
 
 export interface CommandContext {
@@ -71,6 +70,11 @@ export interface Commands {
   invoke(id: CommandId, context?: CommandContext & { readonly scope?: string }): void;
   readonly keymap: Pick<Store<readonly KeymapEntry[]>, "get" | "subscribe">;
   readonly confirm: Pick<Store<PendingConfirm | null>, "get" | "subscribe">;
+  /**
+   * The keys bound to a command id (its override, else its preset keys), whether or not a
+   * scope has focus. `keymap` republishes after `setOverrides`, so subscribe to it to follow.
+   */
+  keys(id: CommandId): readonly KeyboardHotkey[];
   accept(): void;
   cancel(): void;
   /** Replaces all overrides, rebinds live scopes, then notifies onChange with validated keys. */

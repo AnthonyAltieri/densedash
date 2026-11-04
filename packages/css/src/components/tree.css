@@ -1,0 +1,89 @@
+/* <Tree.*> and <List.*>: a focusable root, a scrolling viewport and keyboard-highlighted rows.
+   Nesting is --dd-depth (set on each row by the core) times --dd-indent. */
+@layer dd.components {
+  [data-slot="tree-root"] {
+    display: flex;
+    flex-direction: column;
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+  }
+
+  [data-slot="tree-root"]:focus {
+    outline: none;
+  }
+
+  [data-slot="tree-root"]:focus-visible {
+    outline: var(--dd-focus-width) solid var(--dd-color-focus);
+    outline-offset: var(--dd-focus-offset);
+  }
+
+  /* The viewport keeps the highlighted row in place itself, so browser scroll anchoring is off. */
+  [data-slot="tree-viewport"] {
+    flex: auto;
+    overflow: auto;
+    overflow-anchor: none;
+  }
+
+  [data-slot="tree-row"] {
+    display: flex;
+    align-items: center;
+    gap: var(--dd-gap);
+    box-sizing: border-box;
+    block-size: var(--dd-row-height);
+    padding-inline: var(--dd-cell-padding-inline);
+    white-space: nowrap;
+    cursor: default;
+    user-select: none;
+    /* The default viewport mounts every row; the browser skips layout and paint off screen. */
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto var(--dd-row-height);
+  }
+
+  [data-slot="tree-row"][data-selected] {
+    background: var(--dd-color-selection);
+  }
+
+  [data-slot="tree-row"][data-highlighted] {
+    background: var(--dd-color-highlight);
+  }
+
+  [data-slot="tree-row"][data-disabled] {
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="tree-indent"] {
+    flex: none;
+    inline-size: calc(var(--dd-depth) * var(--dd-indent));
+  }
+
+  [data-slot="tree-toggle"] {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--dd-icon-size);
+    block-size: var(--dd-icon-size);
+    padding: unset;
+    border: none;
+    background: none;
+    color: inherit;
+    font: inherit;
+    line-height: var(--dd-line-height);
+    cursor: default;
+  }
+
+  [data-slot="tree-toggle"]:empty::before {
+    content: "▸";
+  }
+
+  [data-slot="tree-toggle"][data-expanded]:empty::before {
+    content: "▾";
+  }
+
+  /* Leaves keep the toggle's space for alignment but hide it from sight and assistive technology. */
+  [data-slot="tree-toggle"][data-leaf] {
+    visibility: hidden;
+  }
+}

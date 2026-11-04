@@ -1,5 +1,6 @@
 export * as Densedash from "./densedash.js";
 export * as Keymap from "./keymap/index.js";
+export * as Tabs from "./tabs/index.js";
 export { Kbd } from "./kbd.js";
 export type { KbdProps, KbdState } from "./kbd.js";
 export { useKernel } from "./context.js";

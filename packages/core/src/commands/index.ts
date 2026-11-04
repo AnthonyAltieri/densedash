@@ -268,6 +268,7 @@ export function createCommands({
     },
     keymap: { get: () => keymap.get(), subscribe: (listener) => keymap.subscribe(listener) },
     confirm: { get: () => confirm.get(), subscribe: (listener) => confirm.subscribe(listener) },
+    keys: (id) => keys.get(id),
     accept,
     cancel,
     setOverrides(overrides) {

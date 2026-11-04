@@ -1,0 +1,67 @@
+/* <Tabs.*>: numbered tabs. The root is a command scope, so it draws no focus outline; tabs mute
+   their keys while focus is outside the group, because only the focused group answers. */
+@layer dd.components {
+  [data-slot="tabs"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--dd-gap);
+  }
+
+  [data-slot="tabs"]:focus {
+    outline: none;
+  }
+
+  [data-slot="tabs-list"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--dd-gap);
+    padding-block-end: var(--dd-gap);
+    border-block-end: var(--dd-border-width) solid var(--dd-color-border);
+  }
+
+  [data-slot="tabs-tab"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--dd-gap);
+    block-size: var(--dd-control-height);
+    padding-inline: var(--dd-cell-padding-inline);
+    border: none;
+    border-radius: var(--dd-radius);
+    background: none;
+    color: var(--dd-color-text-muted);
+    font: inherit;
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  [data-slot="tabs-tab"]:hover {
+    color: var(--dd-color-text);
+  }
+
+  [data-slot="tabs-tab"][data-selected] {
+    background: var(--dd-color-selection);
+    color: var(--dd-color-text);
+  }
+
+  [data-slot="tabs-tab"][data-disabled] {
+    color: var(--dd-color-text-muted);
+    cursor: default;
+  }
+
+  [data-slot="tabs-tab"]:focus-visible,
+  [data-slot="tabs-panel"]:focus-visible {
+    outline: var(--dd-focus-width) solid var(--dd-color-focus);
+    outline-offset: var(--dd-focus-offset);
+  }
+
+  [data-slot="tabs"]:not([data-active]) [data-slot="tabs-tab"] [data-slot="kbd"] {
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="tabs"][data-active] [data-slot="tabs-tab"][data-selected] [data-slot="kbd"] {
+    border-color: var(--dd-color-accent);
+  }
+}

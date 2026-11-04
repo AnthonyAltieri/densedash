@@ -1,0 +1,35 @@
+{
+  "name": "densedash",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "oxlint --deny-warnings . && oxfmt --check .",
+    "format": "oxfmt --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --typecheck",
+    "test:types": "vitest run --typecheck.only",
+    "type-budget": "node tooling/type-bench/check-budget.mjs",
+    "publint": "pnpm --filter './packages/*' -r run publint",
+    "attw": "pnpm --filter './packages/*' -r run attw",
+    "changeset": "changeset",
+    "version-packages": "changeset version && oxfmt --write ."
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.5",
+    "@changesets/changelog-github": "1.0.1",
+    "@changesets/cli": "3.0.3",
+    "@types/node": "22.20.5",
+    "oxfmt": "0.76.0",
+    "oxlint": "1.91.0",
+    "publint": "0.3.25",
+    "tsdown": "0.23.5",
+    "turbo": "2.11.10",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
+  },
+  "engines": {
+    "node": ">=22.20.0"
+  },
+  "packageManager": "pnpm@12.3.4"
+}

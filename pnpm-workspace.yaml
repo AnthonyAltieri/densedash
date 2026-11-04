@@ -1,0 +1,10 @@
+packages:
+  - packages/*
+  - apps/*
+  - examples/*/*
+  - tooling/*
+
+minimumReleaseAgeExclude:
+  - tsdown@0.23.5
+
+saveExact: true

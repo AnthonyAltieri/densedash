@@ -26,11 +26,18 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "22.20.0"
+          registry-url: https://registry.npmjs.org
       - uses: pnpm/action-setup@v6
         with:
           cache: true
       - run: pnpm install --frozen-lockfile
       - run: pnpm changeset status --since origin/main
+      - name: Verify npm authentication
+        run: |
+          npm whoami
+          npm org ls densedash --json | jq -r 'to_entries[] | "\(.key): \(.value)"' || echo "org listing unavailable"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - uses: changesets/action@v2
         id: changesets
         with:
@@ -45,4 +52,5 @@ jobs:
           push-git-tags: true
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: "true"

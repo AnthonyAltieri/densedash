@@ -29,7 +29,7 @@ jobs:
         with:
           cache: true
       - run: pnpm install --frozen-lockfile
-      - run: pnpm changeset status
+      - run: pnpm changeset status --since origin/main
       # No publish-script input or npm credentials: version PRs only.
       - uses: changesets/action@v2
         id: changesets

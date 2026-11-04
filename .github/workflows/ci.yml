@@ -36,6 +36,7 @@ jobs:
       - name: Validate packed ESM types
         run: pnpm attw
       - name: Check release plan
-        run: pnpm changeset status
+        # Detached PR checkouts have origin/main, but no local main branch.
+        run: pnpm changeset status --since origin/main
       - name: Enforce type instantiation budget
         run: pnpm type-budget

@@ -1,7 +1,7 @@
 {
   "name": "@densedash/core",
   "version": "0.0.0",
-  "description": "Framework-agnostic densedash core (scaffold).",
+  "description": "Framework-agnostic densedash kernel, ports and plugin contracts.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthonyAltieri/densedash.git",
@@ -17,6 +17,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./bare": {
+      "types": "./dist/bare.d.ts",
+      "import": "./dist/bare.js"
+    },
+    "./conformance": {
+      "types": "./dist/conformance/index.d.ts",
+      "import": "./dist/conformance/index.js"
     }
   },
   "publishConfig": {
@@ -26,5 +34,8 @@
     "build": "tsdown",
     "publint": "publint --strict",
     "attw": "attw --pack --profile esm-only"
+  },
+  "dependencies": {
+    "@tanstack/store": "0.11.2"
   }
 }

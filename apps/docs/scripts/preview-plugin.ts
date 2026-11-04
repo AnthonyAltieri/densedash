@@ -2,6 +2,8 @@ import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { defaultHoverInfoProcessor, transformerTwoslash } from "@shikijs/twoslash";
 import { createHighlighter, createCssVariablesTheme } from "shiki";
+import ts from "typescript";
+import { createTwoslasher } from "twoslash";
 import type { Plugin } from "vite";
 
 const examplesDirectory = fileURLToPath(new URL("../registry/default/examples/", import.meta.url));
@@ -21,6 +23,9 @@ export function previewPlugin(): Plugin {
         themes: [createCssVariablesTheme({ name: theme, variablePrefix: "--dd-code-" })],
         langs: ["tsx"],
       });
+      // The virtual example file lives beside the real examples so sibling wrapper imports
+      // resolve to the exact registry sources. The transformer forwards only execution options.
+      const twoslasher = createTwoslasher({ vfsRoot: examplesDirectory, fsCache: false });
       try {
         const files = (await readdir(examplesDirectory))
           .filter((file) => file.endsWith(".tsx"))
@@ -38,8 +43,19 @@ export function previewPlugin(): Plugin {
             theme,
             transformers: [
               transformerTwoslash({
+                twoslasher,
                 twoslashOptions: {
-                  compilerOptions: { jsx: 4, strict: true, types: ["react"] },
+                  compilerOptions: {
+                    jsx: ts.JsxEmit.ReactJSX,
+                    module: ts.ModuleKind.ESNext,
+                    moduleResolution: ts.ModuleResolutionKind.Bundler,
+                    target: ts.ScriptTarget.ES2022,
+                    strict: true,
+                    exactOptionalPropertyTypes: true,
+                    noUncheckedIndexedAccess: true,
+                    skipLibCheck: true,
+                    types: ["react"],
+                  },
                 },
                 // The token only references its hover by id. Hover content renders
                 // outside the code element, so code.textContent stays byte for byte.

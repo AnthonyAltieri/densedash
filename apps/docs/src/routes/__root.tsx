@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { createRootRoute, HeadContent, Link, Outlet, Scripts } from "@tanstack/react-router";
+import { componentNames, components } from "../content/components.ts";
 import stylesheet from "../styles.css?url";
 
 export const Route = createRootRoute({
@@ -11,7 +12,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Keyboard-first, information-dense interfaces. Explore the densedash docs scaffold.",
+          "Keyboard-first, information-dense interfaces. Explore typed components, live examples, keyboard presets and the shadcn registry.",
       },
     ],
     links: [
@@ -75,21 +76,30 @@ function RootDocument() {
           <aside data-slot="sidebar">
             <nav aria-label="Documentation">
               <p data-slot="nav-label">Getting started</p>
-              <a href="#overview" aria-current="page">
-                Overview <span>01</span>
-              </a>
-              <a href="#preview">
-                Live preview <span>02</span>
-              </a>
-              <a href="#registry">
-                Registry <span>03</span>
-              </a>
+              <Link to="/" activeOptions={{ exact: true }} activeProps={{ "aria-current": "page" }}>
+                Overview
+              </Link>
+              <Link to="/changing-keys" activeProps={{ "aria-current": "page" }}>
+                Changing keys
+              </Link>
+              <p data-slot="nav-label">Components</p>
+              {componentNames.map((name) => (
+                <Link
+                  key={name}
+                  to="/$component"
+                  params={{ component: name }}
+                  activeProps={{ "aria-current": "page" }}
+                >
+                  {components[name].title}
+                </Link>
+              ))}
             </nav>
             <div data-slot="sidebar-note">
               <span data-slot="status-dot" aria-hidden="true" />
               <span>
-                Under construction
-                <br />A small beginning.
+                v0 / Seven registry items
+                <br />
+                Built for keyboard work.
               </span>
             </div>
           </aside>

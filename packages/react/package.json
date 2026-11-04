@@ -2,6 +2,7 @@
   "name": "@densedash/react",
   "version": "0.0.0",
   "description": "densedash React adapter: kernel context, render props and keymap parts.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/AnthonyAltieri/densedash.git",

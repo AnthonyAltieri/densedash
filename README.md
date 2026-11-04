@@ -2,6 +2,8 @@
 
 An information-dense, keyboard-first UI framework. Work is tracked in Linear team DD.
 
+License: [MIT](LICENSE).
+
 ## Install
 
 Install the ESM packages with React 19:
@@ -128,4 +130,4 @@ Run `pnpm build` before `pnpm type-budget`. The budget runs pinned TypeScript wi
 
 See [.changeset/README.md](.changeset/README.md) for the fixed release group and independent plugin versioning. CI validates packed package exports with publint and the ESM-only attw profile. That attw profile intentionally ignores CommonJS consumers; its ignored CommonJS diagnostic is expected for this ESM-only project. Vitest also prints its upstream experimental type-checking notice; its version is pinned.
 
-The main release workflow maintains a Changesets version PR. Merging it builds and publishes the packages to npm with provenance, then creates package tags and GitHub releases with the generated notes. Publication runs only in CI against the public source repository; never run `pnpm release` or `changeset publish` locally.
+The main release workflow maintains a Changesets version PR. Merging it builds and publishes the packages to npm with provenance, then creates package tags and GitHub releases with the generated notes. Packages include the [MIT license](LICENSE). Publication runs only in CI against the public source repository; never run `pnpm release` or `changeset publish` locally.

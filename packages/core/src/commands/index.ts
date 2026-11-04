@@ -104,7 +104,9 @@ export function createCommands({
   function run(command: Command, context: CommandContext): void {
     try {
       if (command.enabled?.() === false) return;
-      const result = command.run(context);
+      const result = reporter.trace
+        ? reporter.trace(command.id, () => command.run(context))
+        : command.run(context);
       if (result !== undefined) {
         void Promise.resolve(result).catch((cause: unknown) =>
           reporter.error(cause, { source: "command", id: command.id }),

@@ -21,6 +21,7 @@ pnpm type-budget
 
 ```text
 packages/<name>                 Published @densedash/* packages
+packages/plugin-effect          Optional Effect stores, reporter and task/command helpers
 apps/<name>                     Applications (apps/docs comes later)
 examples/<framework>/<name>     Framework examples
 tooling/tsdown-config           Shared ESM build configuration
@@ -40,6 +41,34 @@ Use `kernel.ports.keyboard.bind("Mod+K", handler, { target: document })` for cho
 `keyboard.pending` exposes the read side of `Store`: `get()` and `subscribe(listener)`. It projects Hotkeys registrations into sequence entries with `id`, `hotkey`, `matchedStepCount`, `scope` and `target`; it clears on completion, timeout or disposal. Each default port owns an isolated Hotkeys manager, all subscriptions and DOM listeners. `keyboard.dispose()` releases them and any sequence timers idempotently. Only the default implementation imports Hotkeys at runtime; `bare` has no TanStack runtime dependencies.
 
 `@densedash/core/bare` exports the same contracts and a `createKernel` with no default implementations in its import graph. Supply all four ports through plugins or explicit `ports`; missing ports throw before providers run. Use `satisfies Plugin` when declaring reusable plugins to retain provider-specific types.
+
+`@densedash/plugin-effect` supplies Effect atom stores and an Effect logger/tracer reporter. Install the peer dependencies `@densedash/core` and `effect` separately. Core never imports Effect. Create one plugin per kernel and use its `fx` helpers so kernel disposal interrupts outstanding work:
+
+```ts
+import { createKernel } from "@densedash/core";
+import { effectPlugin } from "@densedash/plugin-effect";
+import { Effect, Layer, ManagedRuntime } from "effect";
+import { AtomRegistry } from "effect/reactivity";
+
+const runtime = ManagedRuntime.make(Layer.empty);
+const registry = AtomRegistry.make();
+const plugin = effectPlugin({ runtime, registry });
+const app = createKernel({ plugins: [plugin] });
+const { fx } = plugin;
+app.commands.register("app", [
+  fx.command({ id: "refresh", label: "Refresh", run: Effect.log("Refreshing") }),
+]);
+const controller = new AbortController();
+const task = fx.task(Effect.succeed(42)); // core Task<number>
+await task(controller.signal);
+app.dispose();
+registry.dispose();
+await runtime.dispose();
+```
+
+`fx.task(effect)` accepts an `AbortSignal`; `fx.command({ id, label, run: effect, signal? })` supports an optional caller signal. Both reject after disposal, and their Effects can require only services supplied by the runtime. Command failures go through the command layer's reporter. `createFx(runtime)` provides standalone helpers whose owner must call `fx.dispose()`. Kernel cleanup requests interruption synchronously; Effect runs finalizers before the corresponding promises settle. The app owns its runtime and any supplied registry; a plugin without a supplied registry disposes its own.
+
+Each plugin store exposes its writable `atom`, with the same state in `plugin.registry`; `batch` uses Effect atom batching. Store atoms retain state without subscribers until the registry is disposed. `fx.atom(store)` adapts any store, including the default TanStack store, to a read-only Effect atom. Mount or subscribe to that atom in the app's registry to observe changes; the registry releases the bridge subscription when the atom is removed or the registry is disposed. The reporter records error causes with `source` and `id` annotations, warnings at warning level, and command spans named by command id. Spans follow returned promises through completion while `trace` preserves synchronous return values.
 
 Commands separate action definitions from key choices. Both core entries export `Command`, `Commands`, `Preset`, `KeysOptions`, `Register`, `createCommands` and `tradingPreset`. Each kernel owns `kernel.commands`; plugins can register commands during setup and return their unregister function. Commands declare an `id`, `label`, optional `group`, `enabled()` predicate, `hidden`, `confirm: { prompt }` and `run({ event })`. Keys live in a preset, never in a command. `tradingPreset` supplies j/k and arrows, Control+U/D, Enter, h/l and horizontal arrows, Shift+Y/X approval/rejection, history brackets and the trading app's `g` navigation sequences. Apps supply every action, including navigation.
 

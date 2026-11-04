@@ -207,6 +207,15 @@ importers:
         specifier: 3.2.1
         version: 3.2.1
 
+  packages/plugin-effect:
+    devDependencies:
+      '@densedash/core':
+        specifier: workspace:*
+        version: link:../core
+      effect:
+        specifier: 4.1.2
+        version: 4.1.2
+
   packages/react: {}
 
 packages:

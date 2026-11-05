@@ -3,7 +3,7 @@ import type { Command, CommandScopeOptions } from "./types.js";
 
 export interface Scope {
   readonly name: string;
-  readonly commands: readonly Command[];
+  commands: readonly Command[];
   readonly options: CommandScopeOptions;
   readonly release: () => void;
   readonly unregister: () => void;

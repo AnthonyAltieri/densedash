@@ -38,7 +38,8 @@ function groupEntries(entries: readonly KeymapEntry[]): LegendGroup[] {
 
 /**
  * Lists the active keymap: commands whose scope has focus, with formatted keys, grouped by
- * `group`. During a confirmation it lists the confirm and cancel controls.
+ * `group`. Disabled commands and commands without keys are omitted. During a confirmation
+ * it lists the confirm and cancel controls.
  */
 export function Legend({
   filter,
@@ -50,7 +51,9 @@ export function Legend({
 }: LegendProps): ReactElement {
   const kernel = useKernelFor("<Keymap.Legend>");
   const keymap = useStore(kernel.commands.keymap);
-  const entries = filter === undefined ? keymap : keymap.filter(filter);
+  const entries = keymap.filter(
+    (entry) => entry.enabled && entry.keys.length > 0 && (filter === undefined || filter(entry)),
+  );
   const state: LegendState = { empty: entries.length === 0 };
   const children = groupEntries(entries).map((group) => (
     <div key={group.name ?? ""} data-slot="keymap-legend-group" data-group={group.name}>

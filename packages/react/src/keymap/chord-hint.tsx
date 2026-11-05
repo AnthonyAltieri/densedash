@@ -49,9 +49,12 @@ function chordHint(
     if (sequence.matchedStepCount !== matched) continue;
     const formatted = keyboard.format(sequence.hotkey);
     const entry = keymap.find(
-      (candidate) => candidate.scope === sequence.scope && candidate.keys.includes(formatted),
+      (candidate) =>
+        candidate.enabled &&
+        candidate.scope === sequence.scope &&
+        candidate.keys.includes(formatted),
     );
-    // Hidden commands have no keymap entry and stay out of the hint.
+    // Hidden and disabled commands stay out of the hint.
     if (entry === undefined) continue;
     const steps = sequence.hotkey.slice(0, matched);
     const stepPrefix = keyboard.format(steps);

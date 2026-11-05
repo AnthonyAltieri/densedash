@@ -51,6 +51,12 @@ h1 {
   flex: auto;
 }
 
+/* "Mixed" row heights: portfolios are taller than the estimate, so the virtualizer measures. */
+.tall {
+  --dd-row-height: 44px;
+  font-weight: 600;
+}
+
 .value {
   font-family: var(--dd-font-mono);
   font-variant-numeric: tabular-nums;

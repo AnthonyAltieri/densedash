@@ -52,6 +52,12 @@ export interface Virtualizer {
   padding?(): { readonly start: number; readonly end: number };
   /** Row start in scroll-content pixels, used to anchor data updates even if the row unmounts. */
   offsetForIndex?(index: number): number;
+  /**
+   * Receives each mounted row's element and index after every render, before anchoring and
+   * following, for rows whose heights differ. Leave it out when every row has the estimated
+   * height.
+   */
+  measure?(element: HTMLElement, index: number): void;
 }
 
 export interface ViewportState {
@@ -241,28 +247,30 @@ export function Viewport<T>({
     };
   });
 
+  const { start, end, padding } = readLayout(strategy, rows.length, version);
+
   // Sync before following or anchoring, including the initial mount.
   useLayoutEffect(() => {
     if (element === null) return;
     // The first spacer follows the header, so its offset in the scroll content is the header's height.
     const spacer = startSpacer.current;
-    const measure = () =>
+    const measureHeader = () =>
       spacer === null
         ? 0
         : spacer.getBoundingClientRect().top -
           element.getBoundingClientRect().top -
           element.clientTop +
           element.scrollTop;
-    let start = measure();
-    strategy.sync?.({ element, count: rows.length, start });
+    let headerHeight = measureHeader();
+    strategy.sync?.({ element, count: rows.length, start: headerHeight });
     const view = element.ownerDocument.defaultView;
     if (spacer === null || view === null || !("ResizeObserver" in view)) return;
     // A theme, density or content change can resize the header without a render here.
     const observer = new view.ResizeObserver(() => {
-      const next = measure();
-      if (next === start) return;
-      start = next;
-      strategy.sync?.({ element, count: tree.state.get().rows.length, start });
+      const next = measureHeader();
+      if (next === headerHeight) return;
+      headerHeight = next;
+      strategy.sync?.({ element, count: tree.state.get().rows.length, start: headerHeight });
     });
     for (
       let node = spacer.previousElementSibling;
@@ -272,6 +280,16 @@ export function Viewport<T>({
       observer.observe(node);
     return () => observer.disconnect();
   }, [tree, strategy, element, rows.length, headed]);
+
+  // Measure mounted rows before anchoring and following, so both use their real sizes.
+  useLayoutEffect(() => {
+    if (element === null || strategy.measure === undefined) return;
+    for (let index = start; index < end; index++) {
+      const row = rows[index];
+      const target = row === undefined ? null : rowElement(core, element.ownerDocument, row.key);
+      if (target !== null && element.contains(target)) strategy.measure(target, index);
+    }
+  });
 
   // Measure before React commits new rows: the store notifies while the old rows are on screen.
   useLayoutEffect(() => {
@@ -337,7 +355,6 @@ export function Viewport<T>({
     if (index >= 0) strategy.scrollToIndex(index, "auto");
   }, [tree, highlighted, strategy, element, rows]);
 
-  const { start, end, padding } = readLayout(strategy, rows.length, version);
   const renderRow = children as (row: TreeRow<unknown>) => ReactNode;
   const items = useMemo(
     () =>

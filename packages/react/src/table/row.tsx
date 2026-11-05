@@ -90,7 +90,11 @@ export function Cell<T>({
   });
 }
 
-/** A cell's formatted value alone, for a `<Table.Cell>` that adds content such as the toggle. */
+/**
+ * A cell's formatted value alone, for a `<Table.Cell>` whose children add content such as the
+ * toggle. It formats exactly as the cell would (column kind, missing values, `format`), which
+ * the column API alone cannot reproduce, because kinds are inferred from the data.
+ */
 export function Value<T>({ column }: { readonly column: Column<T> }): ReactNode {
   return useCell(column).value;
 }

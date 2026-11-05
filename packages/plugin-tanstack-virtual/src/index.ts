@@ -7,8 +7,16 @@ import {
 import type { Virtualizer } from "@densedash/react";
 
 export interface TanstackVirtualOptions {
-  /** Row height in pixels, including any space between rows. Match the rendered CSS height. */
+  /**
+   * Row height in pixels, including any space between rows. Match the rendered CSS height, or
+   * give an estimate and set `measure`.
+   */
   readonly estimateSize: (index: number) => number;
+  /**
+   * Measures mounted rows with TanStack's `measureElement` and follows their size changes, for
+   * rows whose heights differ. Defaults to false: every row has the `estimateSize` height.
+   */
+  readonly measure?: boolean;
   /** Extra rows to mount on each side of the visible range. Defaults to eight. */
   readonly overscan?: number;
 }
@@ -69,7 +77,7 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
     virtual.scrollToIndex(index, { align, behavior: "instant" });
   }
 
-  return {
+  const strategy: Virtualizer = {
     range() {
       const items = virtual.getVirtualItems();
       const first = items[0];
@@ -129,6 +137,16 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
           target = null;
         }
       };
+    },
+  };
+  if (options.measure !== true) return strategy;
+  return {
+    ...strategy,
+    measure(row, index) {
+      // TanStack reads the index from this attribute, also when its ResizeObserver reports a
+      // later size change. The viewport rewrites it after every render, so it stays current.
+      row.setAttribute(virtual.options.indexAttribute, String(index));
+      virtual.measureElement(row);
     },
   };
 }

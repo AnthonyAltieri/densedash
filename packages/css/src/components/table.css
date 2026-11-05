@@ -1,6 +1,6 @@
-/* <Table.*>: a focusable grid or treegrid, a header row and a scrolling viewport of rows. Header
-   and rows share the column tracks that Table.Root sets as --dd-table-columns; both reserve the
-   same scrollbar gutter so the header stays aligned over a scrolling viewport. */
+/* <Table.*>: a focusable grid or treegrid and a scrolling viewport whose first row is a sticky
+   header. Header and rows share the column tracks that Table.Root sets as --dd-table-columns, and
+   one scroll container, so they stay aligned when the columns scroll sideways. */
 @layer dd.components {
   [data-slot="table-root"] {
     display: flex;
@@ -30,12 +30,14 @@
     white-space: nowrap;
   }
 
-  /* The header sits outside the viewport, so it never scrolls away. */
+  /* The header is the viewport's first child and sticks to its top edge. Rows contain their
+     layout, which makes each one a stacking context, so the header stacks above them. */
   [data-slot="table-header"] {
-    flex: none;
-    overflow: hidden;
-    scrollbar-gutter: stable;
+    position: sticky;
+    inset-block-start: 0;
+    z-index: var(--dd-z-sticky);
     border-block-end: var(--dd-border-width) solid var(--dd-color-border);
+    background: var(--dd-color-surface);
     color: var(--dd-color-text-muted);
   }
 
@@ -44,7 +46,6 @@
     flex: auto;
     overflow: auto;
     overflow-anchor: none;
-    scrollbar-gutter: stable;
   }
 
   [data-slot="table-row"] {

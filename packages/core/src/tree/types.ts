@@ -35,10 +35,19 @@ export interface ListBaseOptions<T> {
   onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
 }
 
+/** Accessible names of a row's expand/collapse toggle, for localization. */
+export interface TreeLabels {
+  /** Names a collapsed row's toggle. Defaults to "Expand". */
+  readonly expand?: string;
+  /** Names an expanded row's toggle. Defaults to "Collapse". */
+  readonly collapse?: string;
+}
+
 /** The tree's options except `mode` and `scope`, which a framework's root part supplies. */
 export interface TreeBaseOptions<T> extends ListBaseOptions<T> {
   getChildren?(item: NoInfer<T>): readonly NoInfer<T>[] | undefined;
   expanded?: Controllable<ReadonlySet<Key>, TreeChangeReason>;
+  labels?: TreeLabels;
 }
 
 export interface TreeOptions<T> extends TreeBaseOptions<T> {

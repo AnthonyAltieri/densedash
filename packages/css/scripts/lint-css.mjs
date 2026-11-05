@@ -53,7 +53,10 @@ for (const file of files.sort()) {
               report(node, "Use a --dd-* variable.");
             }
           }
-          const literal = ["Dimension", "Percentage", "Number", "Hash", "Raw"].includes(node.type);
+          // A bare zero (`top: 0`) is a position, not a design value.
+          const zero = node.type === "Number" && Number(node.value) === 0;
+          const literal =
+            !zero && ["Dimension", "Percentage", "Number", "Hash", "Raw"].includes(node.type);
           const color =
             node.type === "Identifier" &&
             lexer.matchType("color", ident.decode(node.name)).matched !== null;

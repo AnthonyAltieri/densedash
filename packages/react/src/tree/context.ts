@@ -10,6 +10,8 @@ export interface TreeContextValue {
   readonly handle: TreeHandle<unknown>;
   /** Null until the root has created the core tree. */
   readonly core: CoreTree<unknown> | null;
+  /** The toggle labels, so toggles re-render when they change. */
+  readonly labels: string;
 }
 
 export const TreeContext = createContext<TreeContextValue | null>(null);
@@ -95,7 +97,12 @@ export function rowProps(
   return normalizeProps(core.getRowProps(row.key));
 }
 
-export function toggleProps(core: CoreTree<unknown>, row: TreeRow<unknown>, _token: number) {
+export function toggleProps(
+  core: CoreTree<unknown>,
+  row: TreeRow<unknown>,
+  _token: number,
+  _labels: string,
+) {
   return normalizeProps(core.getToggleProps(row.key));
 }
 

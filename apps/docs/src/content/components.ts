@@ -70,7 +70,7 @@ export const components = {
     description:
       "Nested rows from data, with keyboard highlight, expansion and selection. DOM children never register the collection.",
     types:
-      "useTree infers T from roots; getKey returns a stable string and getChildren returns the item's children. Viewport's row.item keeps T. Root and Viewport share one TreeHandle<T>. The default focus strategy uses aria-activedescendant; roving focus is optional.",
+      "useTree infers T from roots; getKey returns a stable string and getChildren returns the item's children. Viewport's row.item keeps T. Root and Viewport share one TreeHandle<T>. The default focus strategy uses aria-activedescendant; roving focus is optional. labels: { expand, collapse } localizes the toggle's accessible names.",
     parts: [
       ...collectionParts,
       ["Indent", "span · tree-indent", "data-depth"],
@@ -93,7 +93,11 @@ export const components = {
       "columns<T>().accessor checks field names and infers format/sort value types; cell infers computed values. useTable infers T from roots. inferKinds finds runtime value kinds; getSortedRows sorts siblings before they reach the tree. Missing and mismatched values render empty and sort last. Root sets --dd-table-columns; the core sets --dd-depth on rows: these runtime values are not theme tokens.",
     parts: [
       ["Root", "div · table-root", rootState],
-      ["Header", "div · table-header", "role=row; aria-rowindex=1"],
+      [
+        "Header",
+        "div · table-header",
+        "role=row; aria-rowindex=1; Viewport's sticky first child (header prop)",
+      ],
       [
         "HeaderCell",
         "div · table-header-cell",
@@ -102,7 +106,7 @@ export const components = {
       [
         "Viewport",
         "div · table-viewport",
-        "data-virtualized; role=rowgroup; tree-viewport-spacer divs when virtualized",
+        "data-virtualized; role=rowgroup; tree-viewport-spacer divs when virtualized or after the header",
       ],
       ["Row", "div · table-row", rowState],
       ["Cell", "div · table-cell", "data-align, data-numeric, data-empty"],
@@ -115,7 +119,7 @@ export const components = {
     description:
       "Numbered, data-defined tabs. Only the focused group answers, and the preset supplies the number keys.",
     types:
-      "Tabs.Root infers its Value union from items. defaultValue, value and onValueChange follow that union. List renders items automatically; Panel.value identifies its tab. keepMounted preserves hidden children. Every tab is a native button; use Tab to reach buttons and 1–9 to select within the group.",
+      "Tabs.Root infers its Value union from items. defaultValue, value and onValueChange follow that union. List renders items automatically; Panel.value identifies its tab. keepMounted preserves hidden children. Every tab is a native button. Tab reaches the selected tab, ArrowLeft and ArrowRight move between tabs while the list has focus, and 1–9 select within the group.",
     parts: [
       ["Root", "div · tabs", "data-value, data-active, data-scope"],
       ["List", "div · tabs-list", "role=tablist"],

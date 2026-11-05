@@ -212,7 +212,9 @@ export function createTreeProps<T>({
         type: "button",
         tabIndex: -1,
         disabled: !row || row.disabled || !row.hasChildren,
-        "aria-label": row?.expanded ? "Collapse" : "Expand",
+        "aria-label": row?.expanded
+          ? (model.options().labels?.collapse ?? "Collapse")
+          : (model.options().labels?.expand ?? "Expand"),
         "aria-expanded": row?.hasChildren ? row.expanded : undefined,
         onClick(event) {
           if (!interactive(key) || !current(key)?.hasChildren || event.defaultPrevented) return;

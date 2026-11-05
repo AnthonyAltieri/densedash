@@ -18,7 +18,10 @@ export interface TabsContextValue {
   readonly label: string | undefined;
   readonly items: readonly TabItem[];
   readonly value: string | undefined;
-  select(value: string, reason: TabsChangeReason, event: Event | undefined): void;
+  /** The one tab in the page's tab order: the selected tab, else the first enabled tab. */
+  readonly tabStop: string | undefined;
+  /** Returns false when the item is missing or disabled, or the change was canceled. */
+  select(value: string, reason: TabsChangeReason, event: Event | undefined): boolean;
 }
 
 export const TabsContext = createContext<TabsContextValue | null>(null);

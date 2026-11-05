@@ -17,7 +17,6 @@ function Positions() {
   const table = useTable({ roots: items, getKey: (item) => item.symbol, columns: fields });
   return (
     <Table.Root table={table} aria-label="Open positions">
-      <Table.Header />
       <Table.Viewport table={table} />
     </Table.Root>
   );

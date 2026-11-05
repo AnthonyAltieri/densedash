@@ -8,6 +8,7 @@ import type { PartProps } from "../use-render.js";
 import { useTableContext } from "./context.js";
 import { getTableInternals } from "./handle.js";
 import type { TableHandle } from "./handle.js";
+import { Header } from "./header.js";
 import { Cell, Row, Toggle, Value } from "./row.js";
 
 export type { ViewportState } from "../tree/viewport.js";
@@ -24,13 +25,23 @@ export interface ViewportProps<T>
    */
   readonly children?: ((row: TreeRow<T>) => ReactNode) | undefined;
   readonly virtualizer?: Virtualizer | undefined;
+  /**
+   * The header row, rendered first inside the scroll element so it sticks to the top and
+   * scrolls sideways with the rows. Defaults to `<Table.Header />`; pass `null` for none.
+   */
+  readonly header?: ReactNode;
 }
 
 /**
  * The scrolling `rowgroup`: the tree's viewport, so it keeps the highlighted row in view and in
  * place through live updates, and takes the same `virtualizer`.
  */
-export function Viewport<T>({ table, children, ...props }: ViewportProps<T>): ReactElement {
+export function Viewport<T>({
+  table,
+  children,
+  header = <Header />,
+  ...props
+}: ViewportProps<T>): ReactElement {
   const { view } = useTableContext("<Table.Viewport>");
   const { tree } = getTableInternals(table as TableHandle<unknown>);
   const { columns, nested } = view;
@@ -57,6 +68,7 @@ export function Viewport<T>({ table, children, ...props }: ViewportProps<T>): Re
       role="rowgroup"
       {...props}
       tree={tree}
+      header={header}
       children={(children ?? fallback) as (row: TreeRow<unknown>) => ReactNode}
     />
   );

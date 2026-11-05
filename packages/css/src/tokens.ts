@@ -86,6 +86,8 @@ const components = {
   "--dd-footer-padding-inline": "1.25rem",
   "--dd-footer-font-size": "0.75rem",
   "--dd-footer-status-gap": "0.5rem",
+  /** Stacking order of sticky parts, such as the table header, above contained rows. */
+  "--dd-z-sticky": "1",
 } as const satisfies Record<`--dd-${string}`, string>;
 
 type Length = `${number}${"rem" | "px"}`;

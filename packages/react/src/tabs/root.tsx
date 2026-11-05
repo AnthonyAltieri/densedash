@@ -49,7 +49,9 @@ function NumberKeys({
       label: item.label,
       group: label ?? "Tabs",
       enabled: () => item.disabled !== true,
-      run: ({ event }) => select(item.value, "keyboard", event),
+      run: ({ event }) => {
+        select(item.value, "keyboard", event);
+      },
     })),
   );
   // A number key can unmount the focused panel content; keep focus in the group so it answers.
@@ -95,15 +97,20 @@ export function Root<const Value extends string>({
 
   const select = (next: string, reason: TabsChangeReason, event: Event | undefined) => {
     const item = items.find((candidate) => candidate.value === next);
-    if (item === undefined || item.disabled === true || next === selected) return;
+    if (item === undefined || item.disabled === true) return false;
+    if (next === selected) return true;
     const details = changeDetails(reason, event);
     onValueChange?.(next as Value, details);
-    if (details.canceled) return;
+    if (details.canceled) return false;
     if (value === undefined) setUncontrolled(next);
     refocus.current = reason === "keyboard";
+    return true;
   };
 
-  const context: TabsContextValue = { id, label, items, value: selected, select };
+  const tabStop = items.some((item) => item.value === selected && item.disabled !== true)
+    ? selected
+    : firstEnabled(items);
+  const context: TabsContextValue = { id, label, items, value: selected, tabStop, select };
   const state = (scope: ScopeState): TabsRootState => ({
     active: scope.active,
     value: selected ?? "",

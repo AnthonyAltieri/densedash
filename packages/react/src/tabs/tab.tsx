@@ -37,7 +37,7 @@ export function Tab({
   ...props
 }: TabsTabProps): ReactElement {
   const { commands, ports } = useKernelFor("<Tabs.Tab>");
-  const { id, items, value: selected, select } = useTabsContext("<Tabs.Tab>");
+  const { id, items, value: selected, tabStop, select } = useTabsContext("<Tabs.Tab>");
   const index = items.findIndex((item) => item.value === value);
   const item = items[index];
   const command = index >= 0 && index < numbered ? `tabs.select.${index + 1}` : undefined;
@@ -71,6 +71,8 @@ export function Tab({
           id: tabId(id, index),
           "aria-selected": state.selected,
           "aria-controls": panelId(id, index),
+          // Roving tab stop: Tab reaches one tab, and the list's arrow-key commands move focus.
+          tabIndex: value === tabStop ? 0 : -1,
           disabled: state.disabled,
           onClick: (event) =>
             select(value, event.detail === 0 ? "keyboard" : "pointer", event.nativeEvent),

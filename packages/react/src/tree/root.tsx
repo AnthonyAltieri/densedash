@@ -66,7 +66,11 @@ export function createRoot(mode: TreeMode, part: string) {
       };
     }, [kernel, internals, element, parent]);
 
-    const context = useMemo(() => ({ handle: tree, core }), [tree, core]);
+    // Label updates reach the core in a layout effect, which publishes a snapshot and renders
+    // this root again; the new context then re-renders the toggles.
+    const { expand = "", collapse = "" } = internals.options().labels ?? {};
+    const labels = `${expand}\n${collapse}`;
+    const context = useMemo(() => ({ handle: tree, core, labels }), [tree, core, labels]);
     const own =
       core === null
         ? { "data-slot": "tree-root", id: internals.options().id, role: mode, tabIndex: 0 }

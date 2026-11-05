@@ -46,6 +46,7 @@
     --dd-footer-padding-inline: 1.25rem;
     --dd-footer-font-size: 0.75rem;
     --dd-footer-status-gap: 0.5rem;
+    --dd-z-sticky: 1;
     --dd-row-height: 1.75rem;
     --dd-control-height: 1.75rem;
     --dd-indent: 1rem;

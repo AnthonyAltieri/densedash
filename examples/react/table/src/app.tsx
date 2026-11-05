@@ -85,7 +85,6 @@ function Ideas({
     <>
       <Status table={table} opened={opened} />
       <Table.Root table={table} aria-label="Ideas" className="table" style={rowStyle}>
-        <Table.Header />
         <Table.Viewport
           table={table}
           className="viewport"

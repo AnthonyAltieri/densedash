@@ -22,6 +22,11 @@ export interface ViewportMeasurements {
   readonly element: HTMLElement;
   /** The number of visible rows (expanded rows and their visible descendants). */
   readonly count: number;
+  /**
+   * Pixels of scroll content before the first row: the height of a sticky `header`, else 0.
+   * Rows start this far down, and a row scrolled to the top edge must clear it.
+   */
+  readonly start: number;
 }
 
 /**
@@ -68,6 +73,12 @@ export interface ViewportProps<T>
    */
   readonly children: (row: TreeRow<T>) => ReactNode;
   readonly virtualizer?: Virtualizer | undefined;
+  /**
+   * Rendered first inside the scroll element, before the rows, such as a header row styled
+   * `position: sticky`. Its height is measured and passed to the virtualizer as `start`, and
+   * keyboard moves scroll rows clear of it.
+   */
+  readonly header?: ReactNode;
 }
 
 const selectRows = (state: TreeSnapshot<unknown>) => state.rows;
@@ -77,15 +88,24 @@ function rowElement(core: CoreTree<unknown> | null, document: Document, key: Key
   return core === null ? null : document.getElementById(core.getRowProps(key).id);
 }
 
-/** Scrolls `target` into the viewport's client box, or into the page when the viewport does not scroll. */
-function reveal(viewport: HTMLElement, target: HTMLElement, align: "auto" | "center"): void {
+/**
+ * Scrolls `target` into the viewport's client box below its first `start` pixels (a sticky
+ * header), or into the page when the viewport does not scroll.
+ */
+function reveal(
+  viewport: HTMLElement,
+  target: HTMLElement,
+  align: "auto" | "center",
+  start: number,
+): void {
   if (viewport.scrollHeight <= viewport.clientHeight) {
     target.scrollIntoView({ block: align === "center" ? "center" : "nearest" });
     return;
   }
   const box = viewport.getBoundingClientRect();
-  const top = box.top + viewport.clientTop;
-  const bottom = top + viewport.clientHeight;
+  const edge = box.top + viewport.clientTop;
+  const top = edge + start;
+  const bottom = edge + viewport.clientHeight;
   const rect = target.getBoundingClientRect();
   if (align === "center") viewport.scrollTop += (rect.top + rect.bottom) / 2 - (top + bottom) / 2;
   else if (rect.top < top) viewport.scrollTop -= top - rect.top;
@@ -95,15 +115,17 @@ function reveal(viewport: HTMLElement, target: HTMLElement, align: "auto" | "cen
 /** The default strategy: every row is mounted, and scrolling uses the row's element. */
 function createAllRows(locate: { current: (index: number) => HTMLElement | null }) {
   let viewport: HTMLElement | null = null;
+  let start = 0;
   return {
     // The viewport clamps the range to the row count.
     range: () => ({ start: 0, end: Infinity }),
     sync(measurements: ViewportMeasurements) {
       viewport = measurements.element;
+      start = measurements.start;
     },
     scrollToIndex(index: number, align: "auto" | "center") {
       const target = locate.current(index);
-      if (viewport !== null && target !== null) reveal(viewport, target, align);
+      if (viewport !== null && target !== null) reveal(viewport, target, align, start);
     },
   } satisfies Virtualizer;
 }
@@ -184,6 +206,7 @@ export function Viewport<T>({
   tree,
   children,
   virtualizer,
+  header,
   render,
   ref,
   className,
@@ -198,6 +221,8 @@ export function Viewport<T>({
   const rows = useStore(tree.state, selectRows);
   const highlighted = useStore(tree.state, selectHighlighted);
   const [element, setElement] = useState<HTMLElement | null>(null);
+  const startSpacer = useRef<HTMLDivElement>(null);
+  const headed = header !== undefined && header !== null;
   const locate = useRef((_index: number): HTMLElement | null => null);
   const [allRows] = useState(() => createAllRows(locate));
   const strategy: Virtualizer = virtualizer ?? allRows;
@@ -218,8 +243,18 @@ export function Viewport<T>({
 
   // Sync before following or anchoring, including the initial mount.
   useLayoutEffect(() => {
-    if (element !== null) strategy.sync?.({ element, count: rows.length });
-  }, [strategy, element, rows.length]);
+    if (element === null) return;
+    // The first spacer follows the header, so its offset in the scroll content is the header's height.
+    const spacer = startSpacer.current;
+    const start =
+      spacer === null
+        ? 0
+        : spacer.getBoundingClientRect().top -
+          element.getBoundingClientRect().top -
+          element.clientTop +
+          element.scrollTop;
+    strategy.sync?.({ element, count: rows.length, start });
+  }, [strategy, element, rows.length, headed]);
 
   // Measure before React commits new rows: the store notifies while the old rows are on screen.
   useLayoutEffect(() => {
@@ -303,11 +338,13 @@ export function Viewport<T>({
           "data-slot": "tree-viewport",
           children: (
             <>
-              {padding === undefined ? null : (
+              {header}
+              {padding === undefined && !headed ? null : (
                 <div
+                  ref={startSpacer}
                   data-slot="tree-viewport-spacer"
                   aria-hidden
-                  style={{ blockSize: padding.start }}
+                  style={{ blockSize: padding?.start ?? 0 }}
                 />
               )}
               {items}

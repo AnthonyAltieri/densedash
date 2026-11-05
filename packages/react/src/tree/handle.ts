@@ -134,6 +134,14 @@ function createHandle<T>(initial: UseTreeOptions<T>, generatedId: string) {
         Object.assign(changes, { [name]: next[name] });
       }
     }
+    // Labels are usually an inline object, so compare them by value.
+    const labels = next.labels;
+    if (
+      labels !== undefined &&
+      (labels.expand !== previous.labels?.expand || labels.collapse !== previous.labels?.collapse)
+    ) {
+      changes.labels = labels;
+    }
     const current = options();
     for (const name of controls) {
       if (!Object.is(previous[name]?.value, next[name]?.value)) {

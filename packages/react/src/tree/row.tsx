@@ -122,10 +122,12 @@ export interface ToggleProps extends ElementAttributes<HTMLButtonElement>, PartP
 
 /** The row's expand/collapse button: a native button that stays out of the tab order. */
 export function Toggle({ render, ref, className, style, ...props }: ToggleProps): ReactElement {
-  const { core } = useTreeContext("<Tree.Toggle>");
+  const { core, labels } = useTreeContext("<Tree.Toggle>");
   const { row, token } = useRowContext("<Tree.Toggle>");
   const own: NormalizedProps =
-    core === null ? { "data-slot": "tree-toggle", tabIndex: -1 } : toggleProps(core, row, token);
+    core === null
+      ? { "data-slot": "tree-toggle", tabIndex: -1 }
+      : toggleProps(core, row, token, labels);
   const state: ToggleState = {
     expanded: row.expanded,
     leaf: !row.hasChildren,

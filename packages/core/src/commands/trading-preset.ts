@@ -33,6 +33,9 @@ export const tradingPreset = definePreset({
   "tabs.select.7": ["7"],
   "tabs.select.8": ["8"],
   "tabs.select.9": ["9"],
+  // Bound by the focused tab list only, so ArrowRight and ArrowLeft stay free in panels.
+  "tabs.next": ["ArrowRight"],
+  "tabs.prev": ["ArrowLeft"],
   next: ["J", "ArrowDown"],
   previous: ["K", "ArrowUp"],
   open: ["Enter"],

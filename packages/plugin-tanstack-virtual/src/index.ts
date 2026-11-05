@@ -77,10 +77,15 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
       return { start: first?.index ?? 0, end: last === undefined ? 0 : last.index + 1 };
     },
     padding() {
+      // Item offsets include the scroll margin (the viewport's header); the spacers follow it.
       const items = virtual.getVirtualItems();
+      const margin = virtual.options.scrollMargin;
       return {
-        start: items[0]?.start ?? 0,
-        end: Math.max(0, virtual.getTotalSize() - (items[items.length - 1]?.end ?? 0)),
+        start: Math.max(0, (items[0]?.start ?? margin) - margin),
+        end: Math.max(
+          0,
+          virtual.getTotalSize() - ((items[items.length - 1]?.end ?? margin) - margin),
+        ),
       };
     },
     offsetForIndex(index) {
@@ -91,12 +96,21 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
     scrollToIndex,
     sync(measurements) {
       element = measurements.element;
-      const countChanged = virtual.options.count !== measurements.count;
-      virtual.setOptions({ ...virtual.options, count: measurements.count });
+      const changed =
+        virtual.options.count !== measurements.count ||
+        virtual.options.scrollMargin !== measurements.start;
+      // Rows start below a sticky header: offset them by its height, and keep rows scrolled to
+      // the top edge clear of it.
+      virtual.setOptions({
+        ...virtual.options,
+        count: measurements.count,
+        scrollMargin: measurements.start,
+        scrollPaddingStart: measurements.start,
+      });
       if (listeners.size > 0) virtual._willUpdate();
-      // The current render read the previous count's spacer size. TanStack need not emit a
+      // The current render read the previous geometry's spacer sizes. TanStack need not emit a
       // range change when only offscreen rows changed, so publish the new geometry too.
-      if (countChanged) {
+      if (changed) {
         for (const listener of listeners) listener();
       }
     },

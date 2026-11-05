@@ -12,6 +12,7 @@ export type {
   TreeChangeReason,
   TreeCommands,
   TreeFocusStrategy,
+  TreeLabels,
   TreeMode,
   TreeOptions,
   TreePartProps,

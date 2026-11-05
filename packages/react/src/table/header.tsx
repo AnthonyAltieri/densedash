@@ -16,7 +16,10 @@ export interface HeaderProps extends ElementAttributes<HTMLDivElement>, PartProp
   readonly children?: ReactNode;
 }
 
-/** The header `row`, first in row order (`aria-rowindex` 1). Render it before the viewport. */
+/**
+ * The header `row`, first in row order (`aria-rowindex` 1). `<Table.Viewport>` renders it as its
+ * first child by default (see its `header` prop), where the stylesheet makes it sticky.
+ */
 export function Header({
   children,
   render,

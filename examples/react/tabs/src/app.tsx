@@ -35,7 +35,7 @@ function RebindButton() {
 
 export function App() {
   const [blotter, setBlotter] = useState<BlotterTab>("orders");
-  const [log, setLog] = useState("Click a tab group, then press 1–9.");
+  const [log, setLog] = useState("Click a tab group, then press 1–9 or the arrow keys.");
 
   return (
     <Keymap.Scope name="page" page render={<main />}>

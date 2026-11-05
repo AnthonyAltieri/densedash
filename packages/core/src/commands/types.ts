@@ -57,6 +57,8 @@ export interface KeymapEntry {
   readonly group?: string;
   readonly scope: string;
   readonly keys: readonly string[];
+  /** Evaluated when the keymap is published; update the scope to refresh app state. */
+  readonly enabled: boolean;
 }
 
 export interface PendingConfirm {
@@ -69,6 +71,12 @@ export interface PendingConfirm {
 export interface Commands {
   /** A scope name has one owner. Unregister before reusing it. */
   register(scope: string, commands: readonly Command[], options?: CommandScopeOptions): () => void;
+  /**
+   * Replace definitions without rebinding or clearing pending confirmation/sequence state.
+   * The ordered ids must match the registration; unregister to change them or scope options.
+   * Pending confirmation uses the latest definition and refreshes its label/prompt.
+   */
+  update(scope: string, commands: readonly Command[]): void;
   /** Optional scope selects a specific owner; otherwise use descendant/latest precedence. */
   invoke(id: CommandId, context?: CommandContext & { readonly scope?: string }): void;
   readonly keymap: Pick<Store<readonly KeymapEntry[]>, "get" | "subscribe">;

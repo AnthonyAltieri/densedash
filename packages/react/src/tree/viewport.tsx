@@ -201,7 +201,6 @@ export function Viewport<T>({
   const strategy: Virtualizer = virtualizer ?? allRows;
   const version = useVersion(virtualizer);
   const anchor = useRef<{
-    readonly id: string;
     readonly key: Key;
     readonly top: number;
   } | null>(null);
@@ -220,12 +219,6 @@ export function Viewport<T>({
     if (element !== null) strategy.sync?.({ element, count: rows.length });
   }, [strategy, element, rows.length]);
 
-  useLayoutEffect(() => {
-    if (highlighted === null || getInternals(tree).highlightReason() === "pointer") return;
-    const index = rows.findIndex((row) => row.key === highlighted);
-    if (index >= 0) strategy.scrollToIndex(index, "auto");
-  }, [tree, highlighted, strategy, element, rows]);
-
   // Measure before React commits new rows: the store notifies while the old rows are on screen.
   useLayoutEffect(() => {
     if (element === null) return;
@@ -233,8 +226,24 @@ export function Viewport<T>({
     return tree.state.subscribe((next) => {
       const before = previous;
       previous = next;
-      anchor.current = null;
-      if (next.rows === before.rows || next.highlighted !== before.highlighted) return;
+      if (next.highlighted !== before.highlighted) {
+        anchor.current = null;
+        return;
+      }
+      // Several model updates can precede one commit; keep the original screen position.
+      if (next.rows === before.rows || anchor.current !== null) return;
+      // Another command may have scrolled before the virtual range mounts the highlight.
+      // Resolve its position from the model rather than anchoring an unrelated mounted row.
+      if (before.highlighted !== null && strategy.offsetForIndex !== undefined) {
+        const index = before.rows.findIndex((row) => row.key === before.highlighted);
+        if (index >= 0) {
+          anchor.current = {
+            key: before.highlighted,
+            top: strategy.offsetForIndex(index) + element.clientTop - element.scrollTop,
+          };
+          return;
+        }
+      }
       const target =
         (before.highlighted === null
           ? null
@@ -244,12 +253,11 @@ export function Viewport<T>({
       const row = before.rows.find((row) => core?.getRowProps(row.key).id === target.id);
       if (row === undefined) return;
       anchor.current = {
-        id: target.id,
         key: row.key,
         top: target.getBoundingClientRect().top - element.getBoundingClientRect().top,
       };
     });
-  }, [tree, core, element]);
+  }, [tree, core, element, strategy]);
 
   useLayoutEffect(() => {
     const saved = anchor.current;
@@ -262,11 +270,18 @@ export function Viewport<T>({
       }
       return;
     }
-    const target = element.ownerDocument.getElementById(saved.id);
+    const target = rowElement(core, element.ownerDocument, saved.key);
     if (target === null || !element.contains(target)) return;
     const moved = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
     if (moved !== saved.top) element.scrollTop += moved - saved.top;
-  }, [rows, element, strategy]);
+  }, [rows, core, element, strategy]);
+
+  // Follow after restoring the anchor so the final scroll always reveals the highlight.
+  useLayoutEffect(() => {
+    if (highlighted === null || getInternals(tree).highlightReason() === "pointer") return;
+    const index = rows.findIndex((row) => row.key === highlighted);
+    if (index >= 0) strategy.scrollToIndex(index, "auto");
+  }, [tree, highlighted, strategy, element, rows]);
 
   const { start, end, padding } = readLayout(strategy, rows.length, version);
   const renderRow = children as (row: TreeRow<unknown>) => ReactNode;

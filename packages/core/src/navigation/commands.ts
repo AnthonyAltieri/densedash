@@ -1,12 +1,14 @@
-import { move } from "../collections/move.js";
-import { selectRange, toggleSelection } from "../collections/selection.js";
+import type { RowData } from "@tanstack/table-core";
+import { move } from "./move.js";
+import { selectRange } from "./selection.js";
 import type { Move } from "../collections/types.js";
 import type { Command } from "../commands/types.js";
-import { changeDetails } from "./state.js";
-import type { TreeModel } from "./state.js";
-import type { TreeAction, TreeCommands } from "./types.js";
+import { changeDetails, keyState } from "./state.js";
+import type { NavigationModel } from "./state.js";
+import type { TreeAction } from "../tree/types.js";
+import type { NavigationCommands } from "./types.js";
 
-export function createTreeCommands<T>(model: TreeModel<T>) {
+export function createNavigationCommands<T extends RowData>(model: NavigationModel<T>) {
   function target(action: TreeAction) {
     const state = model.get();
     const key = action.key ?? state.highlighted;
@@ -38,13 +40,12 @@ export function createTreeCommands<T>(model: TreeModel<T>) {
     if (!model.active()) return;
     const row = target(action);
     if (!row?.hasChildren) return;
-    const next = new Set(model.get().expanded);
-    if (expanded) next.add(row.key);
-    else next.delete(row.key);
-    model.change({ expanded: next }, action);
+    const engineRow = model.table.getRow(row.key);
+    if (engineRow.getIsExpanded() === expanded) return;
+    model.run(action, () => engineRow.toggleExpanded(expanded));
   }
 
-  const commands: TreeCommands = {
+  const commands: NavigationCommands = {
     next: (action) => navigate({ type: "next" }, action),
     prev: (action) => navigate({ type: "prev" }, action),
     first: (action) => navigate({ type: "first" }, action),
@@ -54,8 +55,7 @@ export function createTreeCommands<T>(model: TreeModel<T>) {
     parent: (action) => navigate({ type: "parent" }, action),
     expand(action = {}) {
       if (!model.active()) return;
-      if (target(action)?.expanded) navigate({ type: "firstChild" }, action);
-      else setExpanded(true, action);
+      setExpanded(true, action);
     },
     collapse(action = {}) {
       if (!model.active()) return;
@@ -69,11 +69,14 @@ export function createTreeCommands<T>(model: TreeModel<T>) {
       if (!model.active()) return;
       const row = target(action);
       if (!row) return;
-      const selected =
-        model.options().selectionMode === "multiple"
-          ? toggleSelection(model.get().rows, model.get().selected, row.key)
-          : new Set([row.key]);
-      model.change({ selected, anchor: row.key }, action);
+      model.run(action, () => {
+        model.change({ anchor: row.key }, action);
+        const engineRow = model.table.getRow(row.key);
+        engineRow.toggleSelected(
+          model.options().selectionMode === "multiple" ? !engineRow.getIsSelected() : true,
+          { selectChildren: false },
+        );
+      });
     },
     extendSelection(action = {}) {
       if (!model.active()) return;
@@ -85,7 +88,46 @@ export function createTreeCommands<T>(model: TreeModel<T>) {
       }
       const state = model.get();
       const anchor = state.anchor ?? state.highlighted ?? row.key;
-      model.change({ anchor, selected: selectRange(state.rows, anchor, row.key) }, action);
+      model.run(action, () => {
+        model.change({ anchor }, action);
+        model.table.setRowSelection(keyState(selectRange(state.rows, anchor, row.key)));
+      });
+    },
+    sort(column, action = {}) {
+      if (!model.active()) return;
+      const sortable = model.table.getAllLeafColumns().filter((each) => each.getCanSort());
+      const id =
+        column ??
+        model.state.get().chosenColumn ??
+        model.state.get().sorting[0]?.id ??
+        sortable[0]?.id;
+      const chosen = sortable.find((each) => each.id === id);
+      if (!chosen) return;
+      model.run(action, () => {
+        model.request("chosenColumn", chosen.id);
+        const sorted = model.state.get().sorting[0];
+        model.table.setSorting(
+          sorted?.id !== chosen.id
+            ? [{ id: chosen.id, desc: false }]
+            : sorted.desc
+              ? []
+              : [{ id: chosen.id, desc: true }],
+        );
+      });
+    },
+    chooseColumn(direction = 1, action = {}) {
+      if (!model.active()) return;
+      const columns = model.table.getAllLeafColumns().filter((each) => each.getCanSort());
+      if (!columns.length) return;
+      const state = model.state.get();
+      const current = state.chosenColumn ?? state.sorting[0]?.id ?? columns[0]!.id;
+      const index = columns.findIndex((each) => each.id === current);
+      const chosen = columns[(index + direction + columns.length) % columns.length]!;
+      model.run(action, () => {
+        model.request("chosenColumn", chosen.id);
+        if (state.sorting.length)
+          model.table.setSorting([{ id: chosen.id, desc: state.sorting[0]!.desc }]);
+      });
     },
     open(action = {}) {
       if (!model.active()) return;
@@ -116,6 +158,8 @@ export function createTreeCommands<T>(model: TreeModel<T>) {
     define("tree.select", "Select row", commands.select),
     define("tree.extend-selection", "Extend selection", commands.extendSelection),
     define("tree.open", "Open row", commands.open),
+    define("table.sort", "Sort column", (action) => commands.sort(undefined, action)),
+    define("table.next-column", "Next sort column", (action) => commands.chooseColumn(1, action)),
   ];
   return { commands, definitions };
 }

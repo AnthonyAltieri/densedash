@@ -1,4 +1,4 @@
-import type { Key, Move, MoveOptions, TreeRow } from "./types.js";
+import type { Key, Move, MoveOptions, TreeRow } from "../collections/types.js";
 
 /** Move by enabled rows without iterating count times, even for huge counts. */
 function step<T>(

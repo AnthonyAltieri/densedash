@@ -1,5 +1,2 @@
-export { flatten } from "./flatten.js";
-export { move } from "./move.js";
-export { reconcile } from "./reconcile.js";
-export { clearSelection, selectAll, selectRange, toggleSelection } from "./selection.js";
+/** @deprecated Snapshot types for the React compatibility adapter; DD-30/DD-31 remove these. */
 export type { Key, Move, MoveOptions, TreeRow, TreeSource, TreeState } from "./types.js";

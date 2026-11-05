@@ -1,23 +1,24 @@
-import { move } from "../collections/move.js";
+import type { RowData } from "@tanstack/table-core";
+import { move } from "./move.js";
 import type { Key, TreeRow } from "../collections/types.js";
 import type { ClockPort } from "../ports/clock.js";
-import type { TreeModel } from "./state.js";
+import type { NavigationModel } from "./state.js";
 import type {
   TreeCommands,
   TreePartProps,
   TreeRootProps,
   TreeRowProps,
   TreeToggleProps,
-} from "./types.js";
+} from "../tree/types.js";
 
-export function createTreeProps<T>({
+export function createNavigationProps<T extends RowData>({
   model,
   commands,
   clock,
   id,
   mount,
 }: {
-  model: TreeModel<T>;
+  model: NavigationModel<T>;
   commands: TreeCommands;
   clock: ClockPort;
   id: string;

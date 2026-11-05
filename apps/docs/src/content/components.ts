@@ -57,10 +57,13 @@ export const components = {
   kbd: {
     title: "Kbd",
     description:
-      "Platform-aware key labels for chords and sequences. A label displays a binding; it does not register a command.",
+      "Raised keycaps for chords, sequences and ranges, formatted for the platform: ⇧J and ⌘K on macOS, Shift+J and Ctrl+K elsewhere, g r for a sequence. A label displays a binding; it does not register a command.",
     types:
-      "hotkey is KeyboardHotkey (a checked chord or sequence). Children replace its formatted label. KbdState.sequence tells a render function whether there are multiple steps. Kbd requires a kernel provider, even for preformatted children.",
-    parts: [["Kbd", "kbd · kbd", "data-sequence"]],
+      "hotkey is KeyboardHotkey (a checked chord or sequence). Children replace its formatted label. KbdState.sequence tells a render function whether there are multiple steps. KbdRange takes from and to hotkeys and renders two keycaps joined by an en dash, such as 1–3. Both require a kernel provider, even for preformatted children. The keycap keeps one size at both densities.",
+    parts: [
+      ["Kbd", "kbd · kbd", "data-sequence"],
+      ["KbdRange", "span · kbd-range", "Two kbd children joined by an en dash"],
+    ],
   },
   tree: {
     title: "Tree",
@@ -118,6 +121,23 @@ export const components = {
       ["List", "div · tabs-list", "role=tablist"],
       ["Tab", "button · tabs-tab", "data-selected, data-disabled, data-value"],
       ["Panel", "div · tabs-panel", "data-selected, data-value; hidden when inactive"],
+    ],
+  },
+  footer: {
+    title: "Footer",
+    description:
+      "A 30px bar for the bottom of a shell. The legend lists the keys bound right now, read from the keymap, so a scope that loses focus or unmounts leaves it. A status slot sits at the end of the row.",
+    types:
+      "Footer.Root holds Footer.Legend and Footer.Status. Legend reads the kernel's keymap and keeps no key list of its own. Each item shows the first key of each entry it joins and a label; three or more consecutive digits read as a range. groupBy(entry) names the item an entry joins (default: its command group; ungrouped entries stand alone with their command label), and filter(entry) drops entries. Status takes any children, such as an update time.",
+    parts: [
+      ["Root", "footer · footer", "Wraps onto more rows on narrow screens"],
+      ["Legend", "div · footer-legend", "data-empty; role=group"],
+      [
+        "Legend internals",
+        "span · footer-legend-item / footer-legend-label; kbd · kbd",
+        "item span: data-group, or data-command when ungrouped; a range is kbd–kbd",
+      ],
+      ["Status", "div · footer-status", "Pushed to the end of the row; mono"],
     ],
   },
   theme: {

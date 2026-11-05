@@ -150,6 +150,26 @@
           "target": "components/densedash/styles/tabs.css"
         }
       ]
+    },
+    {
+      "name": "footer",
+      "type": "registry:ui",
+      "title": "Footer",
+      "description": "Densedash footer parts with the canonical plain CSS: the live key legend and a status slot.",
+      "dependencies": ["@densedash/react@0.1.1"],
+      "registryDependencies": ["@densedash/keymap"],
+      "files": [
+        {
+          "path": "registry/default/ui/footer.tsx",
+          "type": "registry:ui",
+          "target": "components/densedash/footer.tsx"
+        },
+        {
+          "path": "../../packages/css/src/components/footer.css",
+          "type": "registry:file",
+          "target": "components/densedash/styles/footer.css"
+        }
+      ]
     }
   ]
 }

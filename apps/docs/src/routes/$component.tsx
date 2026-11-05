@@ -136,7 +136,7 @@ function ComponentPage() {
         <h2>Keyboard</h2>
         <p data-slot="section-description">
           {keys.length === 0
-            ? "This item registers no commands. Kbd formats labels; the theme sets variables."
+            ? "This item registers no commands. Kbd formats labels, Footer reads the live keymap, and the theme sets variables."
             : "Generated from tradingPreset, formatted by the kernel's keyboard port at build time. Keys act within the focused scope. An empty key list leaves the command available programmatically. Change keys with one preset or per-command overrides."}
         </p>
         {keys.length > 0 && (

@@ -1,0 +1,38 @@
+/* <Footer.*>: the bar at the bottom of a shell. The legend lists the keys bound right now; the
+   status sits at the end of the row. Items wrap onto more rows on narrow screens. */
+@layer dd.components {
+  [data-slot="footer"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--dd-gap) var(--dd-footer-gap);
+    min-block-size: var(--dd-footer-height);
+    padding-block: var(--dd-gap);
+    padding-inline: var(--dd-footer-padding-inline);
+    border-block-start: var(--dd-border-width) solid var(--dd-color-border-muted);
+    background: var(--dd-color-surface-muted);
+    color: var(--dd-color-text-muted);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-footer-font-size);
+  }
+
+  [data-slot="footer-legend"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--dd-gap) var(--dd-footer-gap);
+  }
+
+  [data-slot="footer-legend-item"] {
+    white-space: nowrap;
+  }
+
+  [data-slot="footer-status"] {
+    display: flex;
+    align-items: center;
+    gap: var(--dd-footer-status-gap);
+    margin-inline-start: auto;
+    color: var(--dd-color-text-secondary);
+    font-family: var(--dd-font-mono);
+  }
+}

@@ -14,9 +14,22 @@ import type {
   KeyboardHandler,
   KeyboardHotkey,
   KeyboardHotkeyChord,
+  KeyboardPlatform,
   KeyboardPort,
   PendingKeyboardSequence,
 } from "../ports/keyboard.js";
+
+/**
+ * Hotkeys' display parts, joined as compact keycap labels: glyphs with no separator on macOS
+ * (`⇧J`, `⌘K`) and text joined by `+` elsewhere (`Shift+J`, `Ctrl+K`). A letter pressed on its
+ * own reads in lower case (`j`, and `g r` for a sequence), as it is typed.
+ */
+function formatChord(chord: KeyboardHotkeyChord, platform: KeyboardPlatform): string {
+  const parts = formatForDisplay(chord, { platform, parts: true });
+  const [only] = parts;
+  if (parts.length === 1 && only !== undefined && /^[A-Z]$/.test(only)) return only.toLowerCase();
+  return parts.join(platform === "mac" ? "" : "+");
+}
 
 export function createKeyboardPort(): KeyboardPort {
   // 0.24.0 exposes only a singleton factory and marks its zero-argument constructor
@@ -103,7 +116,10 @@ export function createKeyboardPort(): KeyboardPort {
         return { ok: false, reason: cause instanceof Error ? cause.message : "Invalid hotkey." };
       }
     },
-    format: (hotkey) => formatForDisplay(hotkey, { platform }),
+    format: (hotkey) =>
+      typeof hotkey === "string"
+        ? formatChord(hotkey, platform)
+        : hotkey.map((step) => formatChord(step, platform)).join(" "),
     activateScope(scope, options) {
       requireLive();
       return own(manager.activateScope(scope, options));

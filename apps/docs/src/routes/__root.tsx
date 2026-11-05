@@ -97,7 +97,7 @@ function RootDocument() {
             <div data-slot="sidebar-note">
               <span data-slot="status-dot" aria-hidden="true" />
               <span>
-                v0 / Seven registry items
+                v0 / Eight registry items
                 <br />
                 Built for keyboard work.
               </span>

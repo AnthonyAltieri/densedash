@@ -1,14 +1,24 @@
 # @densedash/css
 
-Plain CSS variables for information-dense interfaces. Import once:
+Design tokens and component styles for information-dense interfaces. Import the tokens once:
 
 ```ts
 import "@densedash/css/tokens.css";
 ```
 
 Use `var(--dd-color-surface)`, `var(--dd-color-text)`, `var(--dd-row-height)`,
-and the other tokens in application styles. The package sets variables and
-`color-scheme`; it does not reset elements or load fonts.
+and the other tokens in application styles. The token stylesheet sets variables and
+`color-scheme`; it does not reset elements or load fonts. Import component styles separately:
+
+```ts
+import "@densedash/css/components/tree.css"; // Tree and List
+import "@densedash/css/components/tabs.css";
+import "@densedash/css/components/table.css";
+```
+
+Keymap styles ship as `keymap-scope.css`, `keymap-legend.css`,
+`keymap-chord-hint.css` and `keymap-confirm-prompt.css`; import `kbd.css` for Kbd/KbdRange key caps and `footer.css` for Footer.
+Rules target `data-slot` and state attributes, with visual values from `--dd-*` variables.
 
 ## Themes and density
 
@@ -66,7 +76,7 @@ both checks part of the existing Turbo build gate.
 | Package export       | Contents                                                          |
 | -------------------- | ----------------------------------------------------------------- |
 | `./tokens.css`       | Layered variables, system/forced themes, and density selectors    |
-| `./components/*.css` | Reserved layer stylesheet; no component rules ship yet            |
+| `./components/*.css` | Keymap, Kbd/KbdRange, Footer, Tree/List, Tabs and Table styles    |
 | `./css-vars.json`    | `{ cssVars: { light, dark } }` for shadcn registry composition    |
 | `./tokens.json`      | Defaults and rows with `name`, `tier`, and values for docs tables |
 

@@ -15,13 +15,13 @@ import { Tree, useTree } from "@densedash/react";
 import { tanstackVirtual } from "@densedash/plugin-tanstack-virtual";
 
 function Book({ holdings }) {
-  const tree = useTree({ roots: holdings, getKey: (holding) => holding.id });
+  const tree = useTree({ data: holdings, getRowId: (holding) => holding.id });
   const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => 28 }));
   const rowStyle = { "--dd-row-height": "28px" } as CSSProperties;
   return (
     <Tree.Root tree={tree} style={rowStyle}>
       <Tree.Viewport tree={tree} virtualizer={virtualizer} style={{ blockSize: 384 }}>
-        {(row) => <Tree.Row row={row}>{row.item.name}</Tree.Row>}
+        {(row) => <Tree.Row row={row}>{row.original.name}</Tree.Row>}
       </Tree.Viewport>
     </Tree.Root>
   );

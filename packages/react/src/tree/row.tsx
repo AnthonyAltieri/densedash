@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import type { ReactElement, ReactNode } from "react";
-import type { TreeRow, TreeSnapshot } from "@densedash/core";
 import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import type { ElementProps } from "../merge-props.js";
@@ -9,6 +8,7 @@ import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
 import {
+  EXPANDED,
   HIGHLIGHTED,
   partStyle,
   RowContext,
@@ -20,6 +20,7 @@ import {
   useRowContext,
   useTreeContext,
 } from "./context.js";
+import type { TreeRow, TreeSnapshot } from "./handle.js";
 
 export interface RowState {
   readonly highlighted: boolean;
@@ -51,25 +52,26 @@ export function Row({
   ...props
 }: RowProps<unknown>): ReactElement {
   const { handle, core } = useTreeContext("<Tree.Row>");
-  const key = row.key;
-  const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowToken(state, key), [key]);
+  const id = row.id;
+  const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowToken(state, id), [id]);
   const token = useStore(handle.state, select);
   // Position has its own subscription: an insertion changes every sibling's set size, which
   // re-renders this part but not the row's content.
   const selectPosition = useMemo(
-    () => (state: TreeSnapshot<unknown>) => rowPosition(state, key),
-    [key],
+    () => (state: TreeSnapshot<unknown>) => rowPosition(state, id),
+    [id],
   );
   const position = useStore(handle.state, selectPosition);
   const own: NormalizedProps =
     core === null ? { "data-slot": "tree-row" } : rowProps(core, row, token, position);
   const context = useMemo(() => ({ row, token }), [row, token]);
+  const leaf = !row.getCanExpand();
   const state: RowState = {
     highlighted: (token & HIGHLIGHTED) !== 0,
     selected: (token & SELECTED) !== 0,
-    expanded: row.expanded,
-    disabled: row.disabled,
-    leaf: !row.hasChildren,
+    expanded: !leaf && (token & EXPANDED) !== 0,
+    disabled: !row.getCanSelect(),
+    leaf,
     depth: row.depth,
   };
   const rendered = useRender({
@@ -128,10 +130,11 @@ export function Toggle({ render, ref, className, style, ...props }: ToggleProps)
     core === null
       ? { "data-slot": "tree-toggle", tabIndex: -1 }
       : toggleProps(core, row, token, labels);
+  const leaf = !row.getCanExpand();
   const state: ToggleState = {
-    expanded: row.expanded,
-    leaf: !row.hasChildren,
-    disabled: row.disabled || !row.hasChildren,
+    expanded: !leaf && (token & EXPANDED) !== 0,
+    leaf,
+    disabled: leaf || !row.getCanSelect(),
   };
   return useRender({
     render,

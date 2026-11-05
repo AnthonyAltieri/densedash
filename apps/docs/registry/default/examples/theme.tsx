@@ -14,13 +14,13 @@ const style: CSSProperties & Record<`--dd-${string}`, string> = {
 };
 
 function Orders({ restyled }: { restyled: boolean }) {
-  const list = useList({ roots: items, getKey: (item) => item.id });
+  const list = useList({ data: items, getRowId: (item) => item.id });
   return (
     <div style={restyled ? style : undefined}>
       <p>{restyled ? "Variable overrides" : "Default tokens"}</p>
       <List.Root tree={list} aria-label={restyled ? "Restyled orders" : "Default orders"}>
         <List.Viewport tree={list}>
-          {(row) => <List.Row row={row}>{row.item.label}</List.Row>}
+          {(row) => <List.Row row={row}>{row.original.label}</List.Row>}
         </List.Viewport>
       </List.Root>
     </div>

@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { ReactElement, ReactNode } from "react";
-import type { TreeRow } from "@densedash/core";
 import type { ElementAttributes } from "../element-attributes.js";
+import type { TreeRow } from "../tree/handle.js";
 import { Viewport as TreeViewport } from "../tree/viewport.js";
 import type { Virtualizer, ViewportState } from "../tree/viewport.js";
 import type { PartProps } from "../use-render.js";
@@ -15,13 +15,12 @@ export type { ViewportState } from "../tree/viewport.js";
 
 export interface ViewportProps<T>
   extends ElementAttributes<HTMLDivElement>, PartProps<ViewportState> {
-  /** The table passed to the enclosing root; its item type types `row.item`. */
+  /** The table passed to the enclosing root; its item type types `row.original`. */
   readonly table: TableHandle<T>;
   /**
    * Renders one visible row, usually `(row) => <Table.Row row={row}>…</Table.Row>`. Defaults to
    * a row with one `<Table.Cell>` per column and, when rows nest, the toggle in the first cell.
-   * As in `Tree.Viewport`, a row whose only change is its position does not re-render, so
-   * `row.index` can be stale here.
+   * As in `Tree.Viewport`, a row whose only change is its position does not re-render.
    */
   readonly children?: ((row: TreeRow<T>) => ReactNode) | undefined;
   readonly virtualizer?: Virtualizer | undefined;

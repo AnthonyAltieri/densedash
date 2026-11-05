@@ -1,15 +1,15 @@
 import { createContext, useContext } from "react";
 import type { CSSProperties } from "react";
-import type { Key, Tree as CoreTree, TreeRow, TreeSnapshot } from "@densedash/core";
+import type { NavigableTable, RowData } from "@densedash/core";
 import { normalizeProps } from "../normalize-props.js";
 import type { NormalizedProps } from "../normalize-props.js";
 import type { StyleProps } from "../use-render.js";
-import type { TreeHandle } from "./handle.js";
+import type { TreeHandleBase, TreeRow, TreeSnapshot } from "./handle.js";
 
 export interface TreeContextValue {
-  readonly handle: TreeHandle<unknown>;
-  /** Null until the root has created the core tree. */
-  readonly core: CoreTree<unknown> | null;
+  readonly handle: TreeHandleBase<unknown>;
+  /** Null until the root has created the TanStack table and its navigation. */
+  readonly core: NavigableTable<RowData> | null;
   /** The toggle labels, so toggles re-render when they change. */
   readonly labels: string;
 }
@@ -26,7 +26,7 @@ export function useTreeContext(consumer: string): TreeContextValue {
 
 export interface RowContextValue {
   readonly row: TreeRow<unknown>;
-  /** Changes whenever the row's highlight, selection or tab stop changes. */
+  /** Changes whenever the row's highlight, selection, expansion or tab stop changes. */
   readonly token: number;
 }
 
@@ -38,72 +38,99 @@ export function useRowContext(consumer: string): RowContextValue {
   return context;
 }
 
-const tabStops = new WeakMap<TreeSnapshot<unknown>, Key | undefined>();
-
-// The roving tab stop is per snapshot, so compute it once rather than once per row.
-function tabStop(snapshot: TreeSnapshot<unknown>): Key | undefined {
-  if (tabStops.has(snapshot)) return tabStops.get(snapshot);
-  const rows = snapshot.rows;
-  const key =
-    rows.find((row) => row.key === snapshot.highlighted && !row.disabled)?.key ??
-    rows.find((row) => !row.disabled)?.key;
-  tabStops.set(snapshot, key);
-  return key;
+interface RowIndex {
+  /** Visible index by row id. */
+  readonly index: Map<string, number>;
+  /** `aria-posinset/aria-setsize` by row id. */
+  readonly position: Map<string, string>;
 }
 
-const indexes = new WeakMap<readonly TreeRow<unknown>[], Map<Key, number>>();
+const indexes = new WeakMap<readonly TreeRow<unknown>[], RowIndex>();
 
-/** The row's current visible index, built once per snapshot rather than searched per row. */
-export function rowIndex(snapshot: TreeSnapshot<unknown>, key: Key): number {
-  let index = indexes.get(snapshot.rows);
-  if (index === undefined) {
-    index = new Map(snapshot.rows.map((row, position) => [row.key, position]));
-    indexes.set(snapshot.rows, index);
+// Built once per visible row model rather than searched per row.
+function rowsIndex(rows: readonly TreeRow<unknown>[]): RowIndex {
+  let found = indexes.get(rows);
+  if (found !== undefined) return found;
+  const index = new Map<string, number>();
+  const siblings = new Map<string | undefined, string[]>();
+  rows.forEach((row, position) => {
+    index.set(row.id, position);
+    const group = siblings.get(row.parentId);
+    if (group === undefined) siblings.set(row.parentId, [row.id]);
+    else group.push(row.id);
+  });
+  const position = new Map<string, string>();
+  for (const group of siblings.values()) {
+    group.forEach((id, offset) => position.set(id, `${offset + 1}/${group.length}`));
   }
-  return index.get(key) ?? -1;
+  found = { index, position };
+  indexes.set(rows, found);
+  return found;
+}
+
+/** The row's current visible index. */
+export function rowIndex(snapshot: TreeSnapshot<unknown>, id: string): number {
+  return rowsIndex(snapshot.rows).index.get(id) ?? -1;
 }
 
 /** The row's `aria-posinset` and `aria-setsize`, which change for siblings on every insertion. */
-export function rowPosition(snapshot: TreeSnapshot<unknown>, key: Key): string {
-  const row = snapshot.rows[rowIndex(snapshot, key)];
-  return row === undefined ? "" : `${row.posInSet}/${row.setSize}`;
+export function rowPosition(snapshot: TreeSnapshot<unknown>, id: string): string {
+  return rowsIndex(snapshot.rows).position.get(id) ?? "";
+}
+
+const tabStops = new WeakMap<TreeSnapshot<unknown>, string | undefined>();
+
+// The roving tab stop is per snapshot, so compute it once rather than once per row.
+function tabStop(snapshot: TreeSnapshot<unknown>): string | undefined {
+  if (tabStops.has(snapshot)) return tabStops.get(snapshot);
+  const rows = snapshot.rows;
+  const highlighted =
+    snapshot.highlighted === null ? undefined : rows[rowIndex(snapshot, snapshot.highlighted)];
+  const id =
+    (highlighted?.getCanSelect() ? highlighted.id : undefined) ??
+    rows.find((row) => row.getCanSelect())?.id;
+  tabStops.set(snapshot, id);
+  return id;
 }
 
 export const HIGHLIGHTED = 1;
 export const SELECTED = 2;
 export const TAB_STOP = 4;
+export const EXPANDED = 8;
 
 /** Everything a row's props read from tree state, packed so `useStore` compares it cheaply. */
-export function rowToken(snapshot: TreeSnapshot<unknown>, key: Key): number {
+export function rowToken(snapshot: TreeSnapshot<unknown>, id: string): number {
+  const { expanded } = snapshot;
   return (
-    (snapshot.highlighted === key ? HIGHLIGHTED : 0) |
-    (snapshot.selected.has(key) ? SELECTED : 0) |
-    (tabStop(snapshot) === key ? TAB_STOP : 0)
+    (snapshot.highlighted === id ? HIGHLIGHTED : 0) |
+    (snapshot.rowSelection[id] ? SELECTED : 0) |
+    (tabStop(snapshot) === id ? TAB_STOP : 0) |
+    (expanded === true || expanded[id] ? EXPANDED : 0)
   );
 }
 
 // The core getters read mutable state. Each wrapper takes the state it depends on as an
 // argument, so a memoizing compiler recomputes the props whenever that state changes.
-export function rootProps(core: CoreTree<unknown>, _snapshot: object): NormalizedProps {
+export function rootProps(core: NavigableTable<RowData>, _snapshot: object): NormalizedProps {
   return normalizeProps(core.getRootProps());
 }
 
 export function rowProps(
-  core: CoreTree<unknown>,
+  core: NavigableTable<RowData>,
   row: TreeRow<unknown>,
   _token: number,
   _position: string,
 ) {
-  return normalizeProps(core.getRowProps(row.key));
+  return normalizeProps(core.getRowProps(row.id));
 }
 
 export function toggleProps(
-  core: CoreTree<unknown>,
+  core: NavigableTable<RowData>,
   row: TreeRow<unknown>,
   _token: number,
   _labels: string,
 ) {
-  return normalizeProps(core.getToggleProps(row.key));
+  return normalizeProps(core.getToggleProps(row.id));
 }
 
 /** Keeps the core's style (`--dd-depth`) under the consumer's `style` value or function. */

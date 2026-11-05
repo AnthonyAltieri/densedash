@@ -1,7 +1,15 @@
 import { useInsertionEffect, useMemo, useState } from "react";
-import type { TreeCommands, TreeOptions } from "@densedash/core";
+import type {
+  ChangeDetails,
+  Controllable,
+  RowData,
+  TreeChangeReason,
+  TreeCommands,
+  TreeFocusStrategy,
+  TreeLabels,
+} from "@densedash/core";
 import { useTree } from "../tree/handle.js";
-import type { TreeHandle } from "../tree/handle.js";
+import type { TreeHandleBase, UseTreeOptions } from "../tree/handle.js";
 import { useStore } from "../use-store.js";
 import type { ReadableStore } from "../use-store.js";
 import { getSortedRows, inferKinds } from "./columns.js";
@@ -21,13 +29,27 @@ export interface TableSortControl {
  * module level or memoized): column kinds are inferred again whenever `roots` or `columns`
  * change.
  */
-// Extending TreeOptions and closing `mode` and `scope` costs consumers far fewer type
-// instantiations than `Omit` (see tooling/type-bench).
-export interface UseTableOptions<T> extends TreeOptions<T> {
-  /** `<Table.Root>` chooses the mode from `getChildren`. */
-  readonly mode?: never;
-  /** `<Table.Root>` scopes the commands to its element. */
-  readonly scope?: never;
+// DD-30 moves Table onto TanStack's data, row ids and state; until then it keeps these options.
+export interface UseTableOptions<T> {
+  roots: readonly T[];
+  getKey(item: NoInfer<T>): string;
+  getChildren?(item: NoInfer<T>): readonly NoInfer<T>[] | undefined;
+  isDisabled?(item: NoInfer<T>): boolean;
+  getTextValue?(item: NoInfer<T>): string;
+  /** Supply a stable id for server rendering. Otherwise generated per instance. */
+  id?: string;
+  focusStrategy?: TreeFocusStrategy;
+  selectionMode?: "single" | "multiple";
+  highlighted?: Controllable<string | null, TreeChangeReason>;
+  selected?: Controllable<ReadonlySet<string>, TreeChangeReason>;
+  expanded?: Controllable<ReadonlySet<string>, TreeChangeReason>;
+  loop?: boolean;
+  /** Number of enabled rows per page. Defaults to 10. */
+  pageSize?: number;
+  /** Milliseconds between typed characters. Defaults to 500. */
+  typeaheadMs?: number;
+  labels?: TreeLabels;
+  onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
   readonly columns: readonly Column<NoInfer<T>>[];
   readonly sort?: TableSortControl | undefined;
 }
@@ -46,7 +68,7 @@ export interface TableCommands extends TreeCommands {
 }
 
 /** A table owned by a component: pass it to `<Table.Root>` and `<Table.Viewport>`. */
-export interface TableHandle<out T> extends TreeHandle<T> {
+export interface TableHandle<out T> extends TreeHandleBase<T> {
   readonly commands: TableCommands;
   /** The current sort and chosen column. Read it with `useStore`. */
   readonly sorting: ReadableStore<TableState>;
@@ -60,7 +82,7 @@ export interface TableView {
 }
 
 export interface TableInternals {
-  readonly tree: TreeHandle<unknown>;
+  readonly tree: TreeHandleBase<unknown>;
   readonly view: ReadableStore<TableView>;
 }
 
@@ -103,8 +125,33 @@ interface Latest<T> {
   readonly view: TableView;
 }
 
+// The tree's id-keyed records, kept per set so a controlled set maps to a stable record.
+const records = new WeakMap<ReadonlySet<string>, Record<string, true>>();
+
+function record(keys: ReadonlySet<string>): Record<string, true> {
+  let found = records.get(keys);
+  if (found === undefined) {
+    found = Object.fromEntries(Array.from(keys, (key) => [key, true as const]));
+    records.set(keys, found);
+  }
+  return found;
+}
+
+/** Maps a set-based control onto the tree's `{ [id]: true }` state. */
+function keyControl(
+  control: Controllable<ReadonlySet<string>, TreeChangeReason> | undefined,
+): Controllable<Record<string, true>, TreeChangeReason> | undefined {
+  if (control === undefined) return undefined;
+  return {
+    ...(control.value === undefined ? {} : { value: record(control.value) }),
+    ...(control.defaultValue === undefined ? {} : { defaultValue: record(control.defaultValue) }),
+    onChange: (value, details) =>
+      control.onChange?.(new Set(Object.keys(value).filter((key) => value[key])), details),
+  };
+}
+
 function createTableHandle<T>(
-  tree: TreeHandle<T>,
+  tree: TreeHandleBase<T>,
   state: ReturnType<typeof signal<TableState>>,
   initial: Latest<T>,
 ) {
@@ -153,7 +200,7 @@ function createTableHandle<T>(
     commands,
     sorting: { get: state.get, subscribe: state.subscribe },
   };
-  internals.set(handle, { tree: tree as TreeHandle<unknown>, view });
+  internals.set(handle, { tree, view });
 
   function record(next: Latest<T>): void {
     const previous = latest;
@@ -183,9 +230,10 @@ export function useTable<T>(options: UseTableOptions<T>): TableHandle<T> {
     columns,
     sort: control,
     roots,
+    getKey,
     getChildren,
-    mode: _mode,
-    scope: _scope,
+    selected,
+    expanded,
     ...rest
   } = options;
   const [state] = useState(() =>
@@ -207,11 +255,21 @@ export function useTable<T>(options: UseTableOptions<T>): TableHandle<T> {
     () => getSortedRows({ roots, getChildren, columns, sort, kinds }),
     [roots, getChildren, columns, sort, kinds],
   );
-  const tree = useTree({
+  const expandedControl = keyControl(expanded);
+  const rowSelection = keyControl(selected);
+  const sortedChildren = sorted.getChildren;
+  const treeOptions: UseTreeOptions<T> = {
     ...rest,
-    roots: sorted.roots,
-    ...(sorted.getChildren === undefined ? {} : { getChildren: sorted.getChildren }),
-  });
+    data: sorted.roots,
+    getRowId: (item) => getKey(item),
+    ...(sortedChildren === undefined ? {} : { getSubRows: (item) => sortedChildren(item) }),
+    ...(expandedControl === undefined ? {} : { expanded: expandedControl }),
+    ...(rowSelection === undefined ? {} : { rowSelection }),
+  };
+  // TanStack constrains items to objects; the table's columns read them as `T`.
+  const tree = useTree(
+    treeOptions as unknown as UseTreeOptions<RowData>,
+  ) as unknown as TreeHandleBase<T>;
   const nested = getChildren !== undefined;
   const view = useMemo(
     (): TableView => ({ columns: columns as readonly Column<unknown>[], kinds, nested }),

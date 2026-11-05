@@ -26,15 +26,14 @@ const groupBy = (entry: KeymapEntry) =>
 
 function Desks() {
   const tree = useTree({
-    roots: desks,
-    getKey: (desk) => desk.id,
-    getChildren: () => undefined,
+    data: desks,
+    getRowId: (desk) => desk.id,
     getTextValue: (desk) => desk.label,
   });
   return (
     <Tree.Root tree={tree} aria-label="Desks">
       <Tree.Viewport tree={tree}>
-        {(row) => <Tree.Row row={row}>{row.item.label}</Tree.Row>}
+        {(row) => <Tree.Row row={row}>{row.original.label}</Tree.Row>}
       </Tree.Viewport>
     </Tree.Root>
   );

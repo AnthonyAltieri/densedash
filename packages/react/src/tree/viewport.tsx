@@ -1,6 +1,6 @@
 import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
-import type { Key, Tree as CoreTree, TreeRow, TreeSnapshot } from "@densedash/core";
+import type { NavigableTable, RowData } from "@densedash/core";
 import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
@@ -8,7 +8,7 @@ import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
 import { useTreeContext } from "./context.js";
 import { getInternals } from "./handle.js";
-import type { TreeHandle } from "./handle.js";
+import type { TreeHandleBase, TreeRow, TreeSnapshot } from "./handle.js";
 
 /** Visible row indices to mount: `start` inclusive, `end` exclusive. */
 export interface ViewportRange {
@@ -67,15 +67,15 @@ export interface ViewportState {
 
 export interface ViewportProps<T>
   extends ElementAttributes<HTMLDivElement>, PartProps<ViewportState> {
-  /** The tree passed to the enclosing root; its item type types `row.item`. */
-  readonly tree: TreeHandle<T>;
+  /** The tree passed to the enclosing root; its item type types `row.original`. */
+  readonly tree: TreeHandleBase<T>;
   /**
-   * Renders one visible row, usually `(row) => <Tree.Row row={row}>…</Tree.Row>`. While this
-   * function keeps its identity (the React Compiler memoizes inline functions), rows whose data
-   * is unchanged skip rendering; highlight and selection re-render only the rows they touch.
-   * A row whose only change is its position does not re-render either, so `row.index`,
-   * `row.posInSet` and `row.setSize` can be stale here and in `Tree.Row`'s render props: read
-   * positions from `tree.state` with `useStore` instead.
+   * Renders one visible row, usually `(row) => <Tree.Row row={row}>…</Tree.Row>`. `row` is
+   * TanStack's row from the expanded row model; `row.original` is the item. While this function
+   * keeps its identity (the React Compiler memoizes inline functions), rows whose item, depth,
+   * expansion and disabled state are unchanged skip rendering; highlight and selection
+   * re-render only the rows they touch. A row whose only change is its position does not
+   * re-render either: read positions from `tree.state` with `useStore`.
    */
   readonly children: (row: TreeRow<T>) => ReactNode;
   readonly virtualizer?: Virtualizer | undefined;
@@ -90,8 +90,8 @@ export interface ViewportProps<T>
 const selectRows = (state: TreeSnapshot<unknown>) => state.rows;
 const selectHighlighted = (state: TreeSnapshot<unknown>) => state.highlighted;
 
-function rowElement(core: CoreTree<unknown> | null, document: Document, key: Key) {
-  return core === null ? null : document.getElementById(core.getRowProps(key).id);
+function rowElement(core: NavigableTable<RowData> | null, document: Document, id: string) {
+  return core === null ? null : document.getElementById(core.getRowProps(id).id);
 }
 
 /**
@@ -152,34 +152,42 @@ function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
   return rows[low] ?? null;
 }
 
-// Position fields are left out: one insertion shifts every later row's index and every
-// sibling's set size, and re-rendering them all costs several frames at thousands of rows.
-// `Tree.Row` subscribes to its set position and `Table.Row` to its index instead.
-const fields = [
-  "key",
-  "item",
-  "depth",
-  "parentKey",
-  "hasChildren",
-  "expanded",
-  "disabled",
-  "textValue",
-] as const satisfies readonly (keyof TreeRow<unknown>)[];
+const CAN_EXPAND = 1;
+const EXPANDED = 2;
+const DISABLED = 4;
+
+// TanStack row methods read live table state, so the viewport passes their answers along.
+function rowFlags(row: TreeRow<unknown>): number {
+  return (
+    (row.getCanExpand() ? CAN_EXPAND : 0) |
+    (row.getIsExpanded() ? EXPANDED : 0) |
+    (row.getCanSelect() ? 0 : DISABLED)
+  );
+}
 
 interface SlotProps {
   readonly row: TreeRow<unknown>;
+  /** The row's expansion and disabled state when the viewport rendered. */
+  readonly flags: number;
   readonly render: (row: TreeRow<unknown>) => ReactNode;
 }
 
-// Data updates create new row objects; rows whose fields are unchanged skip rendering. Row
-// state (highlight, selection) reaches each row through its own subscription.
+// Data updates create new row objects; rows whose item, depth and state are unchanged skip
+// rendering. Position is left out: one insertion shifts every later row's index and every
+// sibling's set size, and re-rendering them all costs several frames at thousands of rows.
+// `Tree.Row` subscribes to its set position and `Table.Row` to its index instead. Row state
+// (highlight, selection) reaches each row through its own subscription.
 const RowSlot = memo(
   function RowSlot({ row, render }: SlotProps): ReactNode {
     return render(row);
   },
   (previous, next) =>
     previous.render === next.render &&
-    fields.every((field) => Object.is(previous.row[field], next.row[field])),
+    previous.flags === next.flags &&
+    previous.row.id === next.row.id &&
+    Object.is(previous.row.original, next.row.original) &&
+    previous.row.depth === next.row.depth &&
+    previous.row.parentId === next.row.parentId,
 );
 
 function useVersion(virtualizer: Virtualizer | undefined): number {
@@ -234,7 +242,7 @@ export function Viewport<T>({
   const strategy: Virtualizer = virtualizer ?? allRows;
   const version = useVersion(virtualizer);
   const anchor = useRef<{
-    readonly key: Key;
+    readonly id: string;
     readonly top: number;
   } | null>(null);
 
@@ -243,7 +251,7 @@ export function Viewport<T>({
       const row = tree.state.get().rows[index];
       return row === undefined || element === null
         ? null
-        : rowElement(core, element.ownerDocument, row.key);
+        : rowElement(core, element.ownerDocument, row.id);
     };
   });
 
@@ -286,7 +294,7 @@ export function Viewport<T>({
     if (element === null || strategy.measure === undefined) return;
     for (let index = start; index < end; index++) {
       const row = rows[index];
-      const target = row === undefined ? null : rowElement(core, element.ownerDocument, row.key);
+      const target = row === undefined ? null : rowElement(core, element.ownerDocument, row.id);
       if (target !== null && element.contains(target)) strategy.measure(target, index);
     }
   });
@@ -307,10 +315,10 @@ export function Viewport<T>({
       // Another command may have scrolled before the virtual range mounts the highlight.
       // Resolve its position from the model rather than anchoring an unrelated mounted row.
       if (before.highlighted !== null && strategy.offsetForIndex !== undefined) {
-        const index = before.rows.findIndex((row) => row.key === before.highlighted);
+        const index = before.rows.findIndex((row) => row.id === before.highlighted);
         if (index >= 0) {
           anchor.current = {
-            key: before.highlighted,
+            id: before.highlighted,
             top: strategy.offsetForIndex(index) + element.clientTop - element.scrollTop,
           };
           return;
@@ -322,10 +330,10 @@ export function Viewport<T>({
           : rowElement(core, element.ownerDocument, before.highlighted)) ??
         firstVisibleRow(element);
       if (target === null || !element.contains(target)) return;
-      const row = before.rows.find((row) => core?.getRowProps(row.key).id === target.id);
+      const row = before.rows.find((row) => core?.getRowProps(row.id).id === target.id);
       if (row === undefined) return;
       anchor.current = {
-        key: row.key,
+        id: row.id,
         top: target.getBoundingClientRect().top - element.getBoundingClientRect().top,
       };
     });
@@ -336,13 +344,13 @@ export function Viewport<T>({
     anchor.current = null;
     if (saved === null || element === null) return;
     if (strategy.offsetForIndex !== undefined) {
-      const index = rows.findIndex((row) => row.key === saved.key);
+      const index = rows.findIndex((row) => row.id === saved.id);
       if (index >= 0) {
         element.scrollTop = strategy.offsetForIndex(index) + element.clientTop - saved.top;
       }
       return;
     }
-    const target = rowElement(core, element.ownerDocument, saved.key);
+    const target = rowElement(core, element.ownerDocument, saved.id);
     if (target === null || !element.contains(target)) return;
     const moved = target.getBoundingClientRect().top - element.getBoundingClientRect().top;
     if (moved !== saved.top) element.scrollTop += moved - saved.top;
@@ -351,14 +359,16 @@ export function Viewport<T>({
   // Follow after restoring the anchor so the final scroll always reveals the highlight.
   useLayoutEffect(() => {
     if (highlighted === null || getInternals(tree).highlightReason() === "pointer") return;
-    const index = rows.findIndex((row) => row.key === highlighted);
+    const index = rows.findIndex((row) => row.id === highlighted);
     if (index >= 0) strategy.scrollToIndex(index, "auto");
   }, [tree, highlighted, strategy, element, rows]);
 
   const renderRow = children as (row: TreeRow<unknown>) => ReactNode;
   const items = useMemo(
     () =>
-      rows.slice(start, end).map((row) => <RowSlot key={row.key} row={row} render={renderRow} />),
+      rows
+        .slice(start, end)
+        .map((row) => <RowSlot key={row.id} row={row} flags={rowFlags(row)} render={renderRow} />),
     [rows, start, end, renderRow],
   );
   const state: ViewportState = { virtualized: virtualizer !== undefined };

@@ -112,7 +112,7 @@ export const navigationFeatures = tableFeatures({
   navigationFeature,
 });
 
-/** Internal bridge used only by the deprecated createTree adapter. */
+/** Internal: builds the controller that `table.getNavigation()` returns, once per table. */
 export function getNavigationRuntime<T extends RowData>(table: NavigationTable<T>) {
   const existing = instances.get(table);
   if (existing) {

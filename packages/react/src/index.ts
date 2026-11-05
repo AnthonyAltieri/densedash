@@ -6,7 +6,13 @@ export * as List from "./list/index.js";
 export * as Table from "./table/index.js";
 export * as Footer from "./footer.js";
 export { useTree } from "./tree/handle.js";
-export type { TreeHandle, UseTreeOptions } from "./tree/handle.js";
+export type {
+  TreeHandle,
+  TreeHandleBase,
+  TreeRow,
+  TreeSnapshot,
+  UseTreeOptions,
+} from "./tree/handle.js";
 export { useList } from "./list/use-list.js";
 export type { UseListOptions } from "./list/use-list.js";
 export { useTable } from "./table/handle.js";

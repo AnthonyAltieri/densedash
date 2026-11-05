@@ -174,9 +174,9 @@ export function useWideTable(roots: readonly WideRow[]) {
 // The same rows as a tree: callbacks infer the item type, and a row class reads the row state.
 export function WideTree({ roots }: { readonly roots: readonly WideRow[] }) {
   const tree = useTree({
-    roots,
-    getKey: (row) => row.id,
-    getChildren: (row) => row.children,
+    data: roots,
+    getRowId: (row) => row.id,
+    getSubRows: (row) => row.children,
     getTextValue: (row) => row.f00,
   });
   return Tree.Root({
@@ -187,7 +187,7 @@ export function WideTree({ roots }: { readonly roots: readonly WideRow[] }) {
         Tree.Row({
           row,
           className: (state) => (state.highlighted ? "highlighted" : undefined),
-          children: row.item.f00,
+          children: row.original.f00,
         }),
     }),
   });

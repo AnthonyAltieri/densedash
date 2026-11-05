@@ -83,9 +83,6 @@ expansion is retained for hidden descendants. Duplicate IDs anywhere in the
 core model, including collapsed descendants, throw an error naming the ID.
 Invalid updates leave the last accepted data and state intact.
 
-`createTree` and the exported collection snapshot types are deprecated bridges
-for DD-30/DD-31. No React source files change in this migration. Those tickets
-must migrate tree/list handles, context, root, row and viewport to this controller
-and TanStack rows; migrate table columns, handles, root and headers to TanStack
-column/sort state; and remove React's pre-sorting, duplicate sort scopes, set-based
-controls and the compatibility exports. Virtualization remains DD-32.
+React's `useTree` and `useList` (DD-31) render this controller's TanStack rows.
+DD-30 migrates React's Table, which still pre-sorts its rows and registers its own
+sort commands, onto TanStack column and sort state. Virtualization remains DD-32.

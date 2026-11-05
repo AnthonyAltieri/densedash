@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import type { ReactElement, ReactNode } from "react";
-import type { TreeSnapshot } from "@densedash/core";
 import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { rowIndex, useRowContext, useTreeContext } from "../tree/context.js";
+import type { TreeSnapshot } from "../tree/handle.js";
 import { Row as TreeRow, Toggle as TreeToggle } from "../tree/row.js";
 import type { RowProps as TreeRowProps, ToggleProps } from "../tree/row.js";
 import { useRender } from "../use-render.js";
@@ -23,8 +23,8 @@ export type RowProps<T> = TreeRowProps<T>;
  */
 export function Row({ row, ...props }: RowProps<unknown>): ReactElement {
   const { handle } = useTreeContext("<Table.Row>");
-  const key = row.key;
-  const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowIndex(state, key), [key]);
+  const id = row.id;
+  const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowIndex(state, id), [id]);
   const index = useStore(handle.state, select);
   return <TreeRow data-slot="table-row" aria-rowindex={index + 2} {...props} row={row} />;
 }
@@ -52,7 +52,7 @@ function useCell<T>(column: Column<T>) {
   const { view } = useTableContext("<Table.Cell>");
   const { row } = useRowContext("<Table.Cell>");
   const kind = view.kinds.get(column.id);
-  const item = row.item as T;
+  const item = row.original as T;
   const value = presentValue(column, kind, item);
   return {
     value: value === undefined ? null : column.render(value, item),

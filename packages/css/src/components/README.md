@@ -1,8 +1,10 @@
 # Component styles
 
-Later component tickets add CSS files here, keyed on `data-slot` and state attributes.
-`index.css` reserves the export directory with an empty layer so strict package
-validation can resolve the wildcard before component rules exist.
+The shipped styles cover Keymap scopes, legends, chord hints and confirmation prompts,
+Kbd/KbdRange key caps, Footer, Tree and List rows, Tabs and Table. Rules are keyed on `data-slot`
+and state attributes. `tree.css` serves both Tree and List; `index.css` declares
+the component layer without importing the individual styles.
+
 Wrap every file in `@layer dd.components { ... }`. Consumers import files through
 `@densedash/css/components/<name>.css` after importing `@densedash/css/tokens.css`.
 

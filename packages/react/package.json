@@ -1,7 +1,7 @@
 {
   "name": "@densedash/react",
   "version": "0.1.1",
-  "description": "densedash React adapter: kernel context, render props and keymap parts.",
+  "description": "densedash React adapter: kernel context, render props, Keymap, Kbd, KbdRange, Footer, Tree, List, Tabs and Table.",
   "license": "MIT",
   "repository": {
     "type": "git",

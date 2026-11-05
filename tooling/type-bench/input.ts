@@ -1,4 +1,5 @@
 // Measure the emitted API that consumers typecheck. Run pnpm build first.
+// See README.md for measured React part consumers excluded by the unchanged budget.
 import {
   createKernel,
   tradingPreset,

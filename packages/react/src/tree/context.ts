@@ -49,6 +49,24 @@ function tabStop(snapshot: TreeSnapshot<unknown>): Key | undefined {
   return key;
 }
 
+const indexes = new WeakMap<readonly TreeRow<unknown>[], Map<Key, number>>();
+
+/** The row's current visible index, built once per snapshot rather than searched per row. */
+export function rowIndex(snapshot: TreeSnapshot<unknown>, key: Key): number {
+  let index = indexes.get(snapshot.rows);
+  if (index === undefined) {
+    index = new Map(snapshot.rows.map((row, position) => [row.key, position]));
+    indexes.set(snapshot.rows, index);
+  }
+  return index.get(key) ?? -1;
+}
+
+/** The row's `aria-posinset` and `aria-setsize`, which change for siblings on every insertion. */
+export function rowPosition(snapshot: TreeSnapshot<unknown>, key: Key): string {
+  const row = snapshot.rows[rowIndex(snapshot, key)];
+  return row === undefined ? "" : `${row.posInSet}/${row.setSize}`;
+}
+
 export const HIGHLIGHTED = 1;
 export const SELECTED = 2;
 export const TAB_STOP = 4;
@@ -68,7 +86,12 @@ export function rootProps(core: CoreTree<unknown>, _snapshot: object): Normalize
   return normalizeProps(core.getRootProps());
 }
 
-export function rowProps(core: CoreTree<unknown>, row: TreeRow<unknown>, _token: number) {
+export function rowProps(
+  core: CoreTree<unknown>,
+  row: TreeRow<unknown>,
+  _token: number,
+  _position: string,
+) {
   return normalizeProps(core.getRowProps(row.key));
 }
 

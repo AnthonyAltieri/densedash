@@ -1,7 +1,8 @@
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ReactElement } from "react";
 import type { KeymapEntry } from "@densedash/core";
 import { useKernelFor } from "../context.js";
 import { Kbd } from "../kbd.js";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
@@ -12,10 +13,7 @@ export interface LegendState {
   readonly empty: boolean;
 }
 
-export interface LegendProps
-  extends
-    Omit<ComponentPropsWithRef<"div">, "className" | "style" | "children">,
-    PartProps<LegendState> {
+export interface LegendProps extends ElementAttributes<HTMLDivElement>, PartProps<LegendState> {
   /** Keeps matching entries only, for example one group. */
   readonly filter?: ((entry: KeymapEntry) => boolean) | undefined;
 }

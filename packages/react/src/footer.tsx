@@ -1,7 +1,8 @@
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { KeymapEntry } from "@densedash/core";
 import { useKernelFor } from "./context.js";
 import { Kbd, rangeLabels } from "./kbd.js";
+import type { ElementAttributes } from "./element-attributes.js";
 import { mergeProps } from "./merge-props.js";
 import { useRender } from "./use-render.js";
 import type { PartProps } from "./use-render.js";
@@ -9,8 +10,9 @@ import { useStore } from "./use-store.js";
 
 export interface RootState {}
 
-export interface RootProps
-  extends Omit<ComponentPropsWithRef<"footer">, "className" | "style">, PartProps<RootState> {}
+export interface RootProps extends ElementAttributes<HTMLElement>, PartProps<RootState> {
+  readonly children?: ReactNode | undefined;
+}
 
 /** The bar at the bottom of a shell: `<footer data-slot="footer">`. Holds a Legend and a Status. */
 export function Root({ render, ref, className, style, ...props }: RootProps): ReactElement {
@@ -29,10 +31,7 @@ export interface LegendState {
   readonly empty: boolean;
 }
 
-export interface LegendProps
-  extends
-    Omit<ComponentPropsWithRef<"div">, "className" | "style" | "children">,
-    PartProps<LegendState> {
+export interface LegendProps extends ElementAttributes<HTMLDivElement>, PartProps<LegendState> {
   /** Keeps matching entries only, for example the page's own commands. */
   readonly filter?: ((entry: KeymapEntry) => boolean) | undefined;
   /**
@@ -139,8 +138,9 @@ export function Legend({
 
 export interface StatusState {}
 
-export interface StatusProps
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<StatusState> {}
+export interface StatusProps extends ElementAttributes<HTMLDivElement>, PartProps<StatusState> {
+  readonly children?: ReactNode | undefined;
+}
 
 /** The app's status slot, such as `updated 09:41`, at the end of the footer row. */
 export function Status({ render, ref, className, style, ...props }: StatusProps): ReactElement {

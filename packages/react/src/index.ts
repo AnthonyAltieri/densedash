@@ -45,6 +45,7 @@ export type {
   StyleProps,
   UseRenderParameters,
 } from "./use-render.js";
+export type { ElementAttributes } from "./element-attributes.js";
 export { mergeProps } from "./merge-props.js";
 export type { DataAttributes, DensedashEvent, ElementProps } from "./merge-props.js";
 export { normalizeProps } from "./normalize-props.js";

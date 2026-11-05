@@ -1,4 +1,5 @@
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
@@ -7,8 +8,10 @@ import { Tab } from "./tab.js";
 
 export interface TabsListState {}
 
-export interface TabsListProps
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<TabsListState> {}
+export interface TabsListProps extends ElementAttributes<HTMLDivElement>, PartProps<TabsListState> {
+  /** Defaults to one `<Tabs.Tab>` per item. */
+  readonly children?: ReactNode | undefined;
+}
 
 /** The `tablist`. Without children it renders a `<Tabs.Tab>` for every item. */
 export function List({

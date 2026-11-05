@@ -124,3 +124,60 @@ Milliseconds, in press order, rounded to three decimals.
 8.932, 8.222, 8.767, 8.984, 9.238, 7.408, 8.001, 7.524, 8.641, 7.339
 7.798, 6.948, 7.918, 7.753, 7.795, 8.468, 7.988, 7.809, 6.890, 8.088
 ```
+
+## DD-22: row containment and position-only updates
+
+Measured 2026-11-05 on the DD-23 host, browser and flags, with the DD-23 method
+above. Each batch alternated a production build of `main` (b0f6d30, "before")
+and of the DD-22 branch ("after") in fresh browsers, so both saw the same host
+load. The insert scenario clicks the Tree example's real "Add fill" button 30
+times (one row at the top of 5,000, after five unmeasured ArrowDown presses
+and three unmeasured fills), reading `TaskDuration` around each click and two
+frames, as for key presses.
+
+Root cause: a CPU profile showed 3.8 ms of script per default-viewport key
+press; React already re-rendered only the two rows whose highlight changed. A
+trace attributed about 9 ms per press to
+`IntersectionObserverController::computeIntersections`: `content-visibility:
+auto` on every row makes the browser check each mounted row's visibility
+every frame. Rows now use `contain: layout style`. Insertions re-rendered every
+row because each row's index changed; rows no longer re-render for a
+position-only change, and `Table.Row` subscribes to its own index.
+
+Median / max milliseconds per action:
+
+| Scenario                         | Batch, host load (1 min) | Before          | After       |
+| -------------------------------- | ------------------------ | --------------- | ----------- |
+| Tree, 5,000 rows, ArrowDown      | 1, 20–22                 | 31.7 / 64.6     | 8.9 / 20.6  |
+| Tree, 5,000 rows, ArrowDown      | 2, 20–22                 | 26.0 / 40.9     | 6.9 / 13.9  |
+| Tree, 5,000 rows, ArrowDown      | 3, 17–19                 | 32.2 / 57.8     | 12.5 / 21.9 |
+| Tree, 5,000 rows, ArrowDown      | 4, 19                    | 36.4 / 62.1     | 11.0 / 21.7 |
+| Tree, 5,000 rows, ArrowDown      | 5, 20–23                 | 42.3 / 65.4     | 12.3 / 15.3 |
+| Tree, 5,000 rows, insert one row | 1, 20–22                 | 140.5 / 292.8   | 19.4 / 39.3 |
+| Tree, 5,000 rows, insert one row | 2, 20–22                 | 146.2 / 185.0   | 17.0 / 21.5 |
+| Tree, 5,000 rows, insert one row | 3, 17–19                 | 164.7 / 323.5   | 20.2 / 27.1 |
+| Tree, 5,000 rows, insert one row | 4, 19                    | 152.3 / 261.5   | 29.0 / 41.1 |
+| Tree, 5,000 rows, insert one row | 5, 20–23                 | 163.7 / 324.0   | 29.7 / 38.8 |
+| Tree, 50,000 rows, virtualized   | 3–5, 17–23               | 7.5–9.7 medians | 7.1–9.4     |
+| Table, 5,000 × 10, flat, all     | 6–7, 18–20               | 31.3–32.0       | 12.3–17.9   |
+| Table, 5,000 × 10, flat, virtual | 6–7, 18–20               | 5.2–6.9         | 5.0–5.5     |
+
+After review, `Tree.Row` also subscribes to its own set position, so flat
+lists keep row content out of insertions too (every sibling's `aria-setsize`
+changes). Two more alternating batches on that head, host load 12–13: ArrowDown
+26.1 / 23.6 ms before and 12.1 / 9.9 ms after; insert 146.0 / 139.8 ms before
+and 21.8 / 19.9 ms after. After four fills, all 11 top-level rows had
+consecutive `aria-posinset` and `aria-setsize` 11.
+
+Every press advanced to a distinct mounted highlight and no exception was
+thrown. Default-viewport key presses are now under one 60 Hz frame (16.7 ms)
+at the median in every batch. One insertion still costs about one to two
+frames under this load: a profile attributes the rest to the browser laying
+out 5,000 shifted rows, React reconciling 5,000 keyed children, and 5,000
+per-row store subscriptions being notified. Virtualize collections of
+thousands of rows that change often.
+
+Trade-off: without `content-visibility`, the browser lays out every mounted
+row up front. Switching the Tree example from 100 to 5,000 rows took a median
+of 159 ms before and 275–282 ms after (six switches each); 50,000 rows without
+a virtualizer took 3.6 s before and 4.3–4.9 s after.

@@ -7,6 +7,8 @@ import type { Tree, TreeOptions } from "./types.js";
 export type {
   Tree,
   TreeAction,
+  ListBaseOptions,
+  TreeBaseOptions,
   TreeChangeReason,
   TreeCommands,
   TreeFocusStrategy,

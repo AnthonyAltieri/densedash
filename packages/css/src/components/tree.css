@@ -36,9 +36,10 @@
     white-space: nowrap;
     cursor: default;
     user-select: none;
-    /* The default viewport mounts every row; the browser skips layout and paint off screen. */
-    content-visibility: auto;
-    contain-intrinsic-block-size: auto var(--dd-row-height);
+    /* Keeps each row's layout to itself, so a highlight or an insertion lays out no other row's
+       content. content-visibility: auto skipped off-screen rows, but checking every mounted
+       row's visibility each frame cost more than it saved at thousands of rows. */
+    contain: layout style;
   }
 
   [data-slot="tree-row"][data-selected] {

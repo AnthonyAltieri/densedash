@@ -1,6 +1,7 @@
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { KeyboardHotkey } from "@densedash/core";
 import { useKernelFor } from "./context.js";
+import type { ElementAttributes } from "./element-attributes.js";
 import { mergeProps } from "./merge-props.js";
 import { useRender } from "./use-render.js";
 import type { PartProps } from "./use-render.js";
@@ -10,8 +11,8 @@ export interface KbdState {
   readonly sequence: boolean;
 }
 
-export interface KbdProps
-  extends Omit<ComponentPropsWithRef<"kbd">, "className" | "style">, PartProps<KbdState> {
+export interface KbdProps extends ElementAttributes<HTMLElement>, PartProps<KbdState> {
+  readonly children?: ReactNode | undefined;
   /**
    * Formatted by the keyboard port: `⇧J` and `⌘K` on macOS, `Shift+J` and `Ctrl+K` elsewhere,
    * `g r` for a sequence. Children, when given, replace the formatted label.
@@ -45,9 +46,7 @@ export function Kbd({ hotkey, render, ref, className, style, ...props }: KbdProp
 export interface KbdRangeState {}
 
 export interface KbdRangeProps
-  extends
-    Omit<ComponentPropsWithRef<"span">, "className" | "style" | "children">,
-    PartProps<KbdRangeState> {
+  extends ElementAttributes<HTMLSpanElement>, PartProps<KbdRangeState> {
   /** The first key of the range, such as `"1"`. */
   readonly from: KeyboardHotkey;
   /** The last key of the range, such as `"3"`. */

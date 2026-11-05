@@ -5,17 +5,17 @@ import type { tradingPreset } from "./trading-preset.js";
 /** Augment through either public entry with `commands: { open: unknown; ... }`. */
 export interface Register {}
 
+// Intersections filter these key unions without `Extract`, whose distributive conditional costs
+// every consumer type instantiations per preset key.
 /** Commands that densedash parts register themselves, so apps can rebind them by id. */
-type PartCommandId = Extract<
-  keyof typeof tradingPreset,
-  `tree.${string}` | `tabs.${string}` | `table.${string}`
->;
+type PartCommandId = keyof typeof tradingPreset &
+  (`tree.${string}` | `tabs.${string}` | `table.${string}`);
 
 export type CommandId =
   | PartCommandId
-  | (Register extends { commands: infer Commands } ? Extract<keyof Commands, string> : string);
+  | (Register extends { commands: infer Commands } ? keyof Commands & string : string);
 export type KeyOverrideId = Register extends { commands: infer Commands }
-  ? Extract<keyof Commands, string> | PartCommandId | "confirm" | "cancel"
+  ? (keyof Commands & string) | PartCommandId | "confirm" | "cancel"
   : keyof typeof tradingPreset;
 
 export interface CommandContext {

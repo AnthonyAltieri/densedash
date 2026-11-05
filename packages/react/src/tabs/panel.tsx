@@ -1,4 +1,5 @@
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
@@ -10,7 +11,8 @@ export interface TabsPanelState {
 }
 
 export interface TabsPanelProps
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<TabsPanelState> {
+  extends ElementAttributes<HTMLDivElement>, PartProps<TabsPanelState> {
+  readonly children?: ReactNode | undefined;
   /** The item value whose tab shows this panel. */
   readonly value: string;
   /** Keeps the children mounted while the panel is hidden. */

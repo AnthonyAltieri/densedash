@@ -36,6 +36,17 @@ export * from "./commands/index.js";
 export const version = "0.0.0";
 export * from "./collections/index.js";
 export * from "./tree/index.js";
+export { createNavigableTable, navigationFeature, navigationFeatures } from "./navigation/index.js";
+export type {
+  NavigableTable,
+  NavigationCommands,
+  NavigationFeatures,
+  NavigationOptions,
+  NavigationRow,
+  NavigationSnapshot,
+  NavigationState,
+  NavigationTable,
+} from "./navigation/types.js";
 
 /** Creates an app-scoped kernel; explicit ports override plugins, which override defaults. */
 export function createKernel<const Options extends KernelOptions = KernelOptions>(

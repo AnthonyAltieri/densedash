@@ -1,4 +1,4 @@
-import type { Key, TreeRow, TreeState } from "./types.js";
+import type { Key, TreeRow, TreeState } from "../collections/types.js";
 
 /**
  * Reconcile against supplied visible rows in O(prev + next + selected).

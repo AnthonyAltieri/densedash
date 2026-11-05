@@ -1,8 +1,10 @@
+import type { RowData } from "@tanstack/table-core";
+import type { Controllable } from "../controllable.js";
 import type { Kernel } from "../kernel.js";
-import { createTreeCommands } from "./commands.js";
-import { createTreeProps } from "./props.js";
-import { createTreeState } from "./state.js";
-import type { Tree, TreeOptions } from "./types.js";
+import { createNavigableTable, getNavigationRuntime } from "../navigation/index.js";
+import { keyState } from "../navigation/state.js";
+import type { NavigationOptions } from "../navigation/types.js";
+import type { Tree, TreeChangeReason, TreeOptions, TreeSnapshot } from "./types.js";
 
 export type {
   Tree,
@@ -22,68 +24,68 @@ export type {
   TreeToggleProps,
 } from "./types.js";
 
-let nextTree = 0;
+function control<T>(
+  source: Controllable<ReadonlySet<string>, TreeChangeReason> | undefined,
+  encode: (keys: ReadonlySet<string>) => T,
+  decode: (value: T) => ReadonlySet<string>,
+): Controllable<T, TreeChangeReason> {
+  return {
+    ...(source?.value === undefined ? {} : { value: encode(source.value) }),
+    ...(source?.defaultValue === undefined ? {} : { defaultValue: encode(source.defaultValue) }),
+    onChange: (value, details) => source?.onChange?.(decode(value), details),
+  };
+}
 
-/** Framework-neutral tree, listbox or treegrid. Dispose the tree before its kernel. */
-export function createTree<T>(kernel: Kernel, options: TreeOptions<T>): Tree<T> {
-  const instance = nextTree++;
-  const id = options.id ?? `dd-tree-${instance}`;
-  const scope = `densedash:tree:${instance}`;
-  const model = createTreeState(kernel.ports.store, options);
-  const { commands, definitions } = createTreeCommands(model);
-  let root: HTMLElement | undefined;
-  let unregister: (() => void) | undefined;
-
-  function register(): void {
-    unregister?.();
-    unregister = undefined;
-    unregister = kernel.commands.register(scope, definitions, {
-      ...model.options().scope,
-      ...(root === undefined ? {} : { target: root }),
-    });
-  }
-
-  const props = createTreeProps({
-    model,
-    commands,
-    clock: kernel.ports.clock,
-    id,
-    mount(element) {
-      if (root === element) return;
-      root = element;
-      register();
-    },
+/** @deprecated DD-30/DD-31: use createNavigableTable with data/getRowId/getSubRows and TanStack state. */
+export function createTree<T>(kernel: Kernel, initial: TreeOptions<T>): Tree<T> {
+  let options = initial;
+  const mapped = () => ({
+    ...options,
+    data: options.roots,
+    getRowId: (item: T) => options.getKey(item),
+    getSubRows: (item: T) => options.getChildren?.(item),
+    expanded: control(
+      options.expanded,
+      keyState,
+      (value) => new Set(Object.keys(value).filter((key) => value[key])),
+    ),
+    rowSelection: control(
+      options.selected,
+      keyState,
+      (value) => new Set(Object.keys(value).filter((key) => value[key])),
+    ),
   });
-  try {
-    register();
-  } catch (cause) {
-    model.dispose();
-    props.dispose();
-    throw cause;
-  }
-
+  // TanStack constrains its public data type to objects. This legacy adapter treats data
+  // as opaque and preserves item identity, including legacy primitive list values.
+  const navigation = createNavigableTable(
+    kernel,
+    mapped() as unknown as NavigationOptions<RowData>,
+  );
+  const { model } = getNavigationRuntime(navigation.table);
   return {
     get rows() {
-      return model.get().rows;
+      return (model.get() as TreeSnapshot<T>).rows;
     },
-    state: { get: model.get, subscribe: model.subscribe },
-    commands,
-    scope,
-    getRootProps: props.getRootProps,
-    getRowProps: props.getRowProps,
-    getToggleProps: props.getToggleProps,
+    state: {
+      get: () => model.get() as TreeSnapshot<T>,
+      subscribe: (listener) => model.subscribe((snapshot) => listener(snapshot as TreeSnapshot<T>)),
+    },
+    commands: navigation.commands,
+    scope: navigation.scope,
+    getRootProps: navigation.getRootProps,
+    getRowProps: navigation.getRowProps,
+    getToggleProps: navigation.getToggleProps,
+    dispose: navigation.dispose,
     update(next) {
       if (!model.active()) return;
-      model.update(next);
-      if (model.active() && next.scope !== undefined) register();
-    },
-    dispose() {
-      if (!model.active()) return;
-      model.dispose();
-      props.dispose();
-      root = undefined;
-      unregister?.();
-      unregister = undefined;
+      const previous = options;
+      options = { ...options, ...next };
+      try {
+        navigation.update(mapped() as unknown as NavigationOptions<RowData>);
+      } catch (cause) {
+        options = previous;
+        throw cause;
+      }
     },
   };
 }

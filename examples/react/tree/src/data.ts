@@ -97,18 +97,18 @@ export function createBook(size: number): Holding[] {
   return book;
 }
 
-/** Keys of every row that has children. */
-export function parentKeys(book: readonly Holding[]): Set<string> {
-  const keys = new Set<string>();
+/** TanStack's expanded state with every row that has children expanded. */
+export function expandParents(book: readonly Holding[]): Record<string, true> {
+  const expanded: Record<string, true> = {};
   const stack = [...book];
   while (stack.length > 0) {
     const holding = stack.pop()!;
     if (holding.children !== undefined && holding.children.length > 0) {
-      keys.add(holding.id);
+      expanded[holding.id] = true;
       stack.push(...holding.children);
     }
   }
-  return keys;
+  return expanded;
 }
 
 let fills = 0;

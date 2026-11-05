@@ -23,11 +23,11 @@ const items: Desk[] = [
 function Explorer() {
   const [opened, setOpened] = useState("Nothing opened");
   const tree = useTree({
-    roots: items,
-    getKey: (item) => item.id,
-    getChildren: (item) => item.children,
+    data: items,
+    getRowId: (item) => item.id,
+    getSubRows: (item) => item.children,
     getTextValue: (item) => item.label,
-    expanded: { defaultValue: new Set(["equities"]) },
+    expanded: { defaultValue: { equities: true } },
     onOpen: (item) => setOpened(item.label),
   });
   return (
@@ -38,7 +38,7 @@ function Explorer() {
             <Tree.Row row={row}>
               <Tree.Indent />
               <Tree.Toggle />
-              {row.item.label}
+              {row.original.label}
             </Tree.Row>
           )}
         </Tree.Viewport>

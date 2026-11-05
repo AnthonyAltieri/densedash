@@ -2,8 +2,9 @@ import { Component, useEffect, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { Keymap, List, Tree, useList, useStore, useTree } from "@densedash/react";
 import { tanstackVirtual } from "@densedash/plugin-tanstack-virtual";
+import type { ExpandedState } from "@densedash/core";
 import type { TreeHandle } from "@densedash/react";
-import { createBook, createFill, instruments, parentKeys } from "./data.ts";
+import { createBook, createFill, expandParents, instruments } from "./data.ts";
 import type { Holding } from "./data.ts";
 
 const sizes = [100, 1_000, 5_000, 50_000] as const;
@@ -30,8 +31,8 @@ function Book({
   mixed,
 }: {
   book: readonly Holding[];
-  expanded: ReadonlySet<string>;
-  onExpandedChange: (expanded: ReadonlySet<string>) => void;
+  expanded: ExpandedState;
+  onExpandedChange: (expanded: ExpandedState) => void;
   virtualized: boolean;
   mixed: boolean;
 }) {
@@ -43,9 +44,9 @@ function Book({
   const virtualizer = mixed ? measured : fixed;
   const [opened, setOpened] = useState("nothing yet");
   const tree = useTree({
-    roots: book,
-    getKey: (holding) => holding.id,
-    getChildren: (holding) => holding.children,
+    data: book,
+    getRowId: (holding) => holding.id,
+    getSubRows: (holding) => holding.children,
     getTextValue: (holding) => holding.name,
     expanded: { value: expanded, onChange: onExpandedChange },
     onOpen: (holding) => setOpened(holding.name),
@@ -63,8 +64,8 @@ function Book({
             <Tree.Row row={row} className={mixed && row.depth === 0 ? "tall" : undefined}>
               <Tree.Indent />
               <Tree.Toggle />
-              <span className="name">{row.item.name}</span>
-              <span className="value">{row.item.value.toFixed(2)}</span>
+              <span className="name">{row.original.name}</span>
+              <span className="value">{row.original.value.toFixed(2)}</span>
             </Tree.Row>
           )}
         </Tree.Viewport>
@@ -77,8 +78,8 @@ function Watchlist({ virtualized }: { virtualized: boolean }) {
   const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
   const [opened, setOpened] = useState("nothing yet");
   const list = useList({
-    roots: instruments,
-    getKey: (instrument) => instrument.ticker,
+    data: instruments,
+    getRowId: (instrument) => instrument.ticker,
     isDisabled: (instrument) => instrument.halted,
     onOpen: (instrument) => setOpened(instrument.company),
   });
@@ -95,8 +96,8 @@ function Watchlist({ virtualized }: { virtualized: boolean }) {
         >
           {(row) => (
             <List.Row row={row}>
-              <span className="name">{row.item.ticker}</span>
-              <span className="value">{row.item.halted ? "halted" : row.item.company}</span>
+              <span className="name">{row.original.ticker}</span>
+              <span className="value">{row.original.halted ? "halted" : row.original.company}</span>
             </List.Row>
           )}
         </List.Viewport>
@@ -131,7 +132,7 @@ class Boundary extends Component<
 export function App() {
   const [size, setSize] = useState<number>(1_000);
   const [book, setBook] = useState(() => createBook(1_000));
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => parentKeys(book));
+  const [expanded, setExpanded] = useState<ExpandedState>(() => expandParents(book));
   const [live, setLive] = useState(false);
   const [virtualized, setVirtualized] = useState(false);
   const [mixed, setMixed] = useState(false);
@@ -153,7 +154,7 @@ export function App() {
     const fresh = createBook(next);
     setSize(next);
     setBook(fresh);
-    setExpanded(parentKeys(fresh));
+    setExpanded(expandParents(fresh));
   };
 
   return (

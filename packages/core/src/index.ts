@@ -34,8 +34,18 @@ export type {
 export * from "./commands/index.js";
 
 export const version = "0.0.0";
-export * from "./collections/index.js";
-export * from "./tree/index.js";
+export type {
+  TreeAction,
+  TreeChangeReason,
+  TreeCommands,
+  TreeFocusStrategy,
+  TreeLabels,
+  TreeMode,
+  TreePartProps,
+  TreeRootProps,
+  TreeRowProps,
+  TreeToggleProps,
+} from "./tree/types.js";
 export { createNavigableTable, navigationFeature, navigationFeatures } from "./navigation/index.js";
 export type {
   NavigableTable,
@@ -47,6 +57,7 @@ export type {
   NavigationState,
   NavigationTable,
 } from "./navigation/types.js";
+export type { ExpandedState, RowData, RowSelectionState } from "@tanstack/table-core";
 
 /** Creates an app-scoped kernel; explicit ports override plugins, which override defaults. */
 export function createKernel<const Options extends KernelOptions = KernelOptions>(

@@ -1,14 +1,6 @@
 export type Key = string;
 
-/** Callbacks must be synchronous and stable for the duration of a call. */
-export interface TreeSource<T> {
-  roots: readonly T[];
-  getKey(item: NoInfer<T>): Key;
-  getChildren?(item: NoInfer<T>): readonly NoInfer<T>[] | undefined;
-  isDisabled?(item: NoInfer<T>): boolean;
-  getTextValue?(item: NoInfer<T>): string;
-}
-
+/** The navigation model's internal projection of one visible TanStack row. */
 export interface TreeRow<T> {
   readonly key: Key;
   readonly item: T;

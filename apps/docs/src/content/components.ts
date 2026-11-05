@@ -70,7 +70,7 @@ export const components = {
     description:
       "Nested rows from data, with keyboard highlight, expansion and selection. DOM children never register the collection.",
     types:
-      "useTree infers T from roots; getKey returns a stable string and getChildren returns the item's children. Viewport's row.item keeps T. Root and Viewport share one TreeHandle<T>. The default focus strategy uses aria-activedescendant; roving focus is optional. Rows render after mount, so server-rendered HTML holds the root and an empty viewport. Viewport's virtualizer may measure rows of differing heights (tanstackVirtual({ measure: true })). labels: { expand, collapse } localizes the toggle's accessible names.",
+      "useTree infers T from data; getRowId returns a stable, unique string and getSubRows returns the item's children. Viewport passes TanStack's row: row.original keeps T. Root and Viewport share one TreeHandle<T>; tree.table is its TanStack table (null until the root mounts). expanded and rowSelection are TanStack state, { [id]: true }. The default focus strategy uses aria-activedescendant; roving focus is optional. Rows render after mount, so server-rendered HTML holds the root and an empty viewport. Viewport's virtualizer may measure rows of differing heights (tanstackVirtual({ measure: true })). labels: { expand, collapse } localizes the toggle's accessible names.",
     parts: [
       ...collectionParts,
       ["Indent", "span · tree-indent", "data-depth"],
@@ -80,10 +80,14 @@ export const components = {
   list: {
     title: "List",
     description:
-      "A flat listbox using the tree's navigation and selection model. The shared tree stylesheet is intentional: List emits tree-* slots.",
+      "A listbox using the tree's navigation and selection model: flat, or nested when items have sub-rows. The shared tree stylesheet is intentional: List emits tree-* slots.",
     types:
-      "useList infers T from roots and returns TreeHandle<T>. Its options omit getChildren and expanded. List.Root takes tree={list}; row.item in List.Viewport is your inferred item type.",
-    parts: collectionParts,
+      "useList takes the tree's options and returns TreeHandle<T>, inferring T from data. getSubRows nests the list; next and previous step through expanded sub-rows. List.Root takes tree={list}; row.original in List.Viewport is your inferred item type, and list.table is the TanStack table.",
+    parts: [
+      ...collectionParts,
+      ["Indent", "span · tree-indent", "data-depth"],
+      ["Toggle", "button · tree-toggle", rowState],
+    ],
   },
   table: {
     title: "Table",

@@ -23,20 +23,37 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
   const listeners = new Set<() => void>();
   let unmount: (() => void) | undefined;
   let target: number | null = null;
+  let readOffset: (() => void) | undefined;
   const virtual = new TanStackVirtualizer<HTMLElement, HTMLElement>({
     count: 0,
     getScrollElement: () => element,
     estimateSize: options.estimateSize,
     overscan: options.overscan ?? 8,
-    scrollToFn: elementScroll,
-    observeElementOffset,
+    scrollToFn(offset, scrollOptions, instance) {
+      elementScroll(offset, scrollOptions, instance);
+      // Instant writes can be followed by another command before the browser emits scroll.
+      // Publish the read-back now so both the range and auto alignment use that position.
+      readOffset?.();
+    },
+    observeElementOffset(instance, notify) {
+      readOffset = () => {
+        if (instance.scrollElement !== null) {
+          notify(instance.scrollElement.scrollTop, instance.isScrolling);
+        }
+      };
+      const cleanup = observeElementOffset(instance, notify);
+      return () => {
+        readOffset = undefined;
+        cleanup?.();
+      };
+    },
     observeElementRect(instance, notify) {
       return observeElementRect(instance, (rect) => {
         const previous = instance.scrollRect;
         notify(rect);
         // A smaller viewport can hide the cursor without changing its index.
         if (previous !== null && previous.height !== rect.height && target !== null) {
-          instance.scrollToIndex(target, { align: "auto", behavior: "instant" });
+          scrollToIndex(target, "auto");
         }
       });
     },
@@ -44,6 +61,13 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
       for (const listener of listeners) listener();
     },
   });
+
+  function scrollToIndex(index: number, align: "auto" | "center"): void {
+    target = index;
+    // Anchoring writes scrollTop directly; read it before TanStack chooses auto alignment.
+    readOffset?.();
+    virtual.scrollToIndex(index, { align, behavior: "instant" });
+  }
 
   return {
     range() {
@@ -64,10 +88,7 @@ export function tanstackVirtual(options: TanstackVirtualOptions): Virtualizer {
       virtual.getTotalSize();
       return virtual.measurementsCache[index]?.start ?? 0;
     },
-    scrollToIndex(index, align) {
-      target = index;
-      virtual.scrollToIndex(index, { align, behavior: "instant" });
-    },
+    scrollToIndex,
     sync(measurements) {
       element = measurements.element;
       const countChanged = virtual.options.count !== measurements.count;

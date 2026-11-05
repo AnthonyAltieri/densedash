@@ -35,7 +35,7 @@ Repository configuration:
   is built. A failed registry invocation removes `public/r` and exits nonzero,
   so Vercel fails the deployment and keeps the previous successful deployment.
 - Nitro emits `.vercel/output/config.json`, static assets under
-  `.vercel/output/static/` (including the seven `r/*.json` items), and a serverless
+  `.vercel/output/static/` (including the eight `r/*.json` items), and a serverless
   function under `.vercel/output/functions/__server.func/`. Intermediate Vite
   files live in `node_modules/.nitro/`. No output-directory override or
   `vercel.json` is needed.

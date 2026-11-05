@@ -1,18 +1,24 @@
-/* <Kbd>: a key label. */
+/* <Kbd> and <KbdRange>: a raised keycap with a heavier bottom edge. Its size does not follow
+   density, so key labels read the same in compact and comfortable layouts. */
 @layer dd.components {
   [data-slot="kbd"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-inline-size: var(--dd-icon-size);
-    padding-inline: var(--dd-gap);
+    padding: var(--dd-kbd-padding-block) var(--dd-kbd-padding-inline);
     border: var(--dd-border-width) solid var(--dd-color-border);
-    border-radius: var(--dd-radius);
+    border-block-end-width: var(--dd-kbd-border-bottom-width);
+    border-radius: var(--dd-kbd-radius);
     background: var(--dd-color-surface);
-    color: var(--dd-color-text);
+    color: var(--dd-color-text-secondary);
     font-family: var(--dd-font-mono);
-    font-size: var(--dd-font-size);
-    line-height: var(--dd-line-height);
+    font-size: var(--dd-kbd-font-size);
+    font-weight: var(--dd-font-weight-medium);
+    line-height: var(--dd-kbd-line-height);
+    white-space: nowrap;
+  }
+
+  [data-slot="kbd-range"] {
     white-space: nowrap;
   }
 }

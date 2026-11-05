@@ -1,5 +1,5 @@
 import { Keymap } from "../ui/keymap.js";
-import { Kbd } from "../ui/kbd.js";
+import { Kbd, KbdRange } from "../ui/kbd.js";
 
 export default function KbdExample() {
   return (
@@ -9,7 +9,13 @@ export default function KbdExample() {
           Command menu <Kbd hotkey="Mod+K" />
         </p>
         <p>
-          Go home <Kbd hotkey={["G", "H"]} />
+          Next list item <Kbd hotkey="Shift+J" />
+        </p>
+        <p>
+          Go to ideas <Kbd hotkey={["G", "R"]} />
+        </p>
+        <p>
+          Detail tabs <KbdRange from="1" to="3" />
         </p>
         <p>
           Custom label <Kbd>Esc</Kbd>

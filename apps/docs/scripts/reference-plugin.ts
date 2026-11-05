@@ -14,6 +14,7 @@ const styles = {
   list: ["tree"],
   table: ["table"],
   tabs: ["tabs", "kbd"],
+  footer: ["footer", "kbd"],
 };
 
 /** Emit reference data only: source CSS, kernel construction and formatting stay on the build side. */

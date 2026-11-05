@@ -54,6 +54,7 @@ export interface KeyboardPort {
   readonly platform: KeyboardPlatform;
   /** Validate saved strings or arrays. Malformed input returns a reason, never throws. */
   parse(input: unknown): KeyboardParseResult;
+  /** A label: `⇧J`, `⌘K` on macOS; `Shift+J`, `Ctrl+K` elsewhere; `g r` for a sequence. */
   format(hotkey: KeyboardHotkey): string;
   /** Descendants beat ancestors; otherwise the latest activation wins. Release is idempotent. */
   activateScope(scope: string, options?: KeyboardScopeOptions): () => void;

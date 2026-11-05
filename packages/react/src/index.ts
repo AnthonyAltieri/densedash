@@ -4,6 +4,7 @@ export * as Tabs from "./tabs/index.js";
 export * as Tree from "./tree/index.js";
 export * as List from "./list/index.js";
 export * as Table from "./table/index.js";
+export * as Footer from "./footer.js";
 export { useTree } from "./tree/handle.js";
 export type { TreeHandle, UseTreeOptions } from "./tree/handle.js";
 export { useList } from "./list/use-list.js";
@@ -30,8 +31,8 @@ export type {
   ValueKind,
 } from "./table/columns.js";
 export type { Virtualizer, ViewportMeasurements, ViewportRange } from "./tree/viewport.js";
-export { Kbd } from "./kbd.js";
-export type { KbdProps, KbdState } from "./kbd.js";
+export { Kbd, KbdRange } from "./kbd.js";
+export type { KbdProps, KbdRangeProps, KbdRangeState, KbdState } from "./kbd.js";
 export { useKernel } from "./context.js";
 export type { ProviderProps } from "./context.js";
 export { useStore } from "./use-store.js";

@@ -33,8 +33,11 @@ type BaseReference = `var(${keyof typeof base})`;
 const light = {
   "--dd-color-surface": "var(--dd-base-neutral-0)",
   "--dd-color-text": "var(--dd-base-neutral-900)",
+  "--dd-color-surface-muted": "var(--dd-base-neutral-50)",
+  "--dd-color-text-secondary": "var(--dd-base-neutral-700)",
   "--dd-color-text-muted": "var(--dd-base-neutral-600)",
   "--dd-color-border": "var(--dd-base-neutral-300)",
+  "--dd-color-border-muted": "var(--dd-base-neutral-200)",
   "--dd-color-accent": "var(--dd-base-blue-700)",
   "--dd-color-highlight": "var(--dd-base-amber-100)",
   "--dd-color-selection": "var(--dd-base-blue-100)",
@@ -48,8 +51,11 @@ const light = {
 const dark = {
   "--dd-color-surface": "var(--dd-base-neutral-900)",
   "--dd-color-text": "var(--dd-base-neutral-100)",
+  "--dd-color-surface-muted": "var(--dd-base-neutral-950)",
+  "--dd-color-text-secondary": "var(--dd-base-neutral-300)",
   "--dd-color-text-muted": "var(--dd-base-neutral-400)",
   "--dd-color-border": "var(--dd-base-neutral-700)",
+  "--dd-color-border-muted": "var(--dd-base-neutral-800)",
   "--dd-color-accent": "var(--dd-base-blue-300)",
   "--dd-color-highlight": "var(--dd-base-amber-950)",
   "--dd-color-selection": "var(--dd-base-blue-950)",
@@ -68,6 +74,18 @@ const components = {
   "--dd-radius": "0.25rem",
   "--dd-focus-width": "2px",
   "--dd-focus-offset": "2px",
+  "--dd-font-weight-medium": "500",
+  "--dd-kbd-font-size": "0.6875rem",
+  "--dd-kbd-line-height": "1",
+  "--dd-kbd-padding-block": "0.125rem",
+  "--dd-kbd-padding-inline": "0.25rem",
+  "--dd-kbd-border-bottom-width": "2px",
+  "--dd-kbd-radius": "0.1875rem",
+  "--dd-footer-height": "1.875rem",
+  "--dd-footer-gap": "0.875rem",
+  "--dd-footer-padding-inline": "1.25rem",
+  "--dd-footer-font-size": "0.75rem",
+  "--dd-footer-status-gap": "0.5rem",
 } as const satisfies Record<`--dd-${string}`, string>;
 
 type Length = `${number}${"rem" | "px"}`;

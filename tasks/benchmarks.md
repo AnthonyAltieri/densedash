@@ -162,6 +162,13 @@ Median / max milliseconds per action:
 | Table, 5,000 × 10, flat, all     | 6–7, 18–20               | 31.3–32.0       | 12.3–17.9   |
 | Table, 5,000 × 10, flat, virtual | 6–7, 18–20               | 5.2–6.9         | 5.0–5.5     |
 
+After review, `Tree.Row` also subscribes to its own set position, so flat
+lists keep row content out of insertions too (every sibling's `aria-setsize`
+changes). Two more alternating batches on that head, host load 12–13: ArrowDown
+26.1 / 23.6 ms before and 12.1 / 9.9 ms after; insert 146.0 / 139.8 ms before
+and 21.8 / 19.9 ms after. After four fills, all 11 top-level rows had
+consecutive `aria-posinset` and `aria-setsize` 11.
+
 Every press advanced to a distinct mounted highlight and no exception was
 thrown. Default-viewport key presses are now under one 60 Hz frame (16.7 ms)
 at the median in every batch. One insertion still costs about one to two

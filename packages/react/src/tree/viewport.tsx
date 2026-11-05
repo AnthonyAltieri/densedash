@@ -62,8 +62,9 @@ export interface ViewportProps<T>
    * Renders one visible row, usually `(row) => <Tree.Row row={row}>…</Tree.Row>`. While this
    * function keeps its identity (the React Compiler memoizes inline functions), rows whose data
    * is unchanged skip rendering; highlight and selection re-render only the rows they touch.
-   * A row whose only change is its position does not re-render either, so `row.index` can be
-   * stale here: read positions from `tree.state` with `useStore` instead.
+   * A row whose only change is its position does not re-render either, so `row.index`,
+   * `row.posInSet` and `row.setSize` can be stale here and in `Tree.Row`'s render props: read
+   * positions from `tree.state` with `useStore` instead.
    */
   readonly children: (row: TreeRow<T>) => ReactNode;
   readonly virtualizer?: Virtualizer | undefined;
@@ -123,8 +124,9 @@ function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
   return rows[low] ?? null;
 }
 
-// `index` is left out: one insertion shifts every later row's index, and re-rendering them all
-// costs several frames at thousands of rows. Parts that need the index subscribe to it.
+// Position fields are left out: one insertion shifts every later row's index and every
+// sibling's set size, and re-rendering them all costs several frames at thousands of rows.
+// `Tree.Row` subscribes to its set position and `Table.Row` to its index instead.
 const fields = [
   "key",
   "item",
@@ -132,8 +134,6 @@ const fields = [
   "parentKey",
   "hasChildren",
   "expanded",
-  "posInSet",
-  "setSize",
   "disabled",
   "textValue",
 ] as const satisfies readonly (keyof TreeRow<unknown>)[];

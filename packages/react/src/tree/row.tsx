@@ -12,6 +12,7 @@ import {
   HIGHLIGHTED,
   partStyle,
   RowContext,
+  rowPosition,
   rowProps,
   rowToken,
   SELECTED,
@@ -53,8 +54,15 @@ export function Row({
   const key = row.key;
   const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowToken(state, key), [key]);
   const token = useStore(handle.state, select);
+  // Position has its own subscription: an insertion changes every sibling's set size, which
+  // re-renders this part but not the row's content.
+  const selectPosition = useMemo(
+    () => (state: TreeSnapshot<unknown>) => rowPosition(state, key),
+    [key],
+  );
+  const position = useStore(handle.state, selectPosition);
   const own: NormalizedProps =
-    core === null ? { "data-slot": "tree-row" } : rowProps(core, row, token);
+    core === null ? { "data-slot": "tree-row" } : rowProps(core, row, token, position);
   const context = useMemo(() => ({ row, token }), [row, token]);
   const state: RowState = {
     highlighted: (token & HIGHLIGHTED) !== 0,

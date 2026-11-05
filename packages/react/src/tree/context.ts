@@ -61,6 +61,12 @@ export function rowIndex(snapshot: TreeSnapshot<unknown>, key: Key): number {
   return index.get(key) ?? -1;
 }
 
+/** The row's `aria-posinset` and `aria-setsize`, which change for siblings on every insertion. */
+export function rowPosition(snapshot: TreeSnapshot<unknown>, key: Key): string {
+  const row = snapshot.rows[rowIndex(snapshot, key)];
+  return row === undefined ? "" : `${row.posInSet}/${row.setSize}`;
+}
+
 export const HIGHLIGHTED = 1;
 export const SELECTED = 2;
 export const TAB_STOP = 4;
@@ -80,7 +86,12 @@ export function rootProps(core: CoreTree<unknown>, _snapshot: object): Normalize
   return normalizeProps(core.getRootProps());
 }
 
-export function rowProps(core: CoreTree<unknown>, row: TreeRow<unknown>, _token: number) {
+export function rowProps(
+  core: CoreTree<unknown>,
+  row: TreeRow<unknown>,
+  _token: number,
+  _position: string,
+) {
   return normalizeProps(core.getRowProps(row.key));
 }
 

@@ -19,6 +19,8 @@ export interface ViewportProps<T>
   /**
    * Renders one visible row, usually `(row) => <Table.Row row={row}>…</Table.Row>`. Defaults to
    * a row with one `<Table.Cell>` per column and, when rows nest, the toggle in the first cell.
+   * As in `Tree.Viewport`, a row whose only change is its position does not re-render, so
+   * `row.index` can be stale here.
    */
   readonly children?: ((row: TreeRow<T>) => ReactNode) | undefined;
   readonly virtualizer?: Virtualizer | undefined;

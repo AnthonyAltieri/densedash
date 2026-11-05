@@ -1,4 +1,4 @@
-import type { Key, TreeRow, TreeSource, TreeState } from "../collections/types.js";
+import type { Key, TreeRow, TreeState } from "../collections/types.js";
 import type { ChangeDetails, Controllable } from "../controllable.js";
 import type { CommandScopeOptions } from "../commands/types.js";
 import type { Store } from "../ports/store.js";
@@ -12,23 +12,39 @@ export type TreeChangeReason =
 export type TreeMode = "tree" | "listbox" | "treegrid" | "grid";
 export type TreeFocusStrategy = "active-descendant" | "roving";
 
-export interface TreeOptions<T> extends TreeSource<T> {
+// The option interfaces build on each other instead of using `Omit` or `Pick`, which cost every
+// consumer type instantiations per key. Together they declare every `TreeSource` member.
+
+/** A flat list's options: the tree's without nesting (`getChildren`, `expanded`). */
+export interface ListBaseOptions<T> {
+  roots: readonly T[];
+  getKey(item: NoInfer<T>): Key;
+  isDisabled?(item: NoInfer<T>): boolean;
+  getTextValue?(item: NoInfer<T>): string;
   /** Supply a stable id for server rendering. Otherwise generated per instance. */
   id?: string;
-  mode?: TreeMode;
   focusStrategy?: TreeFocusStrategy;
   selectionMode?: "single" | "multiple";
   highlighted?: Controllable<Key | null, TreeChangeReason>;
   selected?: Controllable<ReadonlySet<Key>, TreeChangeReason>;
-  expanded?: Controllable<ReadonlySet<Key>, TreeChangeReason>;
   loop?: boolean;
   /** Number of enabled rows per page. Defaults to 10. */
   pageSize?: number;
   /** Milliseconds between typed characters. Defaults to 500. */
   typeaheadMs?: number;
+  onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
+}
+
+/** The tree's options except `mode` and `scope`, which a framework's root part supplies. */
+export interface TreeBaseOptions<T> extends ListBaseOptions<T> {
+  getChildren?(item: NoInfer<T>): readonly NoInfer<T>[] | undefined;
+  expanded?: Controllable<ReadonlySet<Key>, TreeChangeReason>;
+}
+
+export interface TreeOptions<T> extends TreeBaseOptions<T> {
+  mode?: TreeMode;
   /** Scope options, including the mounted root target for keyboard isolation. */
   scope?: CommandScopeOptions;
-  onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
 }
 
 export interface TreeAction {
@@ -53,7 +69,8 @@ export interface TreeCommands {
   open(action?: TreeAction): void;
 }
 
-export interface TreeSnapshot<T> extends Readonly<TreeState> {
+// `out` declares the variance, so the compiler need not measure it for each consumer.
+export interface TreeSnapshot<out T> extends Readonly<TreeState> {
   readonly rows: readonly TreeRow<T>[];
 }
 

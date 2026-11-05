@@ -1,6 +1,7 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from "react";
-import type { ComponentPropsWithRef, ReactElement } from "react";
-import type { ChangeDetails, Controllable } from "@densedash/core";
+import type { ReactElement, ReactNode } from "react";
+import type { ChangeDetails } from "@densedash/core";
+import type { ElementAttributes } from "../element-attributes.js";
 import { Scope } from "../keymap/scope.js";
 import type { ScopeState } from "../keymap/scope.js";
 import type { RenderProps, PartProps } from "../use-render.js";
@@ -17,12 +18,14 @@ export interface TabsRootState {
 }
 
 export interface TabsRootProps<Value extends string>
-  extends
-    Omit<ComponentPropsWithRef<"div">, "className" | "style" | "defaultValue" | "onChange">,
-    PartProps<TabsRootState>,
-    Omit<Controllable<NoInfer<Value>, TabsChangeReason>, "onChange"> {
+  extends ElementAttributes<HTMLDivElement>, PartProps<TabsRootState> {
+  readonly children?: ReactNode | undefined;
   /** The tabs in order; the selectable values are inferred from their `value`s. */
   readonly items: readonly TabItem<Value>[];
+  /** The selected tab, for a controlled group. */
+  readonly value?: NoInfer<Value>;
+  /** The tab selected first in an uncontrolled group. Defaults to the first enabled tab. */
+  readonly defaultValue?: NoInfer<Value>;
   /** Names the tab list and the legend group of the number-key commands. */
   readonly label?: string | undefined;
   /** The command scope name. Defaults to a generated one. */

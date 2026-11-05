@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
+import type { ElementAttributes } from "../element-attributes.js";
 import { useKernelFor } from "../context.js";
 import { Kbd } from "../kbd.js";
 import { mergeProps } from "../merge-props.js";
@@ -15,9 +16,9 @@ export interface TabsTabState {
 }
 
 export interface TabsTabProps
-  extends
-    Omit<ComponentPropsWithRef<"button">, "className" | "style" | "value" | "disabled">,
-    PartProps<TabsTabState> {
+  extends ElementAttributes<HTMLButtonElement>, PartProps<TabsTabState> {
+  /** Defaults to the item's label. */
+  readonly children?: ReactNode | undefined;
   /** One of the root's item values. */
   readonly value: string;
 }

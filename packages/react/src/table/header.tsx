@@ -1,4 +1,5 @@
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
@@ -10,8 +11,7 @@ import type { TableState } from "./handle.js";
 
 export interface HeaderState {}
 
-export interface HeaderProps
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<HeaderState> {
+export interface HeaderProps extends ElementAttributes<HTMLDivElement>, PartProps<HeaderState> {
   /** Defaults to one `<Table.HeaderCell>` per column. */
   readonly children?: ReactNode;
 }
@@ -55,7 +55,7 @@ export interface HeaderCellState {
 }
 
 export interface HeaderCellProps<T>
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<HeaderCellState> {
+  extends ElementAttributes<HTMLDivElement>, PartProps<HeaderCellState> {
   readonly column: Column<T>;
   /** Defaults to the column's `header`. */
   readonly children?: ReactNode;

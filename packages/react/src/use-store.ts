@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 /** The read side of any port store, such as `commands.keymap` or `keyboard.pending`. */
-export interface ReadableStore<S> {
+export interface ReadableStore<out S> {
   get(): S;
   subscribe(listener: (state: S) => void): () => void;
 }

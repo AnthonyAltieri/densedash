@@ -49,6 +49,18 @@ function tabStop(snapshot: TreeSnapshot<unknown>): Key | undefined {
   return key;
 }
 
+const indexes = new WeakMap<readonly TreeRow<unknown>[], Map<Key, number>>();
+
+/** The row's current visible index, built once per snapshot rather than searched per row. */
+export function rowIndex(snapshot: TreeSnapshot<unknown>, key: Key): number {
+  let index = indexes.get(snapshot.rows);
+  if (index === undefined) {
+    index = new Map(snapshot.rows.map((row, position) => [row.key, position]));
+    indexes.set(snapshot.rows, index);
+  }
+  return index.get(key) ?? -1;
+}
+
 export const HIGHLIGHTED = 1;
 export const SELECTED = 2;
 export const TAB_STOP = 4;

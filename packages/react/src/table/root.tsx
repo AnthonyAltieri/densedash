@@ -1,19 +1,21 @@
 import { useLayoutEffect, useMemo, useState } from "react";
-import type { CSSProperties, ReactElement, Ref } from "react";
+import type { CSSProperties, ReactElement, ReactNode, Ref } from "react";
 import type { Command } from "@densedash/core";
 import { useKernelFor } from "../context.js";
+import type { ElementAttributes } from "../element-attributes.js";
 import { useTreeContext } from "../tree/context.js";
 import { createRoot } from "../tree/root.js";
-import type { RootProps as TreeRootProps, RootState } from "../tree/root.js";
+import type { RootState } from "../tree/root.js";
 import { useStore } from "../use-store.js";
-import type { StyleProps } from "../use-render.js";
+import type { PartProps, StyleProps } from "../use-render.js";
 import { TableContext } from "./context.js";
 import { getTableInternals } from "./handle.js";
 import type { TableHandle } from "./handle.js";
 
 export type { RootState } from "../tree/root.js";
 
-export interface RootProps<T> extends Omit<TreeRootProps<T>, "tree"> {
+export interface RootProps<T> extends ElementAttributes<HTMLDivElement>, PartProps<RootState> {
+  readonly children?: ReactNode | undefined;
   /** The table from `useTable`. */
   readonly table: TableHandle<T>;
 }
@@ -68,8 +70,8 @@ function assign(ref: Ref<HTMLDivElement> | undefined, element: HTMLDivElement | 
  * owns the tree core (as `Tree.Root` does) and the `table.sort` and `table.next-column`
  * commands, and sets `--dd-table-columns` to the columns' grid tracks.
  */
-export function Root<T>({ table, ref, style, children, ...props }: RootProps<T>): ReactElement {
-  const internals = getTableInternals(table as TableHandle<unknown>);
+export function Root({ table, ref, style, children, ...props }: RootProps<unknown>): ReactElement {
+  const internals = getTableInternals(table);
   const view = useStore(internals.view);
   const count = useStore(table.state, selectCount);
   const [element, setElement] = useState<HTMLDivElement | null>(null);
@@ -84,7 +86,7 @@ export function Root<T>({ table, ref, style, children, ...props }: RootProps<T>)
     },
     [ref],
   );
-  const context = useMemo(() => ({ table: table as TableHandle<unknown>, view }), [table, view]);
+  const context = useMemo(() => ({ table, view }), [table, view]);
   const tracks = view.columns.map((column) => column.width ?? "minmax(0, 1fr)").join(" ");
   const own = { "--dd-table-columns": tracks } as CSSProperties;
   const rootStyle: StyleProps<RootState>["style"] = (state) => ({
@@ -104,7 +106,7 @@ export function Root<T>({ table, ref, style, children, ...props }: RootProps<T>)
         style={rootStyle}
       >
         {children}
-        <SortCommands table={table as TableHandle<unknown>} element={element} />
+        <SortCommands table={table} element={element} />
       </Part>
     </TableContext>
   );

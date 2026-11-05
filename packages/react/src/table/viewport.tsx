@@ -1,8 +1,10 @@
 import { useCallback } from "react";
 import type { ReactElement, ReactNode } from "react";
 import type { TreeRow } from "@densedash/core";
+import type { ElementAttributes } from "../element-attributes.js";
 import { Viewport as TreeViewport } from "../tree/viewport.js";
-import type { ViewportProps as TreeViewportProps } from "../tree/viewport.js";
+import type { Virtualizer, ViewportState } from "../tree/viewport.js";
+import type { PartProps } from "../use-render.js";
 import { useTableContext } from "./context.js";
 import { getTableInternals } from "./handle.js";
 import type { TableHandle } from "./handle.js";
@@ -10,7 +12,8 @@ import { Cell, Row, Toggle, Value } from "./row.js";
 
 export type { ViewportState } from "../tree/viewport.js";
 
-export interface ViewportProps<T> extends Omit<TreeViewportProps<T>, "tree" | "children"> {
+export interface ViewportProps<T>
+  extends ElementAttributes<HTMLDivElement>, PartProps<ViewportState> {
   /** The table passed to the enclosing root; its item type types `row.item`. */
   readonly table: TableHandle<T>;
   /**
@@ -18,6 +21,7 @@ export interface ViewportProps<T> extends Omit<TreeViewportProps<T>, "tree" | "c
    * a row with one `<Table.Cell>` per column and, when rows nest, the toggle in the first cell.
    */
   readonly children?: ((row: TreeRow<T>) => ReactNode) | undefined;
+  readonly virtualizer?: Virtualizer | undefined;
 }
 
 /**

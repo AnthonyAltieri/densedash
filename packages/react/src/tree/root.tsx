@@ -1,8 +1,9 @@
 import { useContext, useLayoutEffect, useMemo, useState } from "react";
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { createTree } from "@densedash/core";
 import type { Tree as CoreTree, TreeMode } from "@densedash/core";
 import { useKernelFor } from "../context.js";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import type { ElementProps } from "../merge-props.js";
 import { ScopeContext } from "../scope-context.js";
@@ -18,8 +19,8 @@ export interface RootState {
   readonly empty: boolean;
 }
 
-export interface RootProps<T>
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<RootState> {
+export interface RootProps<T> extends ElementAttributes<HTMLDivElement>, PartProps<RootState> {
+  readonly children?: ReactNode | undefined;
   /** The tree from `useTree` (or `useList`). */
   readonly tree: TreeHandle<T>;
 }
@@ -31,19 +32,20 @@ export interface RootProps<T>
  * so the nearest error boundary around the root handles them.
  */
 export function createRoot(mode: TreeMode, part: string) {
-  return function Root<T>({
+  // Not generic: the root never reads the item type, and inferring it costs consumers.
+  return function Root({
     tree,
     render,
     ref,
     className,
     style,
     ...props
-  }: RootProps<T>): ReactElement {
+  }: RootProps<unknown>): ReactElement {
     const kernel = useKernelFor(part);
     const internals = getInternals(tree);
     const parent = useContext(ScopeContext)?.name;
     const [element, setElement] = useState<HTMLElement | null>(null);
-    const [core, setCore] = useState<CoreTree<T> | null>(null);
+    const [core, setCore] = useState<CoreTree<unknown> | null>(null);
     const failure = useStore(internals.failure);
     const snapshot = useStore(tree.state);
     if (failure !== null) throw failure.cause;

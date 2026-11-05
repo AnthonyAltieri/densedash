@@ -1,6 +1,7 @@
 import { useContext, useLayoutEffect, useMemo, useState } from "react";
-import type { ComponentPropsWithRef, ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { useKernelFor } from "../context.js";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { ScopeContext } from "../scope-context.js";
 import { useRender } from "../use-render.js";
@@ -12,8 +13,8 @@ export interface ScopeState {
   readonly page: boolean;
 }
 
-export interface ScopeProps
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<ScopeState> {
+export interface ScopeProps extends ElementAttributes<HTMLDivElement>, PartProps<ScopeState> {
+  readonly children?: ReactNode | undefined;
   /** A unique command scope name; a nested scope takes the enclosing scope as its parent. */
   readonly name: string;
   /**

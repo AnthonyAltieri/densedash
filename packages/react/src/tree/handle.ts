@@ -5,6 +5,7 @@ import type {
   Key,
   Tree as CoreTree,
   TreeAction,
+  TreeBaseOptions,
   TreeChangeReason,
   TreeCommands,
   TreeOptions,
@@ -18,13 +19,13 @@ import type { ReadableStore } from "../use-store.js";
  * controlled value changes, so pass new `roots` when `getChildren` or `isDisabled` would answer
  * differently.
  */
-export interface UseTreeOptions<T> extends Omit<TreeOptions<T>, "mode" | "scope"> {}
+export interface UseTreeOptions<T> extends TreeBaseOptions<T> {}
 
 /**
  * A tree owned by a component: pass it to `<Tree.Root tree={…}>` and `<Tree.Viewport tree={…}>`.
  * The root part creates the core tree when it mounts and disposes it when it unmounts.
  */
-export interface TreeHandle<T> {
+export interface TreeHandle<out T> {
   /** Rows and state; empty until the root mounts. Read it with `useStore`. */
   readonly state: ReadableStore<TreeSnapshot<T>>;
   /** The mounted tree's commands; they do nothing while no root is mounted. */

@@ -4,42 +4,50 @@ Run `pnpm build` and then `pnpm type-budget` from the repository root. The bench
 uses TypeScript 5.9.3 and built package declarations. The limit remains 1,800
 instantiations. Timing and memory are diagnostics, not pass criteria.
 
-## React part coverage and headroom
+## React part coverage
 
-DD-23 measured app-style JSX consumers in addition to the existing kernel,
-commands and 30-column Table workload. Each consumer imported the emitted React
-entry. A temporary project extended this bench's tsconfig, enabled `react-jsx`,
-and included `input.ts` plus the candidate. No implementation sources or test
-files were included. These totals were re-measured after updating to main
-`f68c3b2582d834720d63e7d0215770ed0478f95a`. The original dispatch-base
-workload used 1,728 instantiations; main reduced it to 1,677 without removing
-any bench consumers.
+The bench includes a Tree consumer (`useTree` with inferred callbacks, Root,
+Viewport and Row with a state-dependent class) and a Tabs consumer (Root with
+inferred values and a cancellable change callback, and a Panel). They call the
+parts as functions because this project compiles `.ts` without JSX; the props
+are checked the same way.
 
-| Added consumer | Total instantiations | Increase over baseline |
-| -------------- | -------------------: | ---------------------: |
-| None           |                1,677 |                      0 |
-| Tree           |                6,692 |                  5,015 |
-| List           |                4,860 |                  3,183 |
-| Tabs           |                5,540 |                  3,863 |
-| Keymap and Kbd |                5,417 |                  3,740 |
-| All four       |               10,063 |                  8,386 |
+DD-23 measured complete JSX consumers at 5,015 (Tree), 3,183 (List), 3,863
+(Tabs) and 3,740 (Keymap and Kbd) instantiations each over a 1,677 baseline, so
+none fit. DD-22 found the drivers with a patched compiler that counts
+instantiations by type:
 
-The Tree candidate used `useTree`, Root, Viewport, Row, Indent and Toggle with
-inferred item callbacks and a state-dependent row class. List used `useList`,
-Root, Viewport and Row with disabled/open callbacks. Tabs used Root, List, Tab
-and Panel with inferred values and a cancellable value-change callback. Keymap
-used Scope, Legend, ChordHint, ConfirmPrompt and Kbd with state and entry callbacks.
-These are complete rendered consumers, rather than imports of component names.
+- `Omit<ComponentPropsWithRef<"div">, "className" | "style">` in every part's
+  props. `Omit` is `Pick<T, Exclude<keyof T, K>>`, and `Exclude` distributes over
+  the element's roughly 300 attribute and handler names, about a thousand
+  instantiations per distinct `Omit`. Parts now extend `ElementAttributes<E>`,
+  which picks React's attributes by name (`keyof HTMLAttributes<Element>`
+  intersected with the wanted names, which instantiates nothing per key).
+- `Extract<keyof typeof tradingPreset, …>` in core's command ids, which
+  distributes over every preset key. It is now an intersection with the same
+  result (about 170 fewer instantiations in the baseline).
+- `Omit<TreeOptions<T>, "mode" | "scope">` and `Omit<UseTreeOptions<T>, …>` for
+  `useTree` and `useList`. Core now declares `ListBaseOptions` and
+  `TreeBaseOptions`, and the hooks extend them.
+- Variance measurement of `TreeHandle`, `TreeSnapshot` and `ReadableStore`,
+  which now declare `out` on their type parameter, and inference of an item type
+  that `Tree.Root` and `Tree.Row` never read: both now take `unknown` items.
 
-Every candidate individually exceeds the remaining 123 instantiations. Under the
-unchanged limit, the largest fitting set of these complete consumers is empty;
-Tree, List, Tabs and Keymap/Kbd rendering remain excluded. Tree is the largest
-measured individual addition. Reducing public part-type instantiation costs is
-follow-up work before adding these workloads. The existing Table workload and
-kernel/command coverage are preserved. Even smaller hook-only consumers reusing
-the existing Table row model did not fit: Tree totaled 1,831, List 1,931, and
-both 1,991 instantiations. These totals used key/text accessors, Tree children,
-and a disabled predicate for List.
+Measured on the same scratch JSX consumers before and after (totals including
+the baseline):
+
+| Consumer                | Before | After |
+| ----------------------- | -----: | ----: |
+| None (baseline)         |  1,677 | 1,507 |
+| Tree                    |  6,805 | 2,915 |
+| List                    |  4,924 | 2,726 |
+| Tabs                    |  4,615 | 2,695 |
+| Keymap and Kbd          |  5,414 | 2,649 |
+| All four                |  9,279 | 3,522 |
+| This bench (Tree, Tabs) |  4,665 | 1,737 |
+
+The JSX totals include about 900 instantiations of React's own JSX and
+intrinsic element types, which any React consumer pays once.
 
 ## Separate compiler programs
 

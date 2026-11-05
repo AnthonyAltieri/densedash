@@ -1,10 +1,14 @@
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
+import { useMemo } from "react";
+import type { ReactElement, ReactNode } from "react";
+import type { TreeSnapshot } from "@densedash/core";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
-import { useRowContext } from "../tree/context.js";
+import { rowIndex, useRowContext, useTreeContext } from "../tree/context.js";
 import { Row as TreeRow, Toggle as TreeToggle } from "../tree/row.js";
 import type { RowProps as TreeRowProps, ToggleProps } from "../tree/row.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
+import { useStore } from "../use-store.js";
 import { columnAlign, presentValue } from "./columns.js";
 import type { Column, ColumnAlign } from "./columns.js";
 import { useTableContext } from "./context.js";
@@ -14,10 +18,15 @@ export type RowProps<T> = TreeRowProps<T>;
 
 /**
  * One visible row: the tree's row part (highlight, selection, pointer handling) as a grid
- * `row`. Its `aria-rowindex` counts the header row.
+ * `row`. Its `aria-rowindex` counts the header row. The index has its own subscription, so an
+ * insertion above re-renders this part but not the row's cells.
  */
-export function Row<T>({ row, ...props }: RowProps<T>): ReactElement {
-  return <TreeRow data-slot="table-row" aria-rowindex={row.index + 2} {...props} row={row} />;
+export function Row({ row, ...props }: RowProps<unknown>): ReactElement {
+  const { handle } = useTreeContext("<Table.Row>");
+  const key = row.key;
+  const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowIndex(state, key), [key]);
+  const index = useStore(handle.state, select);
+  return <TreeRow data-slot="table-row" aria-rowindex={index + 2} {...props} row={row} />;
 }
 
 /** The row's expand/collapse button; place it in the first cell of nested rows. */
@@ -33,8 +42,7 @@ export interface CellState {
   readonly empty: boolean;
 }
 
-export interface CellProps<T>
-  extends Omit<ComponentPropsWithRef<"div">, "className" | "style">, PartProps<CellState> {
+export interface CellProps<T> extends ElementAttributes<HTMLDivElement>, PartProps<CellState> {
   readonly column: Column<T>;
   /** Replaces the formatted value. */
   readonly children?: ReactNode;

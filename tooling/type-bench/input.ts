@@ -1,5 +1,5 @@
 // Measure the emitted API that consumers typecheck. Run pnpm build first.
-// See README.md for measured React part consumers excluded by the unchanged budget.
+// See README.md for the React part consumers measured outside this bench.
 import {
   createKernel,
   tradingPreset,
@@ -8,7 +8,14 @@ import {
   type KeyboardHotkey,
 } from "../../packages/core/dist/index.js";
 import { version as cssVersion } from "../../packages/css/dist/index.js";
-import { columns, useTable, version as reactVersion } from "../../packages/react/dist/index.js";
+import {
+  Tabs,
+  Tree,
+  columns,
+  useTable,
+  useTree,
+  version as reactVersion,
+} from "../../packages/react/dist/index.js";
 
 declare module "../../packages/core/dist/index.js" {
   interface Register {
@@ -163,3 +170,40 @@ export function useWideTable(roots: readonly WideRow[]) {
     sort: { defaultValue: { column: "f02", direction: "ascending" } },
   });
 }
+
+// The same rows as a tree: callbacks infer the item type, and a row class reads the row state.
+export function WideTree({ roots }: { readonly roots: readonly WideRow[] }) {
+  const tree = useTree({
+    roots,
+    getKey: (row) => row.id,
+    getChildren: (row) => row.children,
+    getTextValue: (row) => row.f00,
+  });
+  return Tree.Root({
+    tree,
+    children: Tree.Viewport({
+      tree,
+      children: (row) =>
+        Tree.Row({
+          row,
+          className: (state) => (state.highlighted ? "highlighted" : undefined),
+          children: row.item.f00,
+        }),
+    }),
+  });
+}
+
+const tabs = [
+  { value: "orders", label: "Orders" },
+  { value: "fills", label: "Fills" },
+] as const;
+
+// Values are inferred from the items, and a change callback can cancel.
+export const wideTabs = Tabs.Root({
+  items: tabs,
+  defaultValue: "orders",
+  onValueChange: (value, details) => {
+    if (value === "fills") details.cancel();
+  },
+  children: Tabs.Panel({ value: "fills", children: "Fills" }),
+});

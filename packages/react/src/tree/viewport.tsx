@@ -1,6 +1,7 @@
 import { memo, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { ComponentPropsWithRef, ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type { Key, Tree as CoreTree, TreeRow, TreeSnapshot } from "@densedash/core";
+import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
@@ -54,15 +55,15 @@ export interface ViewportState {
 }
 
 export interface ViewportProps<T>
-  extends
-    Omit<ComponentPropsWithRef<"div">, "className" | "style" | "children">,
-    PartProps<ViewportState> {
+  extends ElementAttributes<HTMLDivElement>, PartProps<ViewportState> {
   /** The tree passed to the enclosing root; its item type types `row.item`. */
   readonly tree: TreeHandle<T>;
   /**
    * Renders one visible row, usually `(row) => <Tree.Row row={row}>…</Tree.Row>`. While this
    * function keeps its identity (the React Compiler memoizes inline functions), rows whose data
    * is unchanged skip rendering; highlight and selection re-render only the rows they touch.
+   * A row whose only change is its position does not re-render either, so `row.index` can be
+   * stale here: read positions from `tree.state` with `useStore` instead.
    */
   readonly children: (row: TreeRow<T>) => ReactNode;
   readonly virtualizer?: Virtualizer | undefined;
@@ -122,10 +123,11 @@ function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
   return rows[low] ?? null;
 }
 
+// `index` is left out: one insertion shifts every later row's index, and re-rendering them all
+// costs several frames at thousands of rows. Parts that need the index subscribe to it.
 const fields = [
   "key",
   "item",
-  "index",
   "depth",
   "parentKey",
   "hasChildren",

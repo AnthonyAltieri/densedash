@@ -46,7 +46,7 @@ export interface TableCommands extends TreeCommands {
 }
 
 /** A table owned by a component: pass it to `<Table.Root>` and `<Table.Viewport>`. */
-export interface TableHandle<T> extends TreeHandle<T> {
+export interface TableHandle<out T> extends TreeHandle<T> {
   readonly commands: TableCommands;
   /** The current sort and chosen column. Read it with `useStore`. */
   readonly sorting: ReadableStore<TableState>;

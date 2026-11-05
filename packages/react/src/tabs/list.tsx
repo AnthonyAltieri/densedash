@@ -18,7 +18,11 @@ export interface TabsListProps extends ElementAttributes<HTMLDivElement>, PartPr
   readonly children?: ReactNode | undefined;
 }
 
-/** Selects and focuses the next (1) or previous (-1) enabled tab, wrapping at the ends. */
+/**
+ * Selects and focuses the enabled tab after (1) or before (-1) the focused one, wrapping at the
+ * ends. It steps from focus rather than the value, so a controlled parent that keeps its value
+ * or a disabled selected tab cannot trap focus.
+ */
 function step(
   { id, items, value, select }: TabsContextValue,
   list: HTMLElement,
@@ -27,7 +31,13 @@ function step(
 ): void {
   const enabled = items.filter((item) => item.disabled !== true);
   if (enabled.length === 0) return;
-  const current = enabled.findIndex((item) => item.value === value);
+  const active = list.ownerDocument.activeElement;
+  const focused =
+    active !== null && list.contains(active)
+      ? items.find((item, index) => tabId(id, index) === active.id)?.value
+      : undefined;
+  const from = focused ?? value;
+  const current = enabled.findIndex((item) => item.value === from);
   const next =
     current < 0
       ? enabled[direction === 1 ? 0 : enabled.length - 1]!

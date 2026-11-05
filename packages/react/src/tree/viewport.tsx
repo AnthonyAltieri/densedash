@@ -246,15 +246,32 @@ export function Viewport<T>({
     if (element === null) return;
     // The first spacer follows the header, so its offset in the scroll content is the header's height.
     const spacer = startSpacer.current;
-    const start =
+    const measure = () =>
       spacer === null
         ? 0
         : spacer.getBoundingClientRect().top -
           element.getBoundingClientRect().top -
           element.clientTop +
           element.scrollTop;
+    let start = measure();
     strategy.sync?.({ element, count: rows.length, start });
-  }, [strategy, element, rows.length, headed]);
+    const view = element.ownerDocument.defaultView;
+    if (spacer === null || view === null || !("ResizeObserver" in view)) return;
+    // A theme, density or content change can resize the header without a render here.
+    const observer = new view.ResizeObserver(() => {
+      const next = measure();
+      if (next === start) return;
+      start = next;
+      strategy.sync?.({ element, count: tree.state.get().rows.length, start });
+    });
+    for (
+      let node = spacer.previousElementSibling;
+      node !== null;
+      node = node.previousElementSibling
+    )
+      observer.observe(node);
+    return () => observer.disconnect();
+  }, [tree, strategy, element, rows.length, headed]);
 
   // Measure before React commits new rows: the store notifies while the old rows are on screen.
   useLayoutEffect(() => {

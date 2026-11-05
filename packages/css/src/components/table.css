@@ -27,6 +27,8 @@
     align-items: center;
     box-sizing: border-box;
     block-size: var(--dd-row-height);
+    /* At least as wide as the tracks' minimums, so backgrounds span columns scrolled into view. */
+    min-inline-size: min-content;
     white-space: nowrap;
   }
 

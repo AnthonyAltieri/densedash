@@ -27,13 +27,20 @@ function Book({
   expanded,
   onExpandedChange,
   virtualized,
+  mixed,
 }: {
   book: readonly Holding[];
   expanded: ReadonlySet<string>;
   onExpandedChange: (expanded: ReadonlySet<string>) => void;
   virtualized: boolean;
+  mixed: boolean;
 }) {
-  const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
+  const [fixed] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
+  // Taller portfolio rows: the estimate stays one row height and mounted rows are measured.
+  const [measured] = useState(() =>
+    tanstackVirtual({ estimateSize: () => rowHeight, measure: true }),
+  );
+  const virtualizer = mixed ? measured : fixed;
   const [opened, setOpened] = useState("nothing yet");
   const tree = useTree({
     roots: book,
@@ -53,7 +60,7 @@ function Book({
           virtualizer={virtualized ? virtualizer : undefined}
         >
           {(row) => (
-            <Tree.Row row={row}>
+            <Tree.Row row={row} className={mixed && row.depth === 0 ? "tall" : undefined}>
               <Tree.Indent />
               <Tree.Toggle />
               <span className="name">{row.item.name}</span>
@@ -127,6 +134,7 @@ export function App() {
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => parentKeys(book));
   const [live, setLive] = useState(false);
   const [virtualized, setVirtualized] = useState(false);
+  const [mixed, setMixed] = useState(false);
   const [resets, setResets] = useState(0);
 
   // Create the fill outside the updater, which StrictMode runs twice.
@@ -173,6 +181,16 @@ export function App() {
               <option value="virtualized">Virtualized</option>
             </select>
           </label>
+          <label>
+            Row heights{" "}
+            <select
+              value={mixed ? "mixed" : "uniform"}
+              onChange={(event) => setMixed(event.target.value === "mixed")}
+            >
+              <option value="uniform">Uniform</option>
+              <option value="mixed">Mixed</option>
+            </select>
+          </label>
           <button type="button" aria-pressed={live} onClick={() => setLive((on) => !on)}>
             Live feed {live ? "on" : "off"}
           </button>
@@ -201,6 +219,7 @@ export function App() {
               expanded={expanded}
               onExpandedChange={setExpanded}
               virtualized={virtualized}
+              mixed={mixed}
             />
           </Boundary>
         </section>

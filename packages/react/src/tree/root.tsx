@@ -30,6 +30,10 @@ export interface RootProps<T> extends ElementAttributes<HTMLDivElement>, PartPro
  * element mounts (so commands bind to that element inside the nearest `<Keymap.Scope>`) and
  * disposes it on unmount. Data errors from `useTree` updates are rethrown here, during render,
  * so the nearest error boundary around the root handles them.
+ *
+ * Rows render after mount. Creating the core registers its commands with the kernel, which a
+ * render must not do (React may discard or repeat it), so server rendering and the first client
+ * render emit the root, with its stable id from `useTree`, and an empty viewport.
  */
 export function createRoot(mode: TreeMode, part: string) {
   // Not generic: the root never reads the item type, and inferring it costs consumers.

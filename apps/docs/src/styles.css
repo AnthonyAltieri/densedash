@@ -769,6 +769,8 @@ main {
   --dd-docs-tree-height: 284px;
   --dd-docs-tree-gap: 8px;
   --dd-docs-row-divider: var(--dd-color-border-subtle);
+  --dd-docs-tabs-width: 420px;
+  --dd-docs-tabs-panel-height: 88px;
 }
 
 [data-theme="dark"] {

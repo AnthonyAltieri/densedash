@@ -14,7 +14,7 @@ import type {
   Updater,
 } from "@tanstack/table-core";
 import type { ChangeDetails, Controllable } from "../controllable.js";
-import type { CommandScopeOptions } from "../commands/types.js";
+import type { CommandScopeOptions, KeyLayer } from "../commands/types.js";
 import type { Kernel } from "../kernel.js";
 import type { Store } from "../ports/store.js";
 import type {
@@ -69,6 +69,8 @@ export interface NavigationOptions<T extends RowData> {
   typeaheadMs?: number;
   labels?: TreeLabels;
   scope?: CommandScopeOptions;
+  /** Optional per-instance page-wide keys. Without it the root must have focus. */
+  keys?: KeyLayer | undefined;
   onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
 }
 

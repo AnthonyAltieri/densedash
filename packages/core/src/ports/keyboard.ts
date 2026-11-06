@@ -21,8 +21,8 @@ export interface KeyboardBindingOptions {
   readonly scope?: string;
   /** Defaults to document. Element targets require focus within the element. */
   readonly target?: KeyboardTarget;
-  /** Defaults to "auto": skip typing keys in controls, but allow Mod shortcuts. */
-  readonly ignoreInputs?: boolean | "auto";
+  /** Defaults to "auto". "editable" skips text fields while allowing keys owned by widgets. */
+  readonly ignoreInputs?: boolean | "auto" | "editable";
   readonly enabled?: boolean;
   /** Maximum milliseconds between sequence steps. Defaults to 1,000. */
   readonly timeout?: number;

@@ -16,9 +16,9 @@ export const components = {
   keymap: {
     title: "Keymap",
     description:
-      "One preset chooses the keys. Focus chooses the scope. Live legends, chord hints and confirmation prompts follow the active commands.",
+      "Give each Tree, List or Tabs instance a labelled key layer. Drive several cursors anywhere on the page, with live legends, chord hints and confirmation prompts.",
     types:
-      "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. useCommands accepts Command definitions; augment core's Register.commands for app-wide command ids.",
+      "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. Pass keys: { label, preset?, overrides? } to useTree, useList, Tabs.Root or useCommands for page-wide dispatch. A layer preset replaces its entire map; omitted commands are unbound. Without a preset, overrides replace individual kernel bindings. Omit keys to keep focus-scoped behavior. shiftedTreePreset supplies Shift+J/K/L/H. Duplicate layer keys throw with both owners. Augment core's Register.commands for app-wide command ids.",
     parts: [
       ["Provider", "context · no element", "Registry wrapper; keys?: KeysOptions"],
       ["Scope", "div · keymap-scope", "data-scope, data-active, data-page"],

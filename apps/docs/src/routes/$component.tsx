@@ -52,9 +52,11 @@ function ComponentPage() {
       <section data-slot="docs-section">
         <h2>Live example</h2>
         <p data-slot="section-description">
-          {name === "theme"
-            ? "Both lists use the same parts and stylesheet. Only the second wrapper sets variables; compare with the theme and density controls above."
-            : "Focus the example to activate its keys. Hover the code to see inferred types. This imports the exact wrappers installed by the registry."}
+          {name === "keymap"
+            ? "The two trees and detail tabs have separate key layers that answer throughout this page. Try their keys from either tree, a button or a tab, then type in Notes."
+            : name === "theme"
+              ? "Both lists use the same parts and stylesheet. Only the second wrapper sets variables; compare with the theme and density controls above."
+              : "Focus the example to activate its keys. Hover the code to see inferred types. This imports the exact wrappers installed by the registry."}
         </p>
         <ComponentPreview name={name} />
       </section>

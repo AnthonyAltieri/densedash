@@ -12,15 +12,19 @@ export function createKeys({
   keyboard,
   reporter,
   options,
+  fallback,
 }: {
   keyboard: KeyboardPort;
   reporter: ReporterPort;
   options: KeysOptions;
+  fallback?: (id: string) => readonly KeyboardHotkey[];
 }) {
   const preset = new Map<string, readonly KeyboardHotkey[]>();
   const configured: Preset = options.preset
     ? { confirm: tradingPreset.confirm, cancel: tradingPreset.cancel, ...options.preset }
-    : tradingPreset;
+    : fallback
+      ? {}
+      : tradingPreset;
   for (const [id, keys] of Object.entries(configured)) {
     const normalized: KeyboardHotkey[] = [];
     for (const key of keys) {
@@ -61,7 +65,9 @@ export function createKeys({
 
   replace(options.overrides ?? {});
   return {
-    get: (id: string): readonly KeyboardHotkey[] => overrides.get(id) ?? preset.get(id) ?? [],
+    get: (id: string): readonly KeyboardHotkey[] =>
+      overrides.get(id) ?? preset.get(id) ?? (options.preset ? undefined : fallback?.(id)) ?? [],
+    overrides: (): ValidatedKeyOverrides => Object.fromEntries(overrides),
     replace,
   };
 }

@@ -1,13 +1,19 @@
 import type { KeyboardBinding } from "../ports/keyboard.js";
+import type { createKeys } from "./keys.js";
 import type { Command, CommandScopeOptions } from "./types.js";
 
 export interface Scope {
   readonly name: string;
+  readonly keys: ReturnType<typeof createKeys>;
   commands: readonly Command[];
   readonly options: CommandScopeOptions;
   readonly release: () => void;
   readonly unregister: () => void;
-  readonly bindings: KeyboardBinding[];
+  readonly bindings: {
+    readonly key: string;
+    readonly binding: KeyboardBinding;
+    enabled: boolean;
+  }[];
   readonly warned: Set<string>;
 }
 
@@ -45,15 +51,20 @@ export function activeScopes(scopes: ReadonlyMap<string, Scope>): Scope[] {
   const global = ordered.findIndex((scope) => scope.name === "global");
   if (global >= 0) ordered.push(...ordered.splice(global, 1));
   const exclusive = ordered.find((scope) => scope.options.only);
-  return exclusive
+  const active = exclusive
     ? ordered.filter((scope) => scope === exclusive || isDescendant(scope, exclusive))
     : ordered;
+  return [
+    ...active.filter((scope) => scope.options.keys),
+    ...active.filter((scope) => !scope.options.keys),
+  ];
 }
 
 /** Element targets participate only while focus is inside them; document/window targets are ambient. */
 export function scopeHasFocus(scope: Scope): boolean {
   const target = scope.options.target;
   return (
+    scope.options.keys !== undefined ||
     !target ||
     !("ownerDocument" in target) ||
     target.ownerDocument === null ||

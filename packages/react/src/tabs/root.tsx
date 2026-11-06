@@ -1,6 +1,6 @@
 import { useContext, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
-import type { ChangeDetails } from "@densedash/core";
+import type { ChangeDetails, KeyLayer } from "@densedash/core";
 import type { ElementAttributes } from "../element-attributes.js";
 import { Scope } from "../keymap/scope.js";
 import type { ScopeState } from "../keymap/scope.js";
@@ -30,6 +30,8 @@ export interface TabsRootProps<Value extends string>
   readonly label?: string | undefined;
   /** The command scope name. Defaults to a generated one. */
   readonly name?: string | undefined;
+  /** Number-key commands answer throughout the page with these instance keys. */
+  readonly keys?: KeyLayer | undefined;
   /** Runs before an uncontrolled change; `details.cancel()` keeps the current tab. */
   onValueChange?(value: NoInfer<Value>, details: ChangeDetails<TabsChangeReason>): void;
 }
@@ -37,22 +39,29 @@ export interface TabsRootProps<Value extends string>
 function NumberKeys({
   context,
   refocus,
+  keys,
+  children,
 }: {
   context: TabsContextValue;
   refocus: { current: boolean };
-}): null {
+  keys: KeyLayer | undefined;
+  children: ReactNode;
+}): ReactElement {
   const { id, items, label, value, select } = context;
   const element = useContext(ScopeContext)?.element ?? null;
-  useCommands(
+  const commandScope = useCommands(
     items.slice(0, numbered).map((item, index) => ({
       id: `tabs.select.${index + 1}`,
       label: item.label,
       group: label ?? "Tabs",
       enabled: () => item.disabled !== true,
       run: ({ event }) => {
+        const restore = element?.contains(element.ownerDocument.activeElement) ?? false;
         select(item.value, "keyboard", event);
+        refocus.current &&= restore;
       },
     })),
+    keys === undefined ? {} : { keys },
   );
   // A number key can unmount the focused panel content; keep focus in the group so it answers.
   useLayoutEffect(() => {
@@ -63,7 +72,7 @@ function NumberKeys({
     const index = items.findIndex((item) => item.value === value);
     if (index >= 0) document.getElementById(tabId(id, index))?.focus();
   }, [refocus, element, items, value, id]);
-  return null;
+  return <TabsContext value={{ ...context, commandScope }}>{children}</TabsContext>;
 }
 
 function firstEnabled(items: readonly TabItem[]): string | undefined {
@@ -81,6 +90,7 @@ export function Root<const Value extends string>({
   onValueChange,
   label,
   name,
+  keys,
   render,
   ref,
   className,
@@ -131,10 +141,9 @@ export function Root<const Value extends string>({
           : render
       }
     >
-      <TabsContext value={context}>
-        <NumberKeys context={context} refocus={refocus} />
+      <NumberKeys context={context} refocus={refocus} keys={keys}>
         {children}
-      </TabsContext>
+      </NumberKeys>
     </Scope>
   );
 }

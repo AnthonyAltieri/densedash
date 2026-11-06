@@ -27,16 +27,17 @@ interface LegendGroup {
 function groupEntries(entries: readonly KeymapEntry[]): LegendGroup[] {
   const groups = new Map<string | undefined, LegendGroup>();
   for (const entry of entries) {
-    const group = groups.get(entry.group);
+    const name = entry.layer ?? entry.group;
+    const group = groups.get(name);
     if (group) group.entries.push(entry);
-    else groups.set(entry.group, { name: entry.group, entries: [entry] });
+    else groups.set(name, { name, entries: [entry] });
   }
   return [...groups.values()];
 }
 
 /**
- * Lists the active keymap: commands whose scope has focus, with formatted keys, grouped by
- * `group`. Disabled commands and commands without keys are omitted. During a confirmation
+ * Lists the active keymap: page layers and commands whose scope has focus, with formatted
+ * keys grouped by instance `layer`, then `group`. Disabled commands and commands without keys are omitted. During a confirmation
  * it lists the confirm and cancel controls.
  */
 export function Legend({
@@ -63,6 +64,7 @@ export function Legend({
           key={`${entry.scope}\u0000${entry.command}`}
           data-slot="keymap-legend-item"
           data-command={entry.command}
+          data-layer={entry.layer}
         >
           <span data-slot="keymap-legend-keys">
             {entry.keys.map((key) => (

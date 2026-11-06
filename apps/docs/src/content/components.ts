@@ -18,18 +18,18 @@ export const components = {
     description:
       "Give each Tree, List or Tabs instance a labelled key layer. Drive several cursors anywhere on the page, with live legends, chord hints and confirmation prompts.",
     types:
-      "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. Pass keys: { label, preset?, overrides? } to useTree, useList, Tabs.Root or useCommands for page-wide dispatch. A layer preset replaces its entire map; omitted commands are unbound. Without a preset, overrides replace individual kernel bindings. Omit keys to keep focus-scoped behavior. shiftedTreePreset supplies Shift+J/K/L/H. Duplicate layer keys throw with both owners. Augment core's Register.commands for app-wide command ids.",
+      "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. Pass keys: { label, preset?, overrides? } to useTree, useList, Tabs.Root or useCommands for page-wide dispatch. A layer preset replaces its entire map; omitted commands are unbound. Without a preset, overrides replace individual kernel bindings. Omit keys to keep focus-scoped behavior. shiftedTreePreset supplies Shift+J/K/L/H. Duplicate layer keys throw with both owners. Augment core's Register.commands for app-wide command ids. Keymap.Legend and Footer.Legend show one item per group using its short groupLabel, with keys side by side. Primary hints show by default; all includes secondary hints (and Keymap alternative keys). labels overrides group labels by id; explicit groupBy/filter take precedence and see secondary entries too. Instance layer names win over group labels.",
     parts: [
       ["Provider", "context · no element", "Registry wrapper; keys?: KeysOptions"],
       ["Scope", "div · keymap-scope", "data-scope, data-active, data-page"],
       [
         "Legend",
         "div · keymap-legend",
-        "data-empty; group div: data-group; item div: data-command",
+        "data-empty; group div: data-group; item div: data-group or data-command",
       ],
       [
         "Legend internals",
-        "div · keymap-legend-group / group-label / item; span · keys / label",
+        "div · keymap-legend-group / item; span · keys / label",
         "All suffixes prefixed keymap-legend-",
       ],
       [
@@ -134,9 +134,9 @@ export const components = {
   footer: {
     title: "Footer",
     description:
-      "A 30px bar for the bottom of a shell. The legend lists the keys bound right now, read from the keymap, so a scope that loses focus or unmounts leaves it. A status slot sits at the end of the row.",
+      "A 30px bar for the bottom of a shell. The legend pairs related primary shortcuts from the live keymap, so a scope that loses focus or unmounts leaves it. A status slot sits at the end of the row.",
     types:
-      "Footer.Root holds Footer.Legend and Footer.Status. Legend reads the kernel's keymap and keeps no key list of its own. Each item shows the first key of each entry it joins and a label; three or more consecutive digits read as a range. groupBy(entry) names the item an entry joins (default: its command group; ungrouped entries stand alone with their command label), and filter(entry) drops entries. Status takes any children, such as an update time.",
+      'Footer.Root holds Footer.Legend and Footer.Status. Legend reads the kernel\'s keymap and keeps no key list of its own. Each item shows the first key of each entry it joins and a label; three or more consecutive digits read as a range. Items default to the instance layer, then the command group and its short groupLabel; ungrouped entries keep their command label. Built-in move, open/close, sort, tab pick and step hints show by default. Activate, jump, page, parent, selection and toggle hints are secondary; pass all to show them. labels={{ "tree.move": "navigate" }} overrides group labels by id. Instance layer names and explicit groupBy(entry) labels win; filter(entry) selects entries. Explicit groupBy/filter see secondary hints too. order uses group ids or layer names. Page layers keep all their hints. Status takes any children, such as an update time.',
     parts: [
       ["Root", "footer · footer", "Wraps onto more rows on narrow screens"],
       ["Legend", "div · footer-legend", "data-empty; role=group"],
@@ -179,7 +179,7 @@ export const components = {
       [
         "Footer",
         "footer · footer",
-        "footer-legend from the live keymap (filter, groupBy); footer-status for children",
+        "footer-legend from the live keymap (filter, groupBy, order, all, labels); footer-status for children",
       ],
       ["Label", "span · app-shell-label", "Row text that ends in an ellipsis"],
       ["Count", "span · app-shell-count", "Muted monospace count at the end of a row"],

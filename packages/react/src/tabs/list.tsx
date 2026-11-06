@@ -88,7 +88,6 @@ function ListKeys({
   const parent = useContext(ScopeContext)?.name;
   const id = useId();
   const latest = useRef(context);
-  const group = context.label ?? "Tabs";
 
   useLayoutEffect(() => {
     latest.current = context;
@@ -105,26 +104,28 @@ function ListKeys({
       (move: 1 | -1) =>
       ({ event }: CommandContext) =>
         step(latest.current, prefix, element, rightToLeft(element) ? reverse(move) : move, event);
+    const stepGroup = { group: "tabs.step", groupLabel: "step" } as const;
+    const jumpGroup = { group: "tabs.jump", groupLabel: "jump", legend: "secondary" } as const;
     const commands: Command[] =
       orientation === "vertical"
         ? [
-            { id: "tabs.down", label: "Next tab", group, run: run(1) },
-            { id: "tabs.up", label: "Previous tab", group, run: run(-1) },
+            { id: "tabs.down", label: "Next tab", ...stepGroup, run: run(1) },
+            { id: "tabs.up", label: "Previous tab", ...stepGroup, run: run(-1) },
           ]
         : [
-            { id: "tabs.next", label: "Next tab", group, run: along(1) },
-            { id: "tabs.prev", label: "Previous tab", group, run: along(-1) },
+            { id: "tabs.next", label: "Next tab", ...stepGroup, run: along(1) },
+            { id: "tabs.prev", label: "Previous tab", ...stepGroup, run: along(-1) },
           ];
     return kernel.commands.register(
       `${parent}/${id}`,
       [
         ...commands,
-        { id: "tabs.first", label: "First tab", group, run: run("first") },
-        { id: "tabs.last", label: "Last tab", group, run: run("last") },
+        { id: "tabs.first", label: "First tab", ...jumpGroup, run: run("first") },
+        { id: "tabs.last", label: "Last tab", ...jumpGroup, run: run("last") },
       ],
       { parent, target: element },
     );
-  }, [kernel, parent, element, prefix, orientation, id, group]);
+  }, [kernel, parent, element, prefix, orientation, id]);
   return null;
 }
 

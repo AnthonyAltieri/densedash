@@ -61,3 +61,26 @@
   [data-slot="table-row"][data-depth="0"]:not([data-leaf], [data-highlighted], [data-selected]) {
   background: var(--dd-color-surface-muted);
 }
+
+/* Footer page: an example that draws its own footer in the body. The desks list and the detail
+   tabs share a band above the bar, and the bar keeps the component's own inline padding. */
+[data-slot="frame-body"]:has(> [data-slot="footer"]) {
+  --dd-footer-padding-inline: calc(var(--dd-unit) * 5);
+  display: grid;
+  grid-template-columns: minmax(var(--dd-zero), var(--dd-main-column)) auto;
+  grid-template-rows: minmax(calc(var(--dd-unit) * 24), auto) auto;
+  align-items: center;
+}
+
+[data-slot="frame-body"]:has(> [data-slot="footer"]) > [data-slot="tree-root"] {
+  align-self: stretch;
+  border-inline-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+}
+
+[data-slot="frame-body"]:has(> [data-slot="footer"]) > [data-slot="tabs"] {
+  padding-inline: calc(var(--dd-unit) * 4);
+}
+
+[data-slot="frame-body"] > [data-slot="footer"] {
+  grid-column: 1 / -1;
+}

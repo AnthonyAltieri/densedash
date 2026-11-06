@@ -119,6 +119,56 @@ export const desks: readonly Desk[] = [
   { id: "cash", name: "Cash", last: 1_204_300, digits: 0 },
 ];
 
+/**
+ * The tree page's desks: fewer instruments than `desks`, as the tree board draws them. Rates
+ * holds its one instrument directly.
+ */
+export const deskTree: readonly Desk[] = [
+  {
+    id: "equities",
+    name: "Equities",
+    children: [
+      {
+        id: "ustech",
+        name: "US technology",
+        children: [
+          instrument("AAPL", "Apple", 227.48, 1.24, 48.2, 120),
+          instrument("MSFT", "Microsoft", 431.1, -0.38, 19.6, 80),
+          instrument("NVDA", "Nvidia", 138.07, 2.91, 212.4, 240),
+        ],
+      },
+      {
+        id: "europe",
+        name: "Europe",
+        children: [
+          instrument("ASML", "ASML Holding", 672.4, 0.85, 1.3, 40),
+          instrument("SAP", "SAP", 218.95, -0.21, 0.9, -150),
+        ],
+      },
+    ],
+  },
+  {
+    id: "fx",
+    name: "Foreign exchange",
+    children: [
+      {
+        id: "g10",
+        name: "G10",
+        children: [
+          instrument("EUR/USD", "Euro", 1.0842, -0.12, 96.4, 150, 4),
+          instrument("USD/JPY", "Yen", 152.31, 0.44, 58.2, -80),
+        ],
+      },
+    ],
+  },
+  {
+    id: "rates",
+    name: "Rates",
+    children: [instrument("UST 10Y", "Treasury", 4.28, 0.03, 24.6, 110)],
+  },
+  { id: "cash", name: "Cash", last: 1_204_300, digits: 0 },
+];
+
 /** The scale for volume bars, in millions. */
 export const maxVolume = 400;
 /** The net position limit each way, the scale for position bars. */

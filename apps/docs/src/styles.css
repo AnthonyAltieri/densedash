@@ -764,6 +764,11 @@ main {
   --dd-docs-specimen-sample-height: 44px;
   --dd-docs-specimen-text-size: 18px;
   --dd-docs-specimen-key-size: 22px;
+  /* The tree page's frame. */
+  --dd-docs-tree-width: 522px;
+  --dd-docs-tree-height: 284px;
+  --dd-docs-tree-gap: 8px;
+  --dd-docs-row-divider: var(--dd-color-border-subtle);
 }
 
 [data-theme="dark"] {
@@ -772,6 +777,8 @@ main {
   --dd-docs-negative-surface: #450a0a;
   --dd-docs-accent-surface: var(--dd-base-blue-950);
   --dd-docs-neutral-surface: var(--dd-base-neutral-800);
+  /* The subtle border is the dark surface's own colour, so row dividers step up one. */
+  --dd-docs-row-divider: var(--dd-color-border-muted);
 }
 
 /* The list page's frames (rules in registry/default/docs/frame.css). Values from the List board. */

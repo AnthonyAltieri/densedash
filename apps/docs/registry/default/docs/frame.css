@@ -168,3 +168,39 @@
 [data-slot="frame"] [role="listbox"] [data-slot="tree-indent"] {
   margin-inline-end: calc(var(--dd-unit) * -2);
 }
+
+/* The tree page: a frame whose whole body is one tree (role="tree"; List and Table use other
+   roles). Rows are divided, keep the frame's padding at every depth, and scroll in a fixed
+   viewport. */
+[data-slot="frame"]:has(> [data-slot="frame-body"] > [role="tree"]:only-child) {
+  --dd-docs-frame-width: var(--dd-docs-tree-width);
+}
+
+/* Rows contain their layout, so they would paint over the root's inset focus ring; the root
+   isolates and the viewport sits under it, behind the ring. */
+[data-slot="frame-body"] > [role="tree"]:only-child {
+  isolation: isolate;
+}
+
+[data-slot="frame-body"] > [role="tree"]:only-child > [data-slot="tree-viewport"] {
+  position: relative;
+  z-index: -1;
+  block-size: var(--dd-docs-tree-height);
+}
+
+[data-slot="frame-body"] > [role="tree"]:only-child [data-slot="tree-row"] {
+  gap: var(--dd-docs-tree-gap);
+  /* The depth-0 indent is empty but still takes a gap, so the start padding gives it back. */
+  padding-inline: calc(var(--dd-docs-frame-padding) - var(--dd-docs-tree-gap))
+    var(--dd-docs-frame-padding);
+  border-block-end: var(--dd-border-width) solid var(--dd-docs-row-divider);
+}
+
+[data-slot="frame-body"] > [role="tree"]:only-child [data-slot="tree-toggle"] {
+  color: var(--dd-color-text-muted);
+}
+
+/* Every top-level row's name, Cash included. */
+[data-slot="frame-body"] > [role="tree"]:only-child [data-depth="0"] > [data-slot="cell-name"] {
+  font-weight: var(--dd-font-weight-semibold);
+}

@@ -89,6 +89,11 @@ function Count({ value }: { readonly value: number }): ReactElement {
   return <span data-slot="cell-count">{number(value, 0)}</span>;
 }
 
+/** A group's count of what it holds and its unit, such as `5 open`, in the price column. */
+function Total({ value, unit }: { readonly value: number; readonly unit: string }): ReactElement {
+  return <span data-slot="cell-total">{`${number(value, 0)} ${unit}`}</span>;
+}
+
 /** A tag's colour: `Live` is positive, `Paper` the accent, anything else neutral. */
 export type TagTone = "positive" | "accent" | "neutral";
 
@@ -187,6 +192,7 @@ export const Cell = {
   Price,
   Change,
   Count,
+  Total,
   Tag,
   Chip,
   Bar,

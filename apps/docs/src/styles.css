@@ -773,3 +773,13 @@ main {
   --dd-docs-accent-surface: var(--dd-base-blue-950);
   --dd-docs-neutral-surface: var(--dd-base-neutral-800);
 }
+
+/* The list page's frames (rules in registry/default/docs/frame.css). Values from the List board. */
+:root {
+  --dd-docs-list-width: 360px;
+  --dd-docs-nested-list-width: 480px;
+  --dd-docs-nested-list-height: 266px;
+  /* Top-level rows of the nested list are this much taller than --dd-row-height, others shorter. */
+  --dd-docs-nested-row-step: 2px;
+  --dd-docs-return-width: 54px;
+}

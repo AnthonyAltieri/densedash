@@ -1,7 +1,7 @@
 import type { Ports } from "../kernel.js";
 import type { KeyboardBinding } from "../ports/keyboard.js";
 import { createKeys, keyIdentity } from "./keys.js";
-import { activeScopes, scopeHasFocus } from "./scopes.js";
+import { activeScopes, keymapScopes, scopeHasFocus } from "./scopes.js";
 import type { Scope } from "./scopes.js";
 import type {
   Command,
@@ -101,13 +101,24 @@ export function createCommands({
       }
     }
     const entries: KeymapEntry[] = [];
-    const claimed = new Set<string>();
-    for (const scope of pending ? [] : activeScopes(scopes).filter(scopeHasFocus)) {
+    const claimed = new Map<string, Scope>();
+    for (const scope of pending ? [] : keymapScopes(scopes)) {
       for (const command of scope.commands) {
         const available = scope.keys.get(command.id).filter((key) => {
           const identity = keyIdentity(key);
           if (claimed.has(identity)) return false;
-          claimed.add(identity);
+          const first = typeof key === "string" ? undefined : key[0];
+          const prefixOwner = first === undefined ? undefined : claimed.get(keyIdentity(first));
+          const prefixTarget = prefixOwner?.options.keys ? undefined : prefixOwner?.options.target;
+          // A widget chord stops the sequence prefix before it reaches an outer target.
+          if (
+            prefixTarget &&
+            "ownerDocument" in prefixTarget &&
+            prefixTarget.ownerDocument &&
+            prefixTarget !== scope.options.target
+          )
+            return false;
+          claimed.set(identity, scope);
           return true;
         });
         if (command.hidden || (scope.keys.get(command.id).length > 0 && available.length === 0))
@@ -279,6 +290,9 @@ export function createCommands({
             },
             {
               ...bindingOptions,
+              // Commands own their declared keys across non-editable widgets. The port's
+              // automatic ARIA filtering otherwise reserves every printable tree key.
+              ignoreInputs: bindingOptions.ignoreInputs ?? "editable",
               ...(layer
                 ? {
                     ...(ambientTarget ? { target: ambientTarget } : {}),
@@ -308,8 +322,19 @@ export function createCommands({
         exclusive: scopeOptions.only ?? false,
       });
       const target = scopeOptions.target;
-      const focusDocument = target && "ownerDocument" in target ? target.ownerDocument : undefined;
-      const onFocus = () => publishKeymap();
+      const focusDocument =
+        target && "document" in target
+          ? target.document
+          : target && "defaultView" in target
+            ? target
+            : (target?.ownerDocument ?? globalThis.document);
+      const onFocus = () => {
+        publishKeymap();
+        // During focusout activeElement still names the departing control.
+        queueMicrotask(() => {
+          if (scopes.get(name) === scope) publishKeymap();
+        });
+      };
       focusDocument?.addEventListener("focusin", onFocus, true);
       focusDocument?.addEventListener("focusout", onFocus, true);
       const scope: Scope = {

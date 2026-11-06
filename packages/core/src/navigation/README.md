@@ -75,8 +75,10 @@ Modes are `tree` (default), `listbox`, `treegrid` and `grid`. Focus defaults to
 `active-descendant`; `roving` gives one enabled row the tab stop and moves focus
 inside a focused root. Wire every returned event handler through the adapter.
 Typeahead reads only the kernel clock port, buffers for `typeaheadMs` (default
-500), and searches in a microtask after keyboard dispatch, so consumed shortcut
-keys do not also search. There are no navigation timers.
+500), and searches on the next animation frame after keyboard dispatch, so consumed
+shortcut keys do not also search. An active command sequence reserves its prefix
+before typeahead; an unmatched printable character still searches. Disposal cancels
+pending typeahead frames. There are no navigation timers.
 
 After data changes, a live cursor stays on its ID. A removed/disabled cursor
 moves to the nearest surviving enabled row in the old order, with the following

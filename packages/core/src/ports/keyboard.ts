@@ -7,6 +7,18 @@ export type KeyboardPlatform = HotkeyPlatform;
 export type KeyboardTarget = HTMLElement | Document | Window;
 export type KeyboardHandler = (event: KeyboardEvent) => void;
 
+/** Shared by editable-only dispatch and its command legend projection. */
+export function isKeyboardEditable(element: Element | null | undefined): boolean {
+  while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
+  return (
+    element?.matches('input, textarea, select, [role="textbox"], [role="searchbox"]') === true ||
+    (element !== null &&
+      element !== undefined &&
+      "isContentEditable" in element &&
+      element.isContentEditable === true)
+  );
+}
+
 export type KeyboardParseResult =
   | { readonly ok: true; readonly hotkey: KeyboardHotkey }
   | { readonly ok: false; readonly reason: string };

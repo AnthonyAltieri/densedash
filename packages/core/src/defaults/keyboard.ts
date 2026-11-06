@@ -18,6 +18,7 @@ import type {
   KeyboardPort,
   PendingKeyboardSequence,
 } from "../ports/keyboard.js";
+import { isKeyboardEditable } from "../ports/keyboard.js";
 
 /**
  * Hotkeys' display parts, joined as compact keycap labels: glyphs with no separator on macOS
@@ -135,16 +136,6 @@ export function createKeyboardPort(): KeyboardPort {
         if (target && "defaultView" in target) return target;
         return target?.ownerDocument ?? (typeof document === "undefined" ? undefined : document);
       };
-      const editable = (element: Element | null | undefined): boolean => {
-        while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
-        return (
-          element?.matches("input, textarea, select") === true ||
-          (element !== null &&
-            element !== undefined &&
-            "isContentEditable" in element &&
-            element.isContentEditable === true)
-        );
-      };
       const resolvedOptions = (): HotkeyOptions & { conflictBehavior: "allow" } => {
         const { ignoreInputs, ...bindingOptions } = currentOptions;
         return {
@@ -154,7 +145,7 @@ export function createKeyboardPort(): KeyboardPort {
             : { ignoreInputs: ignoreInputs === "editable" ? false : ignoreInputs }),
           enabled:
             currentOptions.enabled !== false &&
-            (ignoreInputs !== "editable" || !editable(targetDocument()?.activeElement)),
+            (ignoreInputs !== "editable" || !isKeyboardEditable(targetDocument()?.activeElement)),
           conflictBehavior: "allow",
         };
       };
@@ -168,7 +159,9 @@ export function createKeyboardPort(): KeyboardPort {
         const update = (event: FocusEvent) => {
           const next = event.type === "focusout" ? event.relatedTarget : doc.activeElement;
           const element = next instanceof (doc.defaultView?.Element ?? Element) ? next : null;
-          handle.setOptions({ enabled: currentOptions.enabled !== false && !editable(element) });
+          handle.setOptions({
+            enabled: currentOptions.enabled !== false && !isKeyboardEditable(element),
+          });
         };
         doc.addEventListener("focusin", update, true);
         doc.addEventListener("focusout", update, true);

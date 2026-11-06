@@ -222,7 +222,8 @@ function createHandle<T extends RowData>(initial: TreeHandleOptions<T>, generate
       getSubRows: (item, index) => latest.getSubRows?.(item, index),
       isDisabled: (item) => latest.isDisabled?.(item) ?? false,
       getTextValue: (item) => latest.getTextValue?.(item) ?? latest.getRowId(item, 0),
-      onOpen: (item, details) => latest.onOpen?.(item, details),
+      onOpen:
+        latest.onOpen === undefined ? undefined : (item, details) => latest.onOpen?.(item, details),
       highlighted: control<string | null>("highlighted", latest.highlighted),
       expanded: control<ExpandedState>("expanded", latest.expanded),
       rowSelection: control<RowSelectionState>("rowSelection", latest.rowSelection),
@@ -254,6 +255,9 @@ function createHandle<T extends RowData>(initial: TreeHandleOptions<T>, generate
       changes.labels = labels;
     }
     const current = options();
+    if ((previous.onOpen === undefined) !== (next.onOpen === undefined)) {
+      changes.onOpen = current.onOpen;
+    }
     for (const name of controls) {
       if (!Object.is(previous[name]?.value, next[name]?.value)) {
         Object.assign(changes, { [name]: current[name] });

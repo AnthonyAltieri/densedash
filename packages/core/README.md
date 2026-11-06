@@ -26,6 +26,8 @@ until accepted or canceled. Updating an unknown scope throws; updates after disp
 `commands.keymap` exposes formatted keys and the evaluated `enabled` flag. Predicate failures
 are reported as command errors and make that entry disabled. Call `update` when app state
 changes to refresh enabled state; the React `useCommands` hook does this after each render.
+Disabled commands release their keys to other scopes and the browser default. Duplicate keys
+within one scope still belong to their first registered command, even when it is disabled.
 Equal snapshots retain their array identity across focus and definition updates. Override
 replacement still notifies subscribers so consumers of `commands.keys(id)` can refresh keys
 for unfocused scopes.

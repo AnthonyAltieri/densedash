@@ -12,6 +12,7 @@ export interface Scope {
   readonly unregister: () => void;
   readonly bindings: {
     readonly key: string;
+    readonly commandIndex: number;
     readonly binding: KeyboardBinding;
     enabled: boolean;
   }[];

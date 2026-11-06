@@ -71,7 +71,7 @@ export interface NavigationOptions<T extends RowData> {
   scope?: CommandScopeOptions;
   /** Optional per-instance page-wide keys. Without it the root must have focus. */
   keys?: KeyLayer | undefined;
-  onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
+  onOpen?: ((item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>) => void) | undefined;
 }
 
 export interface NavigationCommands extends TreeCommands {

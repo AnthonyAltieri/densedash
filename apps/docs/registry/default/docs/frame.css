@@ -641,11 +641,8 @@
   font-weight: var(--dd-weight-normal);
 }
 
-/* The name cell: desks semibold, sectors medium, instruments' tickers in monospace. It centres
-   the toggle on the name at every density. */
+/* The name cell: desks semibold, sectors medium, instruments' tickers in monospace. */
 [data-variant="table"] [data-slot="table-row"] > [data-slot="table-cell"]:first-child {
-  display: flex;
-  align-items: center;
   font-weight: var(--dd-font-weight-medium);
 }
 

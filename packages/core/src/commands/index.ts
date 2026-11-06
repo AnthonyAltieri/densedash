@@ -87,14 +87,15 @@ export function createCommands({
     const layered = new Set<string>();
     for (const scope of activeScopes(scopes)) {
       if (!scope.options.keys) continue;
-      for (const command of scope.commands) {
-        for (const key of scope.keys.get(command.id)) layered.add(keyIdentity(key));
+      for (const owned of scope.bindings) {
+        if (commandEnabled(scope.commands[owned.commandIndex]!)) layered.add(owned.key);
       }
     }
     for (const scope of scopes.values()) {
-      if (scope.options.keys) continue;
       for (const owned of scope.bindings) {
-        const enabled = !layered.has(owned.key);
+        const enabled =
+          commandEnabled(scope.commands[owned.commandIndex]!) &&
+          (scope.options.keys !== undefined || !layered.has(owned.key));
         if (enabled === owned.enabled) continue;
         owned.enabled = enabled;
         owned.binding.update({ enabled });
@@ -103,9 +104,14 @@ export function createCommands({
     const entries: KeymapEntry[] = [];
     const claimed = new Map<string, Scope>();
     for (const scope of pending ? [] : keymapScopes(scopes)) {
+      // Duplicate keys keep their first owner within a scope, even when disabled.
+      const reserved = new Set<string>();
       for (const command of scope.commands) {
+        const enabled = commandEnabled(command);
         const available = scope.keys.get(command.id).filter((key) => {
           const identity = keyIdentity(key);
+          if (reserved.has(identity)) return false;
+          reserved.add(identity);
           if (claimed.has(identity)) return false;
           const first = typeof key === "string" ? undefined : key[0];
           const prefixOwner = first === undefined ? undefined : claimed.get(keyIdentity(first));
@@ -118,7 +124,7 @@ export function createCommands({
             prefixTarget !== scope.options.target
           )
             return false;
-          claimed.set(identity, scope);
+          if (enabled) claimed.set(identity, scope);
           return true;
         });
         if (command.hidden || (scope.keys.get(command.id).length > 0 && available.length === 0))
@@ -132,7 +138,7 @@ export function createCommands({
           ...(command.groupLabel === undefined ? {} : { groupLabel: command.groupLabel }),
           ...(command.legend === undefined ? {} : { legend: command.legend }),
           keys: available.map((key) => keyboard.format(key)),
-          enabled: commandEnabled(command),
+          enabled,
         });
       }
     }
@@ -282,9 +288,11 @@ export function createCommands({
         const { parent: _parent, only: _only, keys: layer, ...bindingOptions } = scope.options;
         const target = bindingOptions.target;
         const ambientTarget = target && "ownerDocument" in target ? target.ownerDocument : target;
+        const enabled = commandEnabled(command);
         scope.bindings.push({
           key: identity,
-          enabled: true,
+          commandIndex: index,
+          enabled,
           binding: keyboard.bind(
             key,
             (event) => {
@@ -304,6 +312,7 @@ export function createCommands({
                   }
                 : {}),
               scope: scope.name,
+              enabled,
             },
           ),
         });

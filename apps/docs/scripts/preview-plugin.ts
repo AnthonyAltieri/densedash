@@ -66,8 +66,10 @@ async function renderExamples(): Promise<Map<string, Example>> {
             // outside the code element, so code.textContent stays byte for byte.
             renderer: {
               nodeStaticInfo(info, node) {
+                const text = defaultHoverInfoProcessor(info.text) || info.text.trim();
+                if (!text) return node;
                 const hoverId = `dd-type-${name}-${typeInfo.length}`;
-                typeInfo.push({ id: hoverId, text: defaultHoverInfoProcessor(info.text) });
+                typeInfo.push({ id: hoverId, text });
                 return {
                   type: "element",
                   tagName: "span",

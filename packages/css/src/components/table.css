@@ -115,7 +115,8 @@
     align-items: center;
     justify-content: center;
     inline-size: var(--dd-icon-size);
-    block-size: var(--dd-icon-size);
+    /* Span the text line so alignment uses its centre, rather than the font's x-height. */
+    block-size: var(--dd-line-height);
     margin-inline-start: calc(var(--dd-depth) * var(--dd-indent));
     margin-inline-end: var(--dd-gap);
     padding: unset;
@@ -124,7 +125,7 @@
     color: inherit;
     font: inherit;
     line-height: var(--dd-line-height);
-    vertical-align: middle;
+    vertical-align: top;
     cursor: default;
   }
 

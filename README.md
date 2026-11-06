@@ -85,6 +85,8 @@ Each plugin store exposes its writable `atom`, with the same state in `plugin.re
 
 Commands separate action definitions from key choices. Both core entries export `Command`, `Commands`, `Preset`, `KeysOptions`, `Register`, `createCommands` and `tradingPreset`. Each kernel owns `kernel.commands`; plugins can register commands during setup and return their unregister function. Commands declare an `id`, `label`, optional `group`, `enabled()` predicate, `hidden`, `confirm: { prompt }` and `run({ event })`. Keys live in a preset, never in a command. `tradingPreset` supplies j/k and arrows, Control+U/D, Enter, h/l and horizontal arrows, Shift+Y/X approval/rejection, history brackets and the trading app's `g` navigation sequences. Apps supply every action, including navigation.
 
+Both core entries also export `treePreset` for j/k/l/h and `shiftedTreePreset` for Shift+J/K/L/H. Tree and List instances with `keys: { label }` default to `treePreset`, binding only next, previous, expand and collapse throughout the page while leaving Space and Enter free for native controls. Supply `keys.preset` to replace that map or `keys.overrides` to replace individual command bindings. Omit `keys` to keep focus-bound navigation with the kernel's keys.
+
 ```ts
 import { createKernel } from "@densedash/core";
 

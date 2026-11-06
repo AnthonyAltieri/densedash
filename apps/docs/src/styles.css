@@ -771,6 +771,10 @@ main {
   --dd-docs-row-divider: var(--dd-color-border-subtle);
   --dd-docs-tabs-width: 420px;
   --dd-docs-tabs-panel-height: 88px;
+  /* Keymap page: the order size counter. */
+  --dd-docs-counter-width: 360px;
+  --dd-docs-figure-height: 96px;
+  --dd-docs-figure-size: 40px;
 }
 
 [data-theme="dark"] {

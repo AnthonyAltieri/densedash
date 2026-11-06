@@ -184,6 +184,16 @@ function Specimen({
   );
 }
 
+/** A large, centred number and its unit, such as an order size: `300 shares`. */
+function Figure({ value, unit }: { readonly value: number; readonly unit: string }): ReactElement {
+  return (
+    <output data-slot="cell-figure">
+      <span data-slot="cell-figure-value">{`${minus(value)}${number(value, 0)}`}</span>
+      <span data-slot="cell-figure-unit">{unit}</span>
+    </output>
+  );
+}
+
 /** Cells for example rows: each a span with a `data-slot` that the docs stylesheet sizes. */
 export const Cell = {
   Code,
@@ -198,4 +208,5 @@ export const Cell = {
   Bar,
   Diverging,
   Specimen,
+  Figure,
 };

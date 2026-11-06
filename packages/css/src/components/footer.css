@@ -6,6 +6,9 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--dd-gap) var(--dd-footer-gap);
+    /* The height includes the padding and the top border, so a one-row footer is exactly
+       --dd-footer-height. */
+    box-sizing: border-box;
     min-block-size: var(--dd-footer-height);
     padding-block: var(--dd-gap);
     padding-inline: var(--dd-footer-padding-inline);

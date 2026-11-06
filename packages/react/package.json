@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "@densedash/core": "workspace:*",
-    "@tanstack/table-core": "9.3.1"
+    "@tanstack/table-core": "9.3.1",
+    "@tanstack/virtual-core": "3.19.11"
   },
   "devDependencies": {
     "react": "19.3.1"

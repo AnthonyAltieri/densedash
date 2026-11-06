@@ -5,6 +5,7 @@ import type { TreeRow } from "../tree/handle.js";
 import { Viewport as TreeViewport } from "../tree/viewport.js";
 import type { Virtualizer, ViewportState } from "../tree/viewport.js";
 import type { PartProps } from "../use-render.js";
+import type { VirtualOptions } from "../virtual/tanstack-virtual.js";
 import { useTableContext } from "./context.js";
 import type { TableHandleBase } from "./handle.js";
 import { Header } from "./header.js";
@@ -22,6 +23,9 @@ export interface ViewportProps<T>
    * As in `Tree.Viewport`, a row whose only change is its position does not re-render.
    */
   readonly children?: ((row: TreeRow<T>) => ReactNode) | undefined;
+  /** Mounts only the rows in view, as in `Tree.Viewport`; `virtual={{ overscan, … }}` tunes it. */
+  readonly virtual?: boolean | VirtualOptions | undefined;
+  /** A custom rendering strategy, instead of `virtual`. */
   readonly virtualizer?: Virtualizer | undefined;
   /**
    * The header row, rendered first inside the scroll element so it sticks to the top and
@@ -32,7 +36,7 @@ export interface ViewportProps<T>
 
 /**
  * The scrolling `rowgroup`: the tree's viewport, so it keeps the highlighted row in view and in
- * place through live updates, and takes the same `virtualizer`.
+ * place through live updates, and takes the same `virtual` and `virtualizer` props.
  */
 export function Viewport<T>({
   table,

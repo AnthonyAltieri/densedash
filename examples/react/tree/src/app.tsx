@@ -1,16 +1,14 @@
 import { Component, useEffect, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
-import { Keymap, List, Tree, useList, useStore, useTree } from "@densedash/react";
-import { tanstackVirtual } from "@densedash/plugin-tanstack-virtual";
+import type { ReactNode } from "react";
+import { Keymap, List, Tree, tanstackVirtual, useList, useStore, useTree } from "@densedash/react";
 import type { ExpandedState } from "@densedash/core";
 import type { TreeHandle } from "@densedash/react";
 import { createBook, createFill, expandParents, instruments } from "./data.ts";
 import type { Holding } from "./data.ts";
 
 const sizes = [100, 1_000, 5_000, 50_000] as const;
-// Share the estimate and CSS row height so spacer geometry matches the rendered rows.
-const rowHeight = 28;
-const rowStyle = { "--dd-row-height": `${rowHeight}px` } as CSSProperties;
+// "virtual" is the built-in strategy; "custom" passes a strategy through `virtualizer`.
+type Mode = "all" | "virtual" | "custom";
 
 function Status({ tree, opened }: { tree: TreeHandle<Holding>; opened: string }) {
   const highlighted = useStore(tree.state, (state) => state.highlighted);
@@ -27,21 +25,17 @@ function Book({
   book,
   expanded,
   onExpandedChange,
-  virtualized,
+  mode,
   mixed,
 }: {
   book: readonly Holding[];
   expanded: ExpandedState;
   onExpandedChange: (expanded: ExpandedState) => void;
-  virtualized: boolean;
+  mode: Mode;
   mixed: boolean;
 }) {
-  const [fixed] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
-  // Taller portfolio rows: the estimate stays one row height and mounted rows are measured.
-  const [measured] = useState(() =>
-    tanstackVirtual({ estimateSize: () => rowHeight, measure: true }),
-  );
-  const virtualizer = mixed ? measured : fixed;
+  // A custom strategy: here the built-in one, created once and passed through `virtualizer`.
+  const [custom] = useState(() => tanstackVirtual({ overscan: 4 }));
   const [opened, setOpened] = useState("nothing yet");
   const tree = useTree({
     data: book,
@@ -54,11 +48,13 @@ function Book({
   return (
     <>
       <Status tree={tree} opened={opened} />
-      <Tree.Root tree={tree} aria-label="Book" className="tree" style={rowStyle}>
+      <Tree.Root tree={tree} aria-label="Book" className="tree">
+        {/* Taller portfolio rows ("Mixed") are measured as they render. */}
         <Tree.Viewport
           tree={tree}
           className="viewport"
-          virtualizer={virtualized ? virtualizer : undefined}
+          virtual={mode === "virtual"}
+          virtualizer={mode === "custom" ? custom : undefined}
         >
           {(row) => (
             <Tree.Row row={row} className={mixed && row.depth === 0 ? "tall" : undefined}>
@@ -75,7 +71,6 @@ function Book({
 }
 
 function Watchlist({ virtualized }: { virtualized: boolean }) {
-  const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
   const [opened, setOpened] = useState("nothing yet");
   const list = useList({
     data: instruments,
@@ -88,12 +83,8 @@ function Watchlist({ virtualized }: { virtualized: boolean }) {
       <p className="status">
         Opened <strong>{opened}</strong>
       </p>
-      <List.Root tree={list} aria-label="Watchlist" className="tree" style={rowStyle}>
-        <List.Viewport
-          tree={list}
-          className="viewport"
-          virtualizer={virtualized ? virtualizer : undefined}
-        >
+      <List.Root tree={list} aria-label="Watchlist" className="tree">
+        <List.Viewport tree={list} className="viewport" virtual={virtualized}>
           {(row) => (
             <List.Row row={row}>
               <span className="name">{row.original.ticker}</span>
@@ -134,7 +125,7 @@ export function App() {
   const [book, setBook] = useState(() => createBook(1_000));
   const [expanded, setExpanded] = useState<ExpandedState>(() => expandParents(book));
   const [live, setLive] = useState(false);
-  const [virtualized, setVirtualized] = useState(false);
+  const [mode, setMode] = useState<Mode>("all");
   const [mixed, setMixed] = useState(false);
   const [resets, setResets] = useState(0);
 
@@ -174,12 +165,10 @@ export function App() {
           </label>
           <label>
             Viewport{" "}
-            <select
-              value={virtualized ? "virtualized" : "all"}
-              onChange={(event) => setVirtualized(event.target.value === "virtualized")}
-            >
+            <select value={mode} onChange={(event) => setMode(event.target.value as Mode)}>
               <option value="all">All rows</option>
-              <option value="virtualized">Virtualized</option>
+              <option value="virtual">Virtualized (virtual)</option>
+              <option value="custom">Custom virtualizer</option>
             </select>
           </label>
           <label>
@@ -219,13 +208,13 @@ export function App() {
               book={book}
               expanded={expanded}
               onExpandedChange={setExpanded}
-              virtualized={virtualized}
+              mode={mode}
               mixed={mixed}
             />
           </Boundary>
         </section>
         <section aria-label="Watchlist">
-          <Watchlist virtualized={virtualized} />
+          <Watchlist virtualized={mode !== "all"} />
         </section>
       </div>
       <footer>

@@ -6,6 +6,8 @@ import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
+import { tanstackVirtual } from "../virtual/tanstack-virtual.js";
+import type { VirtualOptions } from "../virtual/tanstack-virtual.js";
 import { useTreeContext } from "./context.js";
 import { getInternals } from "./handle.js";
 import type { TreeHandleBase, TreeRow, TreeSnapshot } from "./handle.js";
@@ -30,9 +32,9 @@ export interface ViewportMeasurements {
 }
 
 /**
- * The viewport's rendering strategy. The default strategy mounts every row; pass a
- * virtualizer through `<Tree.Viewport virtualizer={…}>` to mount only a range. Use one
- * virtualizer per viewport.
+ * The viewport's rendering strategy. The default strategy mounts every row, and `virtual`
+ * mounts only a range with TanStack Virtual; pass your own strategy through
+ * `<Tree.Viewport virtualizer={…}>` instead. Use one virtualizer per viewport.
  *
  * - `range()` and `padding()` are read during render; call the `subscribe` listener whenever
  *   they would return something new (after a scroll or a measurement), and the viewport
@@ -61,7 +63,7 @@ export interface Virtualizer {
 }
 
 export interface ViewportState {
-  /** A virtualizer replaces the default strategy. */
+  /** `virtual` or a virtualizer replaces the default strategy. */
   readonly virtualized: boolean;
 }
 
@@ -78,6 +80,15 @@ export interface ViewportProps<T>
    * re-render either: read positions from `tree.state` with `useStore`.
    */
   readonly children: (row: TreeRow<T>) => ReactNode;
+  /**
+   * Mounts only the rows in view plus `overscan`, with TanStack Virtual: `virtual` alone, or
+   * `virtual={{ overscan, estimateSize, measure }}` to tune it. Rows are estimated at the
+   * viewport's `--dd-row-height` and measured as they render. The viewport needs a constrained
+   * block size. A new `overscan` or `measure` creates a new virtualizer; `estimateSize` is read
+   * when used.
+   */
+  readonly virtual?: boolean | VirtualOptions | undefined;
+  /** A custom rendering strategy, instead of `virtual`. Keep its identity stable. */
   readonly virtualizer?: Virtualizer | undefined;
   /**
    * Rendered first inside the scroll element, before the rows, such as a header row styled
@@ -190,6 +201,37 @@ const RowSlot = memo(
     previous.row.parentId === next.row.parentId,
 );
 
+interface BuiltIn {
+  readonly key: string | null;
+  readonly strategy: Virtualizer | undefined;
+  /** Updated after each render, so `estimateSize` is the latest function. */
+  readonly options: { -readonly [K in keyof VirtualOptions]: VirtualOptions[K] };
+}
+
+function createBuiltIn(key: string | null, virtual: VirtualOptions): BuiltIn {
+  const options = { ...virtual };
+  return { key, options, strategy: key === null ? undefined : tanstackVirtual(options) };
+}
+
+// The built-in virtualizer, created once per `virtual` setting rather than on every render.
+function useBuiltIn(virtual: boolean | VirtualOptions | undefined): Virtualizer | undefined {
+  const options = typeof virtual === "object" ? virtual : {};
+  const key =
+    virtual === undefined || virtual === false
+      ? null
+      : `${options.overscan ?? ""}:${options.measure !== false}`;
+  const [created, setCreated] = useState(() => createBuiltIn(key, options));
+  let builtIn = created;
+  if (created.key !== key) {
+    builtIn = createBuiltIn(key, options);
+    setCreated(builtIn);
+  }
+  useLayoutEffect(() => {
+    builtIn.options.estimateSize = options.estimateSize;
+  });
+  return builtIn.strategy;
+}
+
 function useVersion(virtualizer: Virtualizer | undefined): number {
   const [version, setVersion] = useState(0);
   useLayoutEffect(() => {
@@ -219,6 +261,7 @@ function readLayout(strategy: Virtualizer, count: number, _version: number) {
 export function Viewport<T>({
   tree,
   children,
+  virtual,
   virtualizer,
   header,
   render,
@@ -231,6 +274,11 @@ export function Viewport<T>({
   if (context.handle !== tree) {
     throw new Error("densedash: pass the root's tree to its viewport.");
   }
+  if (virtual !== undefined && virtual !== false && virtualizer !== undefined) {
+    throw new Error(
+      "densedash: pass `virtual` or `virtualizer` to a viewport, not both; `virtualizer` replaces the built-in `virtual` strategy.",
+    );
+  }
   const { core } = context;
   const rows = useStore(tree.state, selectRows);
   const highlighted = useStore(tree.state, selectHighlighted);
@@ -239,8 +287,10 @@ export function Viewport<T>({
   const headed = header !== undefined && header !== null;
   const locate = useRef((_index: number): HTMLElement | null => null);
   const [allRows] = useState(() => createAllRows(locate));
-  const strategy: Virtualizer = virtualizer ?? allRows;
-  const version = useVersion(virtualizer);
+  const builtIn = useBuiltIn(virtual);
+  const active = virtualizer ?? builtIn;
+  const strategy: Virtualizer = active ?? allRows;
+  const version = useVersion(active);
   const anchor = useRef<{
     readonly id: string;
     readonly top: number;
@@ -371,7 +421,7 @@ export function Viewport<T>({
         .map((row) => <RowSlot key={row.id} row={row} flags={rowFlags(row)} render={renderRow} />),
     [rows, start, end, renderRow],
   );
-  const state: ViewportState = { virtualized: virtualizer !== undefined };
+  const state: ViewportState = { virtualized: active !== undefined };
   return useRender({
     render,
     ref: [ref, setElement],

@@ -249,15 +249,9 @@ importers:
       '@densedash/css':
         specifier: workspace:*
         version: link:../../../packages/css
-      '@densedash/plugin-tanstack-virtual':
-        specifier: workspace:*
-        version: link:../../../packages/plugin-tanstack-virtual
       '@densedash/react':
         specifier: workspace:*
         version: link:../../../packages/react
-      '@tanstack/virtual-core':
-        specifier: 3.19.11
-        version: 3.19.11
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -323,15 +317,9 @@ importers:
       '@densedash/css':
         specifier: workspace:*
         version: link:../../../packages/css
-      '@densedash/plugin-tanstack-virtual':
-        specifier: workspace:*
-        version: link:../../../packages/plugin-tanstack-virtual
       '@densedash/react':
         specifier: workspace:*
         version: link:../../../packages/react
-      '@tanstack/virtual-core':
-        specifier: 3.19.11
-        version: 3.19.11
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -384,15 +372,9 @@ importers:
 
   packages/plugin-tanstack-virtual:
     devDependencies:
-      '@densedash/core':
-        specifier: workspace:*
-        version: link:../core
       '@densedash/react':
         specifier: workspace:*
         version: link:../react
-      '@tanstack/virtual-core':
-        specifier: 3.19.11
-        version: 3.19.11
 
   packages/react:
     dependencies:
@@ -402,6 +384,9 @@ importers:
       '@tanstack/table-core':
         specifier: 9.3.1
         version: 9.3.1
+      '@tanstack/virtual-core':
+        specifier: 3.19.11
+        version: 3.19.11
     devDependencies:
       react:
         specifier: 19.3.1

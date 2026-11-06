@@ -33,6 +33,8 @@ export type {
   TableColumnMeta,
 } from "./table/columns.js";
 export type { Virtualizer, ViewportMeasurements, ViewportRange } from "./tree/viewport.js";
+export { tanstackVirtual } from "./virtual/tanstack-virtual.js";
+export type { VirtualOptions } from "./virtual/tanstack-virtual.js";
 export { Kbd, KbdRange } from "./kbd.js";
 export type { KbdProps, KbdRangeProps, KbdRangeState, KbdState } from "./kbd.js";
 export { useKernel } from "./context.js";

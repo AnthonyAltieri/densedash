@@ -7,7 +7,7 @@ const collectionParts = [
   [
     "Viewport",
     "div · tree-viewport",
-    "data-virtualized; tree-viewport-spacer divs when virtualized",
+    "virtual or virtualizer; data-virtualized; tree-viewport-spacer divs when virtualized",
   ],
   ["Row", "div · tree-row", rowState],
 ];
@@ -70,7 +70,7 @@ export const components = {
     description:
       "Nested rows from data, with keyboard highlight, expansion and selection. DOM children never register the collection.",
     types:
-      "useTree infers T from data; getRowId returns a stable, unique string and getSubRows returns the item's children. Viewport passes TanStack's row: row.original keeps T. Root and Viewport share one TreeHandle<T>; tree.table is its TanStack table (null until the root mounts). expanded and rowSelection are TanStack state, { [id]: true }. The default focus strategy uses aria-activedescendant; roving focus is optional. Rows render after mount, so server-rendered HTML holds the root and an empty viewport. Viewport's virtualizer may measure rows of differing heights (tanstackVirtual({ measure: true })). labels: { expand, collapse } localizes the toggle's accessible names.",
+      "useTree infers T from data; getRowId returns a stable, unique string and getSubRows returns the item's children. Viewport passes TanStack's row: row.original keeps T. Root and Viewport share one TreeHandle<T>; tree.table is its TanStack table (null until the root mounts). expanded and rowSelection are TanStack state, { [id]: true }. The default focus strategy uses aria-activedescendant; roving focus is optional. Rows render after mount, so server-rendered HTML holds the root and an empty viewport. Viewport's virtual prop mounts only the rows in view, estimated at --dd-row-height and measured as they render, so rows of differing heights need no setup; virtualizer takes a custom Virtualizer instead. labels: { expand, collapse } localizes the toggle's accessible names.",
     parts: [
       ...collectionParts,
       ["Indent", "span · tree-indent", "data-depth"],
@@ -110,7 +110,7 @@ export const components = {
       [
         "Viewport",
         "div · table-viewport",
-        "data-virtualized; role=rowgroup; tree-viewport-spacer divs when virtualized or after the header",
+        "virtual or virtualizer; data-virtualized; role=rowgroup; tree-viewport-spacer divs when virtualized or after the header",
       ],
       ["Row", "div · table-row", rowState],
       ["Cell", "div · table-cell", "data-align, data-numeric, data-empty"],

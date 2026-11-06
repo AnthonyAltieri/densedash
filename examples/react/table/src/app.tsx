@@ -1,15 +1,10 @@
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
 import { columns, Keymap, Table, useStore, useTable } from "@densedash/react";
 import type { TableHandle } from "@densedash/react";
-import { tanstackVirtual } from "@densedash/plugin-tanstack-virtual";
 import { badIdeas, createIdeas, groupBySector, nextTick, tick } from "./data.ts";
 import type { Idea } from "./data.ts";
 
 const sizes = [100, 1_000, 5_000] as const;
-// Share the estimate and CSS row height so spacer geometry matches the rendered rows.
-const rowHeight = 28;
-const rowStyle = { "--dd-row-height": `${rowHeight}px` } as CSSProperties;
 
 const column = columns<Idea>();
 const money = (value: number) =>
@@ -84,7 +79,6 @@ function Ideas({
   grouped: boolean;
   virtualized: boolean;
 }) {
-  const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
   const [opened, setOpened] = useState("nothing yet");
   const table = useTable({
     data: grouped ? groupBySector(ideas) : ideas,
@@ -97,12 +91,8 @@ function Ideas({
   return (
     <>
       <Status table={table} opened={opened} />
-      <Table.Root table={table} aria-label="Ideas" className="table" style={rowStyle}>
-        <Table.Viewport
-          table={table}
-          className="viewport"
-          virtualizer={virtualized ? virtualizer : undefined}
-        />
+      <Table.Root table={table} aria-label="Ideas" className="table">
+        <Table.Viewport table={table} className="viewport" virtual={virtualized} />
       </Table.Root>
     </>
   );

@@ -181,3 +181,16 @@ Trade-off: without `content-visibility`, the browser lays out every mounted
 row up front. Switching the Tree example from 100 to 5,000 rows took a median
 of 159 ms before and 275–282 ms after (six switches each); 50,000 rows without
 a virtualizer took 3.6 s before and 4.3–4.9 s after.
+
+## DD-32: built-in `virtual` viewport
+
+Type budget (`pnpm type-budget`): 1,746 instantiations before and 1,746 after,
+under the 1,800 budget. The workload does not pass `virtual`; the prop is a
+plain `boolean | VirtualOptions` union.
+
+Mounted rows with `virtual` and no options (headless Chromium, docs `/table`
+example at 10,000 rows, viewport capped at 12 row heights): compact
+(`--dd-row-height` 1.75rem = 28 px) mounts 19 rows at the top and 28 mid-list,
+with `scrollHeight` 280,028 px (header plus 10,000 × 28); comfortable
+(2.25rem = 36 px) mounts 19 at the top and 29 mid-list, with `scrollHeight`
+360,036 px. The estimate followed each density switch without a remount.

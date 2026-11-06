@@ -1,7 +1,7 @@
 {
   "name": "@densedash/plugin-tanstack-virtual",
   "version": "0.1.1",
-  "description": "Per-viewport TanStack Virtual strategy for densedash trees and lists.",
+  "description": "Deprecated: virtualization is built into @densedash/react (the viewport's virtual prop). Re-exports tanstackVirtual from @densedash/react.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -29,13 +29,9 @@
     "attw": "attw --pack --profile esm-only"
   },
   "devDependencies": {
-    "@densedash/core": "workspace:*",
-    "@densedash/react": "workspace:*",
-    "@tanstack/virtual-core": "3.19.11"
+    "@densedash/react": "workspace:*"
   },
   "peerDependencies": {
-    "@densedash/core": "workspace:^",
-    "@densedash/react": "workspace:^",
-    "@tanstack/virtual-core": "3.19.11"
+    "@densedash/react": "workspace:^"
   }
 }

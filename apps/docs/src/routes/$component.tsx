@@ -63,9 +63,11 @@ function ComponentPage() {
         <p data-slot="section-description">{component.types}</p>
         {(name === "tree" || name === "list" || name === "table") && (
           <p data-slot="section-description">
-            For large collections, install @densedash/plugin-tanstack-virtual separately and pass
-            its tanstackVirtual strategy to Viewport's virtualizer prop. The default renders all
-            data rows. This optional plugin is not a registry item.
+            For large collections, pass virtual to Viewport and give it a bounded height: it mounts
+            only the rows in view with TanStack Virtual, estimates them at --dd-row-height (so the
+            estimate follows the density setting) and measures them as they render. Tune it with
+            virtual={"{{ overscan, estimateSize, measure }}"}, or pass your own strategy to
+            virtualizer. The default renders all data rows.
           </p>
         )}
       </section>

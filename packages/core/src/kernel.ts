@@ -42,15 +42,17 @@ export interface KernelOptions {
   keys?: KeysOptions;
 }
 
-/** Reject extra override ids even through the generic port-inference entrypoints. */
+/** Reject extra override ids; valid keys retain the inferred options without another intersection. */
 export type CheckedKernelOptions<Options extends KernelOptions> = Options extends {
   keys: { overrides: infer Overrides };
 }
-  ? Options & { keys: { overrides: Record<Exclude<keyof Overrides, KeyOverrideId>, never> } }
+  ? keyof Overrides extends KeyOverrideId
+    ? Options
+    : Options & { keys: { overrides: Record<Exclude<keyof Overrides, KeyOverrideId>, never> } }
   : Options;
 
 type PluginPort<Installed, Key extends keyof Ports> = Installed extends {
-  provides: Record<Key, (...args: never[]) => infer Value extends Ports[Key]>;
+  provides: { [Port in Key]: (...args: never[]) => infer Value extends Ports[Key] };
 }
   ? Value
   : never;
@@ -73,7 +75,7 @@ type ConfiguredPort<
 /** Shallow inference preserves required overrides and accounts for optional ones. */
 export type ResolvedPorts<Options extends KernelOptions> = {
   readonly [Key in keyof Ports]: Options extends {
-    ports: Record<Key, infer Value extends Ports[Key]>;
+    ports: { [Port in Key]: infer Value extends Ports[Key] };
   }
     ? Value
     : Key extends keyof NonNullable<Options["ports"]>

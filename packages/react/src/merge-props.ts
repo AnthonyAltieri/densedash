@@ -1,4 +1,4 @@
-import type { ComponentPropsWithRef, JSX } from "react";
+import type { JSX } from "react";
 
 /** `data-*` attributes, which parts use for slots and state. */
 export interface DataAttributes {
@@ -7,7 +7,7 @@ export interface DataAttributes {
 
 /** Props of an intrinsic element plus `data-*` attributes. */
 export type ElementProps<Tag extends keyof JSX.IntrinsicElements = "div"> =
-  ComponentPropsWithRef<Tag> & DataAttributes;
+  JSX.IntrinsicElements[Tag] & DataAttributes;
 
 /**
  * An event passed to handlers on parts and `useRender` elements. Calling

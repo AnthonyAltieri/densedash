@@ -9,10 +9,10 @@ License: [MIT](LICENSE).
 Install the ESM packages with React 19:
 
 ```sh
-pnpm add @densedash/core@0.1.1 @densedash/css@0.1.1 @densedash/react@0.1.1
+pnpm add @densedash/core@0.2.0 @densedash/css@0.2.0 @densedash/react@0.2.0
 ```
 
-Import `@densedash/css/tokens.css` and the component styles you use, such as `@densedash/css/components/tree.css`. Pass `virtual` to `Tree.Viewport`, `List.Viewport` or `Table.Viewport` to mount only the rows in view; it is built in, with no setup. Optional plugins release independently: `@densedash/plugin-effect@0.1.1` requires `effect@^4.1.0`. `@densedash/plugin-tanstack-virtual` is deprecated in favor of `virtual`. See the [docs](https://densedash-docs.vercel.app) for examples and the shadcn registry.
+Import `@densedash/css/tokens.css` and the component styles you use, such as `@densedash/css/components/tree.css`. Pass `virtual` to `Tree.Viewport`, `List.Viewport` or `Table.Viewport` to mount only the rows in view; it is built in, with no setup. Optional plugins release independently: `@densedash/plugin-effect@0.1.2` requires `effect@^4.1.0`. `@densedash/plugin-tanstack-virtual` is deprecated in favor of `virtual`. See the [docs](https://densedash-docs.vercel.app) for examples and the shadcn registry.
 
 ## Development
 

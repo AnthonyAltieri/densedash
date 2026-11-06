@@ -88,8 +88,13 @@ Add a default-exported React component at
 `<ComponentPreview name="<name>" />`. The Vite preview plugin discovers the
 examples and imports each component from the same path it reads for source.
 It runs Shiki and twoslash at compilation time, disposes the highlighter, and
-sends only HTML, source, and component code to the browser. Example edits
-invalidate the generated module and reload the page in development.
+sends only HTML, source, and component code to the browser. Each example is its
+own lazily loaded module, so a page downloads only its examples and their type
+hovers: a route that renders `<ComponentPreview name="x" />` must load it first
+with `loader: () => loadPreviews(["x"])` from `src/components/previews.ts`.
+`src/components/example-styles.ts` keeps the wrappers' stylesheets in the
+server-rendered head. Example edits invalidate the generated modules and reload
+the page in development.
 
 Keep examples self-contained for twoslash's TypeScript environment.
 Type errors fail compilation. Hover or focus an underlined symbol to inspect

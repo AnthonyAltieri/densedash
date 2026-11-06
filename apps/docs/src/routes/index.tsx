@@ -1,8 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { componentNames, components } from "../content/components.ts";
 import { ComponentPreview } from "../components/component-preview.tsx";
+import { loadPreviews } from "../components/previews.ts";
 
-export const Route = createFileRoute("/")({ component: Overview });
+export const Route = createFileRoute("/")({
+  loader: () => loadPreviews(["tree"]),
+  component: Overview,
+});
 
 function Overview() {
   return (

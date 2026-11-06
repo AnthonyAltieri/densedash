@@ -66,8 +66,9 @@ loads core's emitted declarations rather than its implementation source.
 ## Build dependency decision
 
 Keep `turbo.json` unchanged. Its package `build` task uses `dependsOn: ["^build"]`.
-The virtual plugin declares workspace dependencies on core and React; the build
-dry run lists both as prerequisites, and React itself depends on core. The root
+The deprecated virtual plugin depends only on React (a peer and development
+dependency), which itself depends on core; the build dry run lists React's build
+as its one prerequisite. The root
 `//#typecheck` and `//#test` entries are prerequisites for root consumers of built
 declarations, not a serial package build order. Inspect with
 `pnpm turbo run build --dry=json`.

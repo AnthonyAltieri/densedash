@@ -59,6 +59,8 @@ input-to-paint latency or compositor/GPU time.
 4. Change the real Rows/Viewport selects by setting their values and dispatching
    bubbling `change` events. Tree: 5,000/all and 50,000/virtualized, with all
    default parents expanded. Table: 5,000/flat/virtualized, ten columns, no sort.
+   (The Table no longer pre-sorts its rows with `getSortedRows`: since DD-30,
+   TanStack's sorting state orders them, and with no sort they keep data order.)
    Keep live feeds off and the Tree example's Watchlist pane present. Wait two
    frames after each change. Status text confirmed exactly 5,000/50,000/5,000
    logical rows; virtualized rendering mounted only a small visible range.

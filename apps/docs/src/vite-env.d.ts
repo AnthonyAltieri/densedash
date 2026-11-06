@@ -2,17 +2,17 @@
 
 declare module "virtual:densedash-previews" {
   import type { ComponentType } from "react";
-  const previews: Record<
-    string,
-    {
-      Component: ComponentType;
-      source: string;
-      html: string;
-      hovers: { id: string; html: string }[];
-      fileName: string;
-    }
-  >;
-  export default previews;
+  /** One example's module: its component, source, highlighted code and type hovers. */
+  export interface Preview {
+    Component: ComponentType;
+    source: string;
+    html: string;
+    hovers: { id: string; html: string }[];
+    fileName: string;
+  }
+  /** Loads each example's module on demand, so a page downloads only its own examples. */
+  const loaders: Record<string, () => Promise<{ default: Preview }>>;
+  export default loaders;
 }
 
 declare module "virtual:densedash-reference" {

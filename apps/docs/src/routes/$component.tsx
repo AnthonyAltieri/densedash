@@ -1,6 +1,7 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import reference from "virtual:densedash-reference";
 import { ComponentPreview } from "../components/component-preview.tsx";
+import { loadPreviews } from "../components/previews.ts";
 import { components, isComponentName } from "../content/components.ts";
 
 export const Route = createFileRoute("/$component")({
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/$component")({
     if (!isComponentName(params.component)) throw notFound();
     return { name: params.component };
   },
+  loader: ({ context }) => loadPreviews([context.name]),
   head: ({ match }) => ({ meta: [{ title: `${match.params.component} · densedash` }] }),
   component: ComponentPage,
 });

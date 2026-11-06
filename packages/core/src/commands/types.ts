@@ -26,6 +26,10 @@ export interface Command {
   readonly id: CommandId;
   readonly label: string;
   readonly group?: string;
+  /** Short legend label for this group; defaults to the group name. */
+  readonly groupLabel?: string;
+  /** Secondary hints stay out of default legends, but remain bound and in the keymap. */
+  readonly legend?: "secondary";
   readonly enabled?: () => boolean;
   readonly confirm?: { readonly prompt: string };
   readonly hidden?: boolean;
@@ -67,6 +71,8 @@ export interface KeymapEntry {
   readonly command: string;
   readonly label: string;
   readonly group?: string;
+  readonly groupLabel?: string;
+  readonly legend?: "secondary";
   readonly scope: string;
   /** Instance label for page-wide key layers. */
   readonly layer?: string;

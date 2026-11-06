@@ -26,7 +26,7 @@ export interface TabsRootProps<Value extends string>
   readonly value?: NoInfer<Value>;
   /** The tab selected first in an uncontrolled group. Defaults to the first enabled tab. */
   readonly defaultValue?: NoInfer<Value>;
-  /** Names the tab list and the legend group of the number-key commands. */
+  /** Accessible name of the tab list. Use keys.label to name a page-wide legend item. */
   readonly label?: string | undefined;
   /** The command scope name. Defaults to a generated one. */
   readonly name?: string | undefined;
@@ -47,13 +47,14 @@ function NumberKeys({
   keys: KeyLayer | undefined;
   children: ReactNode;
 }): ReactElement {
-  const { id, items, label, value, select } = context;
+  const { id, items, value, select } = context;
   const element = useContext(ScopeContext)?.element ?? null;
   const commandScope = useCommands(
     items.slice(0, numbered).map((item, index) => ({
       id: `tabs.select.${index + 1}`,
       label: item.label,
-      group: label ?? "Tabs",
+      group: "tabs.pick",
+      groupLabel: "pick a tab",
       enabled: () => item.disabled !== true,
       run: ({ event }) => {
         const restore = element?.contains(element.ownerDocument.activeElement) ?? false;

@@ -137,30 +137,51 @@ export function createNavigationCommands<T extends RowData>(model: NavigationMod
     },
   };
 
-  function define(id: Command["id"], label: string, run: (action: TreeAction) => void): Command {
+  // Labels belong to the group, rather than to whichever command happens to appear first.
+  const groups = {
+    move: { group: "tree.move", groupLabel: "move" },
+    expand: { group: "tree.expand", groupLabel: "open, close" },
+    open: { group: "tree.open", groupLabel: "open", legend: "secondary" },
+    jump: { group: "tree.jump", groupLabel: "jump", legend: "secondary" },
+    page: { group: "tree.page", groupLabel: "page", legend: "secondary" },
+    parent: { group: "tree.parent", groupLabel: "parent", legend: "secondary" },
+    toggle: { group: "tree.toggle", groupLabel: "toggle", legend: "secondary" },
+    select: { group: "tree.select", groupLabel: "select", legend: "secondary" },
+    sort: { group: "table.sort", groupLabel: "sort" },
+  } as const;
+
+  function define(
+    id: Command["id"],
+    label: string,
+    group: Pick<Command, "group" | "groupLabel" | "legend">,
+    run: (action: TreeAction) => void,
+  ): Command {
     return {
       id,
       label,
+      ...group,
       run: ({ event }) => run(event ? { reason: "keyboard", event } : { reason: "programmatic" }),
     };
   }
 
   const definitions = [
-    define("tree.next", "Next row", commands.next),
-    define("tree.prev", "Previous row", commands.prev),
-    define("tree.first", "First row", commands.first),
-    define("tree.last", "Last row", commands.last),
-    define("tree.page-up", "Previous page", (action) => commands.page(-1, action)),
-    define("tree.page-down", "Next page", (action) => commands.page(1, action)),
-    define("tree.parent", "Parent row", commands.parent),
-    define("tree.expand", "Expand row", commands.expand),
-    define("tree.collapse", "Collapse row", commands.collapse),
-    define("tree.toggle", "Toggle expansion", commands.toggle),
-    define("tree.select", "Select row", commands.select),
-    define("tree.extend-selection", "Extend selection", commands.extendSelection),
-    define("tree.open", "Open row", commands.open),
-    define("table.sort", "Sort column", (action) => commands.sort(undefined, action)),
-    define("table.next-column", "Next sort column", (action) => commands.chooseColumn(1, action)),
+    define("tree.next", "Next row", groups.move, commands.next),
+    define("tree.prev", "Previous row", groups.move, commands.prev),
+    define("tree.first", "First row", groups.jump, commands.first),
+    define("tree.last", "Last row", groups.jump, commands.last),
+    define("tree.page-up", "Previous page", groups.page, (action) => commands.page(-1, action)),
+    define("tree.page-down", "Next page", groups.page, (action) => commands.page(1, action)),
+    define("tree.parent", "Parent row", groups.parent, commands.parent),
+    define("tree.expand", "Expand row", groups.expand, commands.expand),
+    define("tree.collapse", "Collapse row", groups.expand, commands.collapse),
+    define("tree.toggle", "Toggle expansion", groups.toggle, commands.toggle),
+    define("tree.select", "Select row", groups.select, commands.select),
+    define("tree.extend-selection", "Extend selection", groups.select, commands.extendSelection),
+    define("tree.open", "Open row", groups.open, commands.open),
+    define("table.sort", "Sort column", groups.sort, (action) => commands.sort(undefined, action)),
+    define("table.next-column", "Next sort column", groups.sort, (action) =>
+      commands.chooseColumn(1, action),
+    ),
   ];
   return { commands, definitions };
 }

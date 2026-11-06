@@ -400,6 +400,8 @@ function legendGroup(item: KeymapEntry): string | undefined {
   const turns = item.command === "tree.expand" || item.command === "tree.collapse";
   if (item.layer === "sidebar") return turns ? "open · close group" : "sidebar";
   if (item.layer === "list") return turns ? "expand · collapse row" : "list";
+  // Keep this shell's list-navigation item named after its detail pane.
+  if (item.layer === undefined && item.command.startsWith("tabs.")) return "Detail views";
   return item.layer ?? item.group;
 }
 

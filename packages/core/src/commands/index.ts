@@ -129,6 +129,8 @@ export function createCommands({
           scope: scope.name,
           ...(scope.options.keys ? { layer: scope.options.keys.label } : {}),
           ...(command.group === undefined ? {} : { group: command.group }),
+          ...(command.groupLabel === undefined ? {} : { groupLabel: command.groupLabel }),
+          ...(command.legend === undefined ? {} : { legend: command.legend }),
           keys: available.map((key) => keyboard.format(key)),
           enabled: commandEnabled(command),
         });
@@ -160,6 +162,8 @@ export function createCommands({
           before.command === entry.command &&
           before.label === entry.label &&
           before.group === entry.group &&
+          before.groupLabel === entry.groupLabel &&
+          before.legend === entry.legend &&
           before.scope === entry.scope &&
           before.layer === entry.layer &&
           before.enabled === entry.enabled &&

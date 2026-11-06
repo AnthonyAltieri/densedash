@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { KeymapEntry } from "@densedash/core";
 import { desks } from "../docs/data.js";
 import { Frame } from "../docs/frame.js";
 import { Footer } from "../ui/footer.js";
@@ -38,11 +37,6 @@ function DetailTabs() {
 
 // The legend keeps no key list of its own. It reads the keymap,
 // so it shows only the keys that answer where focus is.
-// The filter picks which of those to list; the keys still come from the preset.
-const shown = new Set(["tree.next", "tree.prev", "tree.open"]);
-const filter = (entry: KeymapEntry) =>
-  shown.has(entry.command) || entry.command.startsWith("tabs.select.");
-
 export default function FooterExample() {
   const [status, setStatus] = useState("updated 09:41");
   return (
@@ -50,7 +44,7 @@ export default function FooterExample() {
       <Desks onOpen={(name) => setStatus(`opened ${name}`)} />
       <DetailTabs />
       <Footer.Root>
-        <Footer.Legend filter={filter} />
+        <Footer.Legend />
         <Footer.Status>{status}</Footer.Status>
       </Footer.Root>
     </Frame>

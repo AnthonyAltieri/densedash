@@ -1,0 +1,282 @@
+/* <AppShell.*>: a sidebar Tree, a nested List and a Tabs detail pane above a Footer. The panes
+   wrap onto new rows at narrow widths (sidebar, then list, then detail). Import tree.css,
+   tabs.css, footer.css and kbd.css as well. A row's cursor is [data-highlighted] (selection tint
+   and an inset bar); the sidebar's open page is [data-current] (a lighter tint). */
+@layer dd.components {
+  [data-slot="app-shell"] {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+    background: var(--dd-color-surface);
+    color: var(--dd-color-text);
+    font-family: var(--dd-font-sans);
+    font-size: var(--dd-font-size);
+    line-height: var(--dd-line-height);
+  }
+
+  [data-slot="app-shell"]:focus {
+    outline: none;
+  }
+
+  /* Scrolls when the wrapped panes are taller than the shell, so the footer stays in view. */
+  [data-slot="app-shell-panes"] {
+    display: flex;
+    flex: auto;
+    flex-wrap: wrap;
+    min-block-size: 0;
+    overflow: auto;
+  }
+
+  /* The design's footer row is the footer's minimum height, with no extra block padding. */
+  [data-slot="app-shell"] > [data-slot="footer"] {
+    flex: none;
+    padding-block: 0;
+  }
+
+  /* Panes */
+
+  [data-slot="app-shell-sidebar"],
+  [data-slot="app-shell-list"],
+  [data-slot="app-shell-detail"] {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  [data-slot="app-shell-sidebar"] {
+    flex: auto;
+    flex-basis: var(--dd-app-shell-sidebar-width);
+    min-inline-size: var(--dd-app-shell-sidebar-min-width);
+    max-inline-size: var(--dd-app-shell-sidebar-width);
+    border-inline-end: var(--dd-border-width) solid var(--dd-color-border);
+    background: var(--dd-color-surface-muted);
+  }
+
+  [data-slot="app-shell-list"] {
+    flex: auto;
+    flex-basis: var(--dd-app-shell-list-width);
+    min-inline-size: var(--dd-app-shell-list-min-width);
+    max-inline-size: var(--dd-app-shell-list-max-width);
+    border-inline-end: var(--dd-border-width) solid var(--dd-color-border);
+  }
+
+  [data-slot="app-shell-detail"] {
+    flex-grow: var(--dd-app-shell-detail-grow);
+    flex-basis: var(--dd-app-shell-detail-width);
+    min-inline-size: 0;
+  }
+
+  /* Pane headers: a title, then the pane's keys at the end. */
+
+  [data-slot="app-shell-header"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--dd-app-shell-gap);
+    block-size: var(--dd-app-shell-header-height);
+    padding-inline: var(--dd-app-shell-padding-inline);
+    border-block-end: var(--dd-border-width) solid var(--dd-color-border);
+  }
+
+  [data-slot="app-shell-sidebar"] > [data-slot="app-shell-header"] {
+    border-block-end-color: var(--dd-color-border-muted);
+  }
+
+  [data-slot="app-shell-brand"] {
+    font-weight: var(--dd-font-weight-bold);
+  }
+
+  [data-slot="app-shell-title"] {
+    margin: 0;
+    font-size: var(--dd-app-shell-title-font-size);
+    font-weight: var(--dd-font-weight-bold);
+  }
+
+  [data-slot="app-shell-breadcrumb"] {
+    min-inline-size: 0;
+    overflow: hidden;
+    color: var(--dd-color-text-muted);
+    font-size: var(--dd-app-shell-small-font-size);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-slot="app-shell-keys"] {
+    display: flex;
+    flex: none;
+    gap: var(--dd-gap);
+    margin-inline-start: auto;
+  }
+
+  /* Rows shared by the sidebar and the list */
+
+  [data-slot="app-shell-sidebar"] > [data-slot="tree-root"],
+  [data-slot="app-shell-list"] > [data-slot="tree-root"] {
+    flex: auto;
+    min-block-size: 0;
+  }
+
+  /* The cursor row already shows where focus is; the ring sits inside the pane's edges. */
+  [data-slot="app-shell-sidebar"] > [data-slot="tree-root"]:focus-visible,
+  [data-slot="app-shell-list"] > [data-slot="tree-root"]:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 var(--dd-focus-width) var(--dd-color-focus);
+  }
+
+  [data-slot="app-shell-label"] {
+    flex: auto;
+    flex-basis: 0;
+    min-inline-size: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  [data-slot="app-shell-count"] {
+    flex: none;
+    color: var(--dd-color-text-muted);
+    font-family: var(--dd-font-mono);
+    font-size: var(--dd-app-shell-small-font-size);
+    font-weight: normal;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+
+  /* Selection is not part of the shell's look; the cursor and the open page are. */
+  [data-slot="app-shell-sidebar"] [data-slot="tree-row"][data-selected],
+  [data-slot="app-shell-list"] [data-slot="tree-row"][data-selected] {
+    background: none;
+  }
+
+  /* Sidebar */
+
+  [data-slot="app-shell-sidebar"] [data-slot="tree-viewport"] {
+    padding: var(--dd-app-shell-nav-padding);
+  }
+
+  [data-slot="app-shell-sidebar"] [data-slot="tree-row"] {
+    border-radius: var(--dd-radius);
+    color: var(--dd-color-text-secondary);
+    cursor: pointer;
+  }
+
+  [data-slot="app-shell-sidebar"] [data-slot="tree-row"]:hover {
+    background: var(--dd-color-border-muted);
+  }
+
+  /* Top-level groups read as section headings. */
+  [data-slot="app-shell-sidebar"] [data-slot="tree-row"][data-depth="0"]:not([data-leaf]) {
+    margin-block-start: var(--dd-app-shell-gap);
+    font-size: var(--dd-app-shell-heading-font-size);
+    font-weight: var(--dd-font-weight-semibold);
+    letter-spacing: var(--dd-app-shell-heading-letter-spacing);
+    text-transform: uppercase;
+  }
+
+  [data-slot="app-shell-sidebar"]
+    [data-slot="tree-row"][data-depth="0"]:not([data-leaf]):not([data-highlighted]) {
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="app-shell-sidebar"] [data-slot="tree-row"][data-current] {
+    background: var(--dd-color-selection-muted);
+    color: var(--dd-color-text);
+    font-weight: var(--dd-font-weight-semibold);
+  }
+
+  [data-slot="app-shell-sidebar"] [data-slot="tree-toggle"] {
+    cursor: pointer;
+  }
+
+  /* List: parent rows with a toggle gutter, child rows in a muted band with a guide line. */
+
+  [data-slot="app-shell-list"] [data-slot="tree-row"] {
+    box-sizing: content-box;
+    padding-inline: 0 var(--dd-app-shell-padding-inline);
+    border-block-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+    font-weight: var(--dd-font-weight-medium);
+    cursor: pointer;
+  }
+
+  [data-slot="app-shell-list"] [data-slot="tree-row"]:not([data-depth="0"]) {
+    block-size: var(--dd-app-shell-child-row-height);
+    background: var(--dd-color-surface-muted);
+    font-family: var(--dd-font-mono);
+    font-size: var(--dd-app-shell-small-font-size);
+    font-weight: normal;
+  }
+
+  [data-slot="app-shell-list"] [data-slot="tree-indent"] {
+    align-self: stretch;
+    inline-size: calc(var(--dd-depth) * var(--dd-app-shell-gutter));
+    background: linear-gradient(var(--dd-color-border), var(--dd-color-border)) center /
+      var(--dd-border-width) auto no-repeat;
+  }
+
+  [data-slot="app-shell-list"] [data-slot="tree-toggle"] {
+    inline-size: var(--dd-app-shell-gutter);
+    block-size: var(--dd-row-height);
+    color: var(--dd-color-text-muted);
+    cursor: pointer;
+  }
+
+  [data-slot="app-shell-list"]
+    [data-slot="tree-row"]:not([data-depth="0"])
+    [data-slot="tree-toggle"][data-leaf] {
+    display: none;
+  }
+
+  /* The cursor: the selection tint with an inset bar, in both panes. */
+  [data-slot="app-shell-sidebar"] [data-slot="tree-row"][data-highlighted],
+  [data-slot="app-shell-list"] [data-slot="tree-row"][data-highlighted] {
+    background: var(--dd-color-selection);
+    box-shadow: inset var(--dd-focus-width) 0 0 var(--dd-color-accent);
+    color: var(--dd-color-text);
+    font-weight: var(--dd-font-weight-semibold);
+  }
+
+  /* Detail: a header with the app's title and the numbered tab strip, then the panels. */
+
+  [data-slot="app-shell-detail"] > [data-slot="tabs"] {
+    flex: auto;
+    gap: 0;
+    min-block-size: 0;
+  }
+
+  [data-slot="app-shell-detail-header"] {
+    flex: none;
+    padding: var(--dd-app-shell-gap) var(--dd-app-shell-detail-padding-inline) 0;
+    border-block-end: var(--dd-border-width) solid var(--dd-color-border);
+  }
+
+  [data-slot="app-shell-detail-body"] {
+    flex: auto;
+    min-block-size: 0;
+    overflow: auto;
+    padding: var(--dd-app-shell-detail-padding-block) var(--dd-app-shell-detail-padding-inline);
+  }
+
+  [data-slot="app-shell-detail"] [data-slot="tabs-list"] {
+    gap: var(--dd-app-shell-tab-gap);
+    margin-block-start: var(--dd-gap);
+    padding-block-end: 0;
+    border-block-end: none;
+  }
+
+  [data-slot="app-shell-detail"] [data-slot="tabs-tab"] {
+    gap: var(--dd-cell-padding-inline);
+    box-sizing: border-box;
+    block-size: var(--dd-app-shell-tab-height);
+    padding-inline: 0;
+    border-block-end: var(--dd-focus-width) solid var(--dd-color-surface);
+    border-radius: 0;
+    color: var(--dd-color-text-muted);
+  }
+
+  [data-slot="app-shell-detail"] [data-slot="tabs-tab"][data-selected] {
+    border-block-end-color: var(--dd-color-accent);
+    background: none;
+    color: var(--dd-color-text);
+    font-weight: var(--dd-font-weight-semibold);
+  }
+}

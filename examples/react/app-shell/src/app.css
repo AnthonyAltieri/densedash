@@ -1,0 +1,157 @@
+/* The app's own content inside the shell: row badges and statuses, and the detail panels. */
+body {
+  margin: 0;
+  background: var(--dd-color-surface);
+}
+
+.shell {
+  block-size: 100vh;
+}
+
+.badge {
+  flex: none;
+  padding: 0 5px;
+  border: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-radius: 8px;
+  background: var(--dd-color-surface);
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.status {
+  flex: none;
+  inline-size: 64px;
+  font-family: var(--dd-font-sans);
+  font-size: 12px;
+  font-weight: var(--dd-font-weight-medium);
+  text-align: end;
+}
+
+[data-tone] {
+  color: var(--dd-color-text-muted);
+}
+
+[data-tone="accent"] {
+  color: var(--dd-color-accent);
+}
+
+[data-tone="positive"] {
+  color: var(--dd-color-positive);
+}
+
+[data-tone="negative"] {
+  color: var(--dd-color-negative);
+}
+
+[data-tone="warning"] {
+  color: var(--dd-color-warning);
+}
+
+.path {
+  color: var(--dd-color-text-muted);
+  font-size: 12px;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.heading h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 26px;
+}
+
+.heading .state {
+  font-weight: 600;
+}
+
+.updated {
+  margin-inline-start: auto;
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: 12px;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 8px 16px;
+  max-inline-size: 640px;
+  margin: 0;
+}
+
+.facts dt {
+  color: var(--dd-color-text-muted);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.facts .mono {
+  font-family: var(--dd-font-mono);
+  font-size: 12px;
+}
+
+.lines {
+  max-inline-size: 760px;
+  border: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-radius: var(--dd-radius);
+}
+
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) 90px 110px minmax(0, 1.4fr);
+  gap: 16px;
+  align-items: center;
+  block-size: var(--dd-row-height);
+  padding: 0 12px;
+  border-block-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+  font-family: var(--dd-font-mono);
+  font-size: 12px;
+}
+
+.line .state {
+  font-family: var(--dd-font-sans);
+  font-size: 13px;
+  font-weight: var(--dd-font-weight-medium);
+}
+
+.line .meta {
+  color: var(--dd-color-text-muted);
+}
+
+.line .name,
+.line .figure {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line .figure {
+  color: var(--dd-color-text-secondary);
+}
+
+.empty {
+  padding: 8px 12px;
+  color: var(--dd-color-text-muted);
+}
+
+.log {
+  max-inline-size: 760px;
+  margin: 0;
+  padding: 12px;
+  border: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-radius: var(--dd-radius);
+  background: var(--dd-color-surface-muted);
+  color: var(--dd-color-text-secondary);
+  font: 12px/20px var(--dd-font-mono);
+  white-space: pre-wrap;
+}

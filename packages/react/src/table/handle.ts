@@ -1,4 +1,4 @@
-import { useInsertionEffect, useMemo, useState } from "react";
+import { useLayoutEffect, useMemo, useState } from "react";
 import type {
   Controllable,
   NavigationCommands,
@@ -101,7 +101,9 @@ export function useTable<T extends RowData>(options: UseTableOptions<T>): TableH
     views.set(handle, created);
     return created;
   });
-  useInsertionEffect(() => {
+  // Publishing notifies the root, which re-renders, so this runs as a layout effect: an
+  // insertion effect must not schedule updates. The root re-renders before the browser paints.
+  useLayoutEffect(() => {
     store.set(view);
   });
   return handle;

@@ -48,7 +48,7 @@ export default function TableExample() {
   });
   const { rows } = useStore(table.state);
   return (
-    <Frame title="Quote board" count={rows.length} status={<Cell.DivergingKey />}>
+    <Frame title="Quote board" count={rows.length} status={<Cell.DivergingKey />} variant="table">
       <Table.Root table={table} aria-label="Quote board">
         <Table.Viewport table={table} />
       </Table.Root>

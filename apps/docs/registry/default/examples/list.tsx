@@ -15,7 +15,7 @@ function Queues() {
     onOpen: (queue) => setOpened(`Opened ${queue.name}`),
   });
   return (
-    <Frame title="Order queues" count={queues.length} status={opened}>
+    <Frame title="Order queues" count={queues.length} status={opened} variant="list">
       <List.Root tree={list} aria-label="Order queues">
         <List.Viewport tree={list}>
           {(row) => (
@@ -43,7 +43,7 @@ function Ideas() {
   });
   const { rows } = useStore(list.state);
   return (
-    <Frame title="Ideas" count={rows.length} status="idea › run › fold">
+    <Frame title="Ideas" count={rows.length} status="idea › run › fold" variant="nested-list">
       <List.Root tree={list} aria-label="Ideas, runs and folds">
         <List.Viewport tree={list}>
           {(row) => (

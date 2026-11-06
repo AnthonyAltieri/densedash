@@ -1,7 +1,35 @@
 import { useState } from "react";
 import { createRootRoute, HeadContent, Link, Outlet, Scripts } from "@tanstack/react-router";
 import { componentNames, components } from "../content/components.ts";
+import plexMono400 from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url";
+import plexMono500 from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-500-normal.woff2?url";
+import plexMono600 from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-600-normal.woff2?url";
+import plexSans400 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url";
+import plexSans500 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-500-normal.woff2?url";
+import plexSans600 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2?url";
+import plexSans700 from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2?url";
 import stylesheet from "../styles.css?url";
+
+/**
+ * IBM Plex, served from this site (the @fontsource files): the latin files of the weights the
+ * docs and the components use. Each is preloaded and `optional`, so text is never laid out
+ * twice: a font that misses the first paint is not swapped in on that page load.
+ */
+const fonts = [
+  { family: "IBM Plex Sans", weight: 400, href: plexSans400 },
+  { family: "IBM Plex Sans", weight: 500, href: plexSans500 },
+  { family: "IBM Plex Sans", weight: 600, href: plexSans600 },
+  { family: "IBM Plex Sans", weight: 700, href: plexSans700 },
+  { family: "IBM Plex Mono", weight: 400, href: plexMono400 },
+  { family: "IBM Plex Mono", weight: 500, href: plexMono500 },
+  { family: "IBM Plex Mono", weight: 600, href: plexMono600 },
+] as const;
+const fontFaces = fonts
+  .map(
+    ({ family, weight, href }) =>
+      `@font-face { font-family: "${family}"; font-style: normal; font-weight: ${weight}; font-display: optional; src: url("${href}") format("woff2"); }`,
+  )
+  .join("\n");
 
 export const Route = createRootRoute({
   head: () => ({
@@ -16,12 +44,20 @@ export const Route = createRootRoute({
       },
     ],
     links: [
+      ...fonts.map(({ href }) => ({
+        rel: "preload",
+        href,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous" as const,
+      })),
       { rel: "stylesheet", href: stylesheet },
       {
         rel: "icon",
         href: "data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><text y=%2226%22 font-size=%2230%22>▥</text></svg>",
       },
     ],
+    styles: [{ children: fontFaces }],
   }),
   notFoundComponent: () => (
     <p>

@@ -23,7 +23,7 @@ function OrderSize() {
 
 export default function KeymapExample() {
   return (
-    <Frame title="Order size" count="2 commands" footer={false}>
+    <Frame title="Order size" count="2 commands" footer={false} variant="keymap">
       <Keymap.Provider keys={keys}>
         <Keymap.Scope name="order-size" tabIndex={0} aria-label="Order size">
           <OrderSize />

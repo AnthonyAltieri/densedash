@@ -17,7 +17,7 @@ export default function TreeExample() {
   });
   const { rows } = useStore(tree.state);
   return (
-    <Frame title="Desks" count={rows.length} status={opened}>
+    <Frame title="Desks" count={rows.length} status={opened} variant="tree">
       <Tree.Root tree={tree} aria-label="Desks">
         <Tree.Viewport tree={tree}>
           {(row) => (

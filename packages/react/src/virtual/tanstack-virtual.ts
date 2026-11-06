@@ -7,6 +7,8 @@ import {
 import type { Virtualizer } from "../tree/viewport.js";
 import { readRowHeight } from "./row-height.js";
 
+const byIndex = (index: number) => index;
+
 /** Options for `virtual={…}` on a viewport and for `tanstackVirtual(…)`. */
 export interface VirtualOptions {
   /** Extra rows to mount on each side of the visible range. Defaults to eight. */
@@ -19,8 +21,9 @@ export interface VirtualOptions {
   readonly estimateSize?: ((index: number) => number) | undefined;
   /**
    * Measures mounted rows as they render with TanStack's `measureElement` and follows their
-   * size changes, for rows whose heights differ (two-line rows, expanded detail). Defaults to
-   * true; pass false when every row has the estimated height.
+   * size changes, for rows whose heights differ (two-line rows, expanded detail). A measured
+   * size belongs to its row id, so it follows the row through insertions and sorts. Defaults
+   * to true; pass false when every row has the estimated height.
    */
   readonly measure?: boolean | undefined;
 }
@@ -38,9 +41,11 @@ export function tanstackVirtual(options: VirtualOptions = {}): Virtualizer {
   let target: number | null = null;
   let readOffset: (() => void) | undefined;
   let rowHeight = 0;
+  let rowKey: ((index: number) => string) | undefined;
   const virtual = new TanStackVirtualizer<HTMLElement, HTMLElement>({
     count: 0,
     getScrollElement: () => element,
+    getItemKey: byIndex,
     estimateSize: (index) => options.estimateSize?.(index) ?? rowHeight,
     overscan: options.overscan ?? 8,
     scrollToFn(offset, scrollOptions, instance) {
@@ -102,6 +107,17 @@ export function tanstackVirtual(options: VirtualOptions = {}): Virtualizer {
     if (options.estimateSize === undefined) virtual.measure();
   }
 
+  // Sizes keyed by id outlive their rows. Once the cache holds more sizes than there are rows,
+  // some belong to removed rows: drop those, so a live feed's cache stays within the row count.
+  function forgetRemovedRows(): void {
+    const sizes = virtual.itemSizeCache;
+    const { count, getItemKey } = virtual.options;
+    if (sizes.size <= count) return;
+    const live = new Set<unknown>();
+    for (let index = 0; index < count; index++) live.add(getItemKey(index));
+    for (const key of sizes.keys()) if (!live.has(key)) sizes.delete(key);
+  }
+
   function scrollToIndex(index: number, align: "auto" | "center"): void {
     target = index;
     // Anchoring writes scrollTop directly; read it before TanStack chooses auto alignment.
@@ -137,17 +153,23 @@ export function tanstackVirtual(options: VirtualOptions = {}): Virtualizer {
     sync(measurements) {
       if (element !== measurements.element) readRowHeights(measurements.element);
       element = measurements.element;
+      const keyed = measurements.rowKey !== rowKey;
       const changed =
+        keyed ||
         virtual.options.count !== measurements.count ||
         virtual.options.scrollMargin !== measurements.start;
+      rowKey = measurements.rowKey;
       // Rows start below a sticky header: offset them by its height, and keep rows scrolled to
-      // the top edge clear of it.
+      // the top edge clear of it. Measured sizes are keyed by row id, so they follow their rows
+      // through insertions and sorts; a new key function makes TanStack re-lay out every row.
       virtual.setOptions({
         ...virtual.options,
         count: measurements.count,
+        getItemKey: rowKey ?? byIndex,
         scrollMargin: measurements.start,
         scrollPaddingStart: measurements.start,
       });
+      if (keyed) forgetRemovedRows();
       if (listeners.size > 0) virtual._willUpdate();
       // The current render read the previous geometry's spacer sizes. TanStack need not emit a
       // range change when only offscreen rows changed, so publish the new geometry too.

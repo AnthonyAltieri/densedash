@@ -29,6 +29,8 @@ export interface ViewportMeasurements {
    * Rows start this far down, and a row scrolled to the top edge must clear it.
    */
   readonly start: number;
+  /** The row id at a visible index, for keying per-row caches such as measured sizes. */
+  readonly rowKey?: ((index: number) => string) | undefined;
 }
 
 /**
@@ -39,8 +41,9 @@ export interface ViewportMeasurements {
  * - `range()` and `padding()` are read during render; call the `subscribe` listener whenever
  *   they would return something new (after a scroll or a measurement), and the viewport
  *   re-renders.
- * - `sync()` runs in a layout effect after each render that changes the scroll element or the
- *   row count, before `scrollToIndex`.
+ * - `sync()` runs when the rows change, before the render that shows them (so `range()` and
+ *   `padding()` already fit the new rows), and in a layout effect after each render that
+ *   changes the scroll element or the row count, before `scrollToIndex`.
  * - `scrollToIndex()` brings the highlighted row into view after keyboard and programmatic
  *   moves (never for pointer hover): `"auto"` scrolls the least distance, `"center"` centers it.
  *   Mount that row once it is in range, since the root's `aria-activedescendant` points at it.
@@ -100,6 +103,18 @@ export interface ViewportProps<T>
 
 const selectRows = (state: TreeSnapshot<unknown>) => state.rows;
 const selectHighlighted = (state: TreeSnapshot<unknown>) => state.highlighted;
+
+const rowKeys = new WeakMap<readonly TreeRow<unknown>[], (index: number) => string>();
+
+// One key function per row model, so a virtualizer re-keys only when the rows change.
+function rowKeyOf(rows: readonly TreeRow<unknown>[]): (index: number) => string {
+  let found = rowKeys.get(rows);
+  if (found === undefined) {
+    found = (index) => rows[index]?.id ?? "";
+    rowKeys.set(rows, found);
+  }
+  return found;
+}
 
 function rowElement(core: NavigableTable<RowData> | null, document: Document, id: string) {
   return core === null ? null : document.getElementById(core.getRowProps(id).id);
@@ -295,6 +310,8 @@ export function Viewport<T>({
     readonly id: string;
     readonly top: number;
   } | null>(null);
+  // The header's height as last passed to `sync`.
+  const headerStart = useRef(0);
 
   useLayoutEffect(() => {
     locate.current = (index) => {
@@ -319,16 +336,22 @@ export function Viewport<T>({
           element.getBoundingClientRect().top -
           element.clientTop +
           element.scrollTop;
-    let headerHeight = measureHeader();
-    strategy.sync?.({ element, count: rows.length, start: headerHeight });
+    headerStart.current = measureHeader();
+    strategy.sync?.({
+      element,
+      count: rows.length,
+      start: headerStart.current,
+      rowKey: rowKeyOf(rows),
+    });
     const view = element.ownerDocument.defaultView;
     if (spacer === null || view === null || !("ResizeObserver" in view)) return;
     // A theme, density or content change can resize the header without a render here.
     const observer = new view.ResizeObserver(() => {
       const next = measureHeader();
-      if (next === headerHeight) return;
-      headerHeight = next;
-      strategy.sync?.({ element, count: tree.state.get().rows.length, start: headerHeight });
+      if (next === headerStart.current) return;
+      headerStart.current = next;
+      const current = tree.state.get().rows;
+      strategy.sync?.({ element, count: current.length, start: next, rowKey: rowKeyOf(current) });
     });
     for (
       let node = spacer.previousElementSibling;
@@ -353,7 +376,7 @@ export function Viewport<T>({
   useLayoutEffect(() => {
     if (element === null) return;
     let previous = tree.state.get();
-    return tree.state.subscribe((next) => {
+    const unsubscribe = tree.state.subscribe((next) => {
       const before = previous;
       previous = next;
       if (next.highlighted !== before.highlighted) {
@@ -387,6 +410,24 @@ export function Viewport<T>({
         top: target.getBoundingClientRect().top - element.getBoundingClientRect().top,
       };
     });
+    // Subscribed after the anchor, which reads the old geometry first. Passing the new rows
+    // before the render that shows them gives that render spacers that fit them, so restoring
+    // the anchor near the end is not clamped to the old scroll height for a frame.
+    let synced = previous.rows;
+    const unsync = tree.state.subscribe((next) => {
+      if (next.rows === synced) return;
+      synced = next.rows;
+      strategy.sync?.({
+        element,
+        count: synced.length,
+        start: headerStart.current,
+        rowKey: rowKeyOf(synced),
+      });
+    });
+    return () => {
+      unsubscribe();
+      unsync();
+    };
   }, [tree, core, element, strategy]);
 
   useLayoutEffect(() => {

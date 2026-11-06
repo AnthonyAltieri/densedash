@@ -39,13 +39,7 @@ export function legendItems({
   const items = new Map<string, LegendItem>();
   for (const entry of selected) {
     if (!entry.enabled || entry.keys.length === 0) continue;
-    if (
-      !all &&
-      filter === undefined &&
-      groupBy === undefined &&
-      entry.layer === undefined &&
-      entry.legend === "secondary"
-    )
+    if (!all && filter === undefined && groupBy === undefined && entry.legend === "secondary")
       continue;
     const group = groupBy === undefined ? (entry.layer ?? entry.group) : groupBy(entry);
     const id = group === undefined ? `${entry.scope}\u0000${entry.command}` : `\u0000${group}`;

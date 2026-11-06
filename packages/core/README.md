@@ -48,7 +48,9 @@ also lists alternative keys. Disabled, hidden, shadowed and unbound commands rem
 Pass `labels={{ "tree.move": "navigate", "tabs.pick": "choose a view" }}` to either legend to
 override the default labels by group id, as with row label overrides. The command metadata is
 the shared source for both legends; it can also be replaced through `commands.update`.
-An instance's `keys: { label }` takes precedence and retains all its hints. An explicit `groupBy`
+An instance's `keys: { label }` takes precedence for naming; secondary hints still require `all`.
+Tree/List layers use `treePreset` (j/k/l/h and u for parent), or `shiftedTreePreset`
+(Shift+J/K/L/H and Shift+U). Parent does nothing on a top-level row. An explicit `groupBy`
 returns both the item's name and its label; it takes precedence over default labels. An explicit
 `filter` or `groupBy` selects from all available entries, including secondary hints. `order`
 uses group ids or layer names, independently of translated labels. `AppShell.Footer` forwards

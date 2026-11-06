@@ -184,7 +184,7 @@ function ComponentPage() {
         <h2>Keyboard</h2>
         <p data-slot="section-description">
           {shellKeys !== null
-            ? "The example's own presets: a four-key sidebar preset, shiftedTreePreset for the list, and the kernel's tabs.select keys for the detail tabs. Each answers throughout the page. Swap a preset to rebind; the pane headers and the footer legend follow."
+            ? "The sidebar uses treePreset (j/k/l/h and u for parent); the list uses shiftedTreePreset (Shift+J/K/L/H and Shift+U for parent). Detail tabs use the kernel's tabs.select keys. Parent does nothing at the top level. Each layer answers throughout the page; typing in a text field keeps its letters. Parent is a secondary hint, available with all; this example filters secondary hints to keep its custom footer in one row. Swap a preset to rebind; the pane headers and the footer legend follow."
             : name === "keymap"
               ? "The example's own preset binds increase to N and decrease to P. Every preset also keeps the confirm and cancel keys from tradingPreset, listed below; they answer while a confirmation prompt is pending."
               : keys.length === 0

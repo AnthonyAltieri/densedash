@@ -84,3 +84,87 @@
 [data-slot="frame-body"] > [data-slot="footer"] {
   grid-column: 1 / -1;
 }
+
+/* List (the /list page): the frames sit side by side while they fit and stack when they do not.
+   Rows sit on the frame's padding. A flat list is padded at its ends; a nested list (one with
+   toggles) has row dividers, taller top-level rows, smaller deeper rows and a fixed height. */
+[data-slot="preview-stage"]:has(> [data-slot="frame"] [role="listbox"]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--dd-unit) * 6);
+}
+
+[data-slot="frame"]:has([role="listbox"]) {
+  max-inline-size: var(--dd-docs-list-width);
+}
+
+[data-slot="frame"]:has([role="listbox"] [data-slot="tree-toggle"]) {
+  max-inline-size: var(--dd-docs-nested-list-width);
+}
+
+[data-slot="frame"] [role="listbox"] [data-slot="tree-row"] {
+  gap: calc(var(--dd-unit) * 2);
+  padding-inline: var(--dd-docs-frame-padding);
+}
+
+[data-slot="frame"]
+  [role="listbox"]:not(:has([data-slot="tree-toggle"]))
+  [data-slot="tree-viewport"] {
+  padding-block: var(--dd-unit);
+}
+
+[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="tree-viewport"] {
+  block-size: var(--dd-docs-nested-list-height);
+}
+
+[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="tree-row"] {
+  block-size: calc(var(--dd-row-height) - var(--dd-docs-nested-row-step));
+  border-block-end: var(--dd-border-width) solid var(--dd-color-border-subtle);
+}
+
+[data-slot="frame"]
+  [role="listbox"]:has([data-slot="tree-toggle"])
+  [data-slot="tree-row"][data-depth="0"] {
+  block-size: calc(var(--dd-row-height) + var(--dd-docs-nested-row-step));
+}
+
+[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="tree-toggle"] {
+  color: var(--dd-color-text-muted);
+}
+
+[data-slot="frame"]
+  [role="listbox"]:has([data-slot="tree-toggle"])
+  [data-depth="0"]
+  > [data-slot="cell-name"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="frame"]
+  [role="listbox"]:has([data-slot="tree-toggle"])
+  [data-slot="tree-row"]:not([data-depth="0"])
+  > [data-slot="cell-name"] {
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-text-sm);
+}
+
+[data-slot="frame"]
+  [role="listbox"]:has([data-slot="tree-toggle"])
+  [data-depth="2"]
+  > [data-slot="cell-name"] {
+  color: var(--dd-color-text-secondary);
+}
+
+[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="cell-note"] {
+  font-size: var(--dd-text-sm);
+}
+
+[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="cell-change"] {
+  inline-size: var(--dd-docs-return-width);
+}
+
+/* The indent and the toggle read as one leading space, so no gap opens between them. */
+[data-slot="frame"] [role="listbox"] [data-slot="tree-indent"] {
+  margin-inline-end: calc(var(--dd-unit) * -2);
+}

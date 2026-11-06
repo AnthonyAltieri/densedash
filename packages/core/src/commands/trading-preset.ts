@@ -50,18 +50,20 @@ export const tradingPreset = definePreset({
   "p-home": [["G", "H"]],
 });
 
-/** A Tree/List's default page-wide layer: only the four unshifted navigation keys. */
+/** A Tree/List's default page-wide layer: j/k/l/h navigation and u for the parent. */
 export const treePreset = definePreset({
   "tree.next": ["J"],
   "tree.prev": ["K"],
   "tree.expand": ["L"],
   "tree.collapse": ["H"],
+  "tree.parent": ["U"],
 });
 
-/** A second Tree/List's complete layer: only the four shifted navigation keys. */
+/** A second Tree/List's complete layer: the same navigation and parent keys with Shift. */
 export const shiftedTreePreset = definePreset({
   "tree.next": ["Shift+J"],
   "tree.prev": ["Shift+K"],
   "tree.expand": ["Shift+L"],
   "tree.collapse": ["Shift+H"],
+  "tree.parent": ["Shift+U"],
 });

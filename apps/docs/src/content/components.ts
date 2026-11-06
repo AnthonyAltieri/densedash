@@ -18,7 +18,7 @@ export const components = {
     description:
       "Give each Tree, List or Tabs instance a labelled key layer. Drive several cursors anywhere on the page, with live legends, chord hints and confirmation prompts.",
     types:
-      "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. Pass keys: { label, preset?, overrides? } to useTree, useList, Tabs.Root or useCommands for page-wide dispatch. A layer preset replaces its entire map; omitted commands are unbound. Without a preset, overrides replace individual kernel bindings. Omit keys to keep focus-scoped behavior. shiftedTreePreset supplies Shift+J/K/L/H. Duplicate layer keys throw with both owners. Augment core's Register.commands for app-wide command ids. Keymap.Legend and Footer.Legend show one item per group using its short groupLabel, with keys side by side. Primary hints show by default; all includes secondary hints (and Keymap alternative keys). labels overrides group labels by id; explicit groupBy/filter take precedence and see secondary entries too. Instance layer names win over group labels.",
+      "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. Pass keys: { label, preset?, overrides? } to useTree, useList, Tabs.Root or useCommands for page-wide dispatch. A layer preset replaces its entire map; omitted commands are unbound. Without a preset, overrides replace individual kernel bindings. Omit keys to keep focus-scoped behavior. Tree and List layers default to treePreset: j/k/l/h and u for parent. shiftedTreePreset supplies Shift+J/K/L/H and Shift+U for parent. Parent does nothing on a top-level row and is a secondary legend hint. Duplicate layer keys throw with both owners. Augment core's Register.commands for app-wide command ids. Keymap.Legend and Footer.Legend show one item per group using its short groupLabel, with keys side by side. Primary hints show by default; all includes secondary hints (and Keymap alternative keys). labels overrides group labels by id; explicit groupBy/filter take precedence and see secondary entries too. Instance layer names win over group labels.",
     /** More examples under the live one, each a preview named after its examples/ file. */
     examples: [
       {
@@ -151,7 +151,7 @@ export const components = {
     description:
       "A 30px bar for the bottom of a shell. The legend pairs related primary shortcuts from the live keymap, so a scope that loses focus or unmounts leaves it. A status slot sits at the end of the row.",
     types:
-      'Footer.Root holds Footer.Legend and Footer.Status. Legend reads the kernel\'s keymap and keeps no key list of its own. Each item shows the first key of each entry it joins and a label; three or more consecutive digits read as a range. Items default to the instance layer, then the command group and its short groupLabel; ungrouped entries keep their command label. Built-in move, open/close, sort, tab pick and step hints show by default. Activate, jump, page, parent, selection and toggle hints are secondary; pass all to show them. labels={{ "tree.move": "navigate" }} overrides group labels by id. Instance layer names and explicit groupBy(entry) labels win; filter(entry) selects entries. Explicit groupBy/filter see secondary hints too. order uses group ids or layer names. Page layers keep all their hints. Status takes any children, such as an update time.',
+      'Footer.Root holds Footer.Legend and Footer.Status. Legend reads the kernel\'s keymap and keeps no key list of its own. Each item shows the first key of each entry it joins and a label; three or more consecutive digits read as a range. Items default to the instance layer, then the command group and its short groupLabel; ungrouped entries keep their command label. Built-in move, open/close, sort, tab pick and step hints show by default. Activate, jump, page, parent, selection and toggle hints are secondary; pass all to show them. labels={{ "tree.move": "navigate" }} overrides group labels by id. Instance layer names and explicit groupBy(entry) labels win; filter(entry) selects entries. Explicit groupBy/filter see secondary hints too. order uses group ids or layer names. Page layers also omit secondary hints by default. Status takes any children, such as an update time.',
     parts: [
       ["Root", "footer · footer", "Wraps onto more rows on narrow screens"],
       ["Legend", "div · footer-legend", "data-empty; role=group"],
@@ -218,6 +218,7 @@ export const components = {
         "tree.collapse",
         "Closes an open group. Does nothing on a closed group or a page, at any level.",
       ],
+      ["u", "Sidebar", "tree.parent", "Moves to the parent group. Does nothing at the top level."],
       [
         "Shift+J / Shift+K",
         "List",
@@ -236,6 +237,7 @@ export const components = {
         "tree.collapse",
         "Collapses an expanded row. Does nothing on a collapsed row or a row without children, at any level.",
       ],
+      ["Shift+U", "List", "tree.parent", "Moves to the parent row. Does nothing at the top level."],
       ["1–3", "Detail", "tabs.select.1–3", "Selects Overview, the children tab or Log."],
     ],
   },

@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { createKernel, shiftedTreePreset } from "@densedash/core";
-import type { ExpandedState, Kernel, KeymapEntry, Preset, ReporterPort } from "@densedash/core";
+import { createKernel, shiftedTreePreset, treePreset } from "@densedash/core";
+import type { ExpandedState, Kernel, KeymapEntry, ReporterPort } from "@densedash/core";
 import { Densedash } from "@densedash/react";
 import type { TreeHandle } from "@densedash/react";
 import { AppShell } from "../ui/app-shell.js";
@@ -13,13 +13,8 @@ import { useTree } from "../ui/tree.js";
 
 // Keys: swap these objects to rebind. The shell's parts never name a key.
 
-/** The sidebar's page-wide layer: j and k move, l opens a group, h closes an open group. */
-const sidebarKeys = {
-  "tree.next": ["J"],
-  "tree.prev": ["K"],
-  "tree.expand": ["L"],
-  "tree.collapse": ["H"],
-} as const satisfies Preset;
+/** The sidebar's page-wide layer: j/k move, l/h open/close, u goes to the parent. */
+const sidebarKeys = treePreset;
 
 /** The list's layer: the same moves with Shift. The detail tabs use the kernel's 1–9. */
 const listKeys = shiftedTreePreset;
@@ -435,6 +430,8 @@ function describeSidebar(command: string, before: Moment, after: Moment): string
       if (isOpen(before.expanded, from.id) && !isOpen(after.expanded, from.id))
         return `closed ${from.label}`;
       return `${from.label} is already closed`;
+    case "tree.parent":
+      return from === to ? `${from.label} has no parent` : `sidebar: up to ${to.label}`;
     default:
       return command;
   }
@@ -472,6 +469,8 @@ function describeList(
       return isOpen(before.expanded, from.id) && !isOpen(after.expanded, from.id)
         ? `collapsed ${from.name}`
         : `${from.name} is already collapsed`;
+    case "tree.parent":
+      return from === to ? `${from.name} has no parent` : `list: up to ${to.name}`;
     default:
       return command;
   }
@@ -710,9 +709,13 @@ function Shell() {
           </Tabs.Panel>
         </AppShell.Detail>
       </AppShell.Panes>
-      <AppShell.Footer groupBy={legendGroup} order={legendOrder}>
+      <AppShell.Footer
+        filter={(entry) => entry.legend !== "secondary"}
+        groupBy={legendGroup}
+        order={legendOrder}
+      >
         {report === null ? (
-          "Try j, k, ⇧J, ⇧K, l, ⇧L anywhere"
+          "Try j, k, ⇧J, ⇧K, u, ⇧U anywhere"
         ) : (
           <>
             <Kbd>{report.key}</Kbd>

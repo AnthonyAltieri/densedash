@@ -1,13 +1,12 @@
-import type { ReactElement, ReactNode } from "react";
+import type { MouseEvent as ReactMouseEvent, ReactElement, ReactNode } from "react";
 import type { ElementAttributes } from "../element-attributes.js";
 import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
-import { columnAlign } from "./columns.js";
-import type { Column, ColumnAlign, SortDirection } from "./columns.js";
+import type { TreeSnapshot } from "../tree/handle.js";
+import type { ColumnAlign, SortDirection, TableColumnDef } from "./columns.js";
 import { useTableContext } from "./context.js";
-import type { TableState } from "./handle.js";
 
 export interface HeaderState {}
 
@@ -59,7 +58,7 @@ export interface HeaderCellState {
 
 export interface HeaderCellProps<T>
   extends ElementAttributes<HTMLDivElement>, PartProps<HeaderCellState> {
-  readonly column: Column<T>;
+  readonly column: TableColumnDef<T>;
   /** Defaults to the column's `header`. */
   readonly children?: ReactNode;
 }
@@ -78,23 +77,24 @@ export function HeaderCell<T>({
   style,
   ...props
 }: HeaderCellProps<T>): ReactElement {
-  const { table, view } = useTableContext("<Table.HeaderCell>");
+  const { table } = useTableContext("<Table.HeaderCell>");
   const id = column.id;
   // One packed number, so each header cell re-renders only when its own sort state changes.
-  const select = (state: TableState) =>
-    (state.sort?.column === id
-      ? state.sort.direction === "ascending"
-        ? ASCENDING
-        : DESCENDING
-      : 0) | (state.chosen === id ? CHOSEN : 0);
-  const token = useStore(table.sorting, select);
+  const select = (state: TreeSnapshot<unknown>) => {
+    const sorted = state.sorting.find((each) => each.id === id);
+    return (
+      (sorted === undefined ? 0 : sorted.desc ? DESCENDING : ASCENDING) |
+      (state.chosenColumn === id ? CHOSEN : 0)
+    );
+  };
+  const token = useStore(table.state, select);
   const direction: SortDirection | undefined =
     (token & ASCENDING) !== 0 ? "ascending" : (token & DESCENDING) !== 0 ? "descending" : undefined;
-  const kind = view.kinds.get(id);
+  const sortable = column.enableSorting;
   const state: HeaderCellState = {
-    align: columnAlign(column as Column<unknown>, kind),
-    numeric: kind === "number" || kind === "bigint",
-    sortable: column.sortable,
+    align: column.meta.align,
+    numeric: column.meta.numeric,
+    sortable,
     sorted: direction !== undefined,
     chosen: (token & CHOSEN) !== 0,
     direction,
@@ -110,7 +110,10 @@ export function HeaderCell<T>({
           role: "columnheader",
           "aria-sort": direction,
           children: children ?? column.header,
-          onClick: column.sortable ? () => table.commands.sort(id) : undefined,
+          onClick: sortable
+            ? (event: ReactMouseEvent) =>
+                table.commands.sort(id, { reason: "pointer", event: event.nativeEvent })
+            : undefined,
         },
         props,
       ),

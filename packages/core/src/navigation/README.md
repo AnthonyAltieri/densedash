@@ -61,8 +61,10 @@ as a whole, and do not give the same slice a second owner through raw table
 
 Commands retain all `tree.*` IDs and `table.sort` / `table.next-column`, registered
 in one scope per controller. The methods are also available under `commands`.
-Commands read the current visible TanStack model, skip disabled rows, and apply
-one transaction. Expand on a leaf or an expanded row does nothing. Collapse on a
+`table.sort` cycles the chosen sortable column ascending, descending, unsorted
+(descending first for a `sortDescFirst` column), and `table.next-column` moves the
+choice and any active sort. Commands read the current visible TanStack model, skip
+disabled rows, and apply one transaction. Expand on a leaf or an expanded row does nothing. Collapse on a
 collapsed row moves to its enabled parent. Range selection uses visible rows,
 skipping disabled ones. Sorting and expansion call TanStack APIs. The existing
 swappable trading preset owns every key choice. Update `scope.target` when the
@@ -83,6 +85,6 @@ expansion is retained for hidden descendants. Duplicate IDs anywhere in the
 core model, including collapsed descendants, throw an error naming the ID.
 Invalid updates leave the last accepted data and state intact.
 
-React's `useTree` and `useList` (DD-31) render this controller's TanStack rows.
-DD-30 migrates React's Table, which still pre-sorts its rows and registers its own
-sort commands, onto TanStack column and sort state. Virtualization remains DD-32.
+React's `useTree`, `useList` (DD-31) and `useTable` (DD-30) render this
+controller's TanStack rows; Table passes its column definitions and sorting
+control through, so TanStack sorts its rows. Virtualization remains DD-32.

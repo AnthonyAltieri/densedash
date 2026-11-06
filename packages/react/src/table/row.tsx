@@ -9,9 +9,7 @@ import type { RowProps as TreeRowProps, ToggleProps } from "../tree/row.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
-import { columnAlign, presentValue } from "./columns.js";
-import type { Column, ColumnAlign } from "./columns.js";
-import { useTableContext } from "./context.js";
+import type { ColumnAlign, TableColumnDef } from "./columns.js";
 
 export type { RowState, ToggleProps, ToggleState } from "../tree/row.js";
 export type RowProps<T> = TreeRowProps<T>;
@@ -38,27 +36,30 @@ export interface CellState {
   readonly align: ColumnAlign;
   /** The column's values are numbers. */
   readonly numeric: boolean;
-  /** The value is missing or of another type than the column's, so the cell shows nothing. */
+  /** The value is missing (or not a number in a numeric column), so the cell shows nothing. */
   readonly empty: boolean;
 }
 
 export interface CellProps<T> extends ElementAttributes<HTMLDivElement>, PartProps<CellState> {
-  readonly column: Column<T>;
+  readonly column: TableColumnDef<T>;
   /** Replaces the formatted value. */
   readonly children?: ReactNode;
 }
 
-function useCell<T>(column: Column<T>) {
-  const { view } = useTableContext("<Table.Cell>");
+// TanStack's row reads (and caches) the column accessor's value, as its sorting does.
+interface ValueRow {
+  getValue(columnId: string): unknown;
+}
+
+function useCell<T>(column: TableColumnDef<T>) {
   const { row } = useRowContext("<Table.Cell>");
-  const kind = view.kinds.get(column.id);
-  const item = row.original as T;
-  const value = presentValue(column, kind, item);
+  const value = (row as unknown as ValueRow).getValue(column.id);
+  const { meta } = column;
   return {
-    value: value === undefined ? null : column.render(value, item),
+    value: value === undefined ? null : meta.render(value, row.original as T),
     state: {
-      align: columnAlign(column as Column<unknown>, kind),
-      numeric: kind === "number" || kind === "bigint",
+      align: meta.align,
+      numeric: meta.numeric,
       empty: value === undefined,
     } satisfies CellState,
   };
@@ -92,9 +93,9 @@ export function Cell<T>({
 
 /**
  * A cell's formatted value alone, for a `<Table.Cell>` whose children add content such as the
- * toggle. It formats exactly as the cell would (column kind, missing values, `format`), which
- * the column API alone cannot reproduce, because kinds are inferred from the data.
+ * toggle. It formats exactly as the cell would: the row's TanStack value, empty when missing,
+ * through the column's `format`.
  */
-export function Value<T>({ column }: { readonly column: Column<T> }): ReactNode {
+export function Value<T>({ column }: { readonly column: TableColumnDef<T> }): ReactNode {
   return useCell(column).value;
 }

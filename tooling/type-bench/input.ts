@@ -91,7 +91,7 @@ export function createWorkbenchKernel(store: StorePort) {
   return { kernel, storeKind, clockSource, keymap, unregister };
 }
 
-// A 30-column table: each accessor types its column's `format` and `sort`.
+// A 30-column table: each accessor types its column's `format` and `compare`.
 interface WideRow {
   id: string;
   f00: string;
@@ -129,45 +129,45 @@ interface WideRow {
 
 const column = columns<WideRow>();
 const wideColumns = [
-  column.accessor("f00", { header: "f00", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f01", { header: "f01", format: (value) => value.toFixed(2) }),
-  column.accessor("f02", { header: "f02", format: (value) => value.toFixed(2) }),
+  column.accessor("f00", { header: "f00", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f01", { header: "f01", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f02", { header: "f02", numeric: true, format: (value) => value.toFixed(2) }),
   column.accessor("f03", { header: "f03" }),
-  column.accessor("f04", { header: "f04", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f05", { header: "f05", format: (value) => value.toFixed(2) }),
-  column.accessor("f06", { header: "f06", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f07", { header: "f07", format: (value) => value.toFixed(2) }),
-  column.accessor("f08", { header: "f08", format: (value) => value.toFixed(2) }),
+  column.accessor("f04", { header: "f04", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f05", { header: "f05", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f06", { header: "f06", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f07", { header: "f07", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f08", { header: "f08", numeric: true, format: (value) => value.toFixed(2) }),
   column.accessor("f09", { header: "f09" }),
-  column.accessor("f10", { header: "f10", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f11", { header: "f11", format: (value) => value.toFixed(2) }),
-  column.accessor("f12", { header: "f12", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f13", { header: "f13", format: (value) => value.toFixed(2) }),
-  column.accessor("f14", { header: "f14", format: (value) => value.toFixed(2) }),
+  column.accessor("f10", { header: "f10", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f11", { header: "f11", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f12", { header: "f12", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f13", { header: "f13", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f14", { header: "f14", numeric: true, format: (value) => value.toFixed(2) }),
   column.accessor("f15", { header: "f15" }),
-  column.accessor("f16", { header: "f16", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f17", { header: "f17", format: (value) => value.toFixed(2) }),
-  column.accessor("f18", { header: "f18", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f19", { header: "f19", format: (value) => value.toFixed(2) }),
-  column.accessor("f20", { header: "f20", format: (value) => value.toFixed(2) }),
+  column.accessor("f16", { header: "f16", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f17", { header: "f17", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f18", { header: "f18", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f19", { header: "f19", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f20", { header: "f20", numeric: true, format: (value) => value.toFixed(2) }),
   column.accessor("f21", { header: "f21" }),
-  column.accessor("f22", { header: "f22", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f23", { header: "f23", format: (value) => value.toFixed(2) }),
-  column.accessor("f24", { header: "f24", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f25", { header: "f25", format: (value) => value.toFixed(2) }),
-  column.accessor("f26", { header: "f26", format: (value) => value.toFixed(2) }),
+  column.accessor("f22", { header: "f22", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f23", { header: "f23", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f24", { header: "f24", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f25", { header: "f25", numeric: true, format: (value) => value.toFixed(2) }),
+  column.accessor("f26", { header: "f26", numeric: true, format: (value) => value.toFixed(2) }),
   column.accessor("f27", { header: "f27" }),
-  column.accessor("f28", { header: "f28", sort: (a, b) => a.localeCompare(b) }),
-  column.accessor("f29", { header: "f29", format: (value) => value.toFixed(2) }),
+  column.accessor("f28", { header: "f28", compare: (a, b) => a.localeCompare(b) }),
+  column.accessor("f29", { header: "f29", numeric: true, format: (value) => value.toFixed(2) }),
 ];
 
-export function useWideTable(roots: readonly WideRow[]) {
+export function useWideTable(data: readonly WideRow[]) {
   return useTable({
-    roots,
+    data,
     columns: wideColumns,
-    getKey: (row) => row.id,
-    getChildren: (row) => row.children,
-    sort: { defaultValue: { column: "f02", direction: "ascending" } },
+    getRowId: (row) => row.id,
+    getSubRows: (row) => row.children,
+    sorting: { defaultValue: [{ id: "f02", desc: false }] },
   });
 }
 

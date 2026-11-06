@@ -103,15 +103,17 @@ export function createNavigationCommands<T extends RowData>(model: NavigationMod
         sortable[0]?.id;
       const chosen = sortable.find((each) => each.id === id);
       if (!chosen) return;
+      // Ascending, descending, unsorted; a `sortDescFirst` column starts descending.
+      const first = chosen.columnDef.sortDescFirst === true;
       model.run(action, () => {
         model.request("chosenColumn", chosen.id);
         const sorted = model.state.get().sorting[0];
         model.table.setSorting(
           sorted?.id !== chosen.id
-            ? [{ id: chosen.id, desc: false }]
-            : sorted.desc
+            ? [{ id: chosen.id, desc: first }]
+            : sorted.desc !== first
               ? []
-              : [{ id: chosen.id, desc: true }],
+              : [{ id: chosen.id, desc: !first }],
         );
       });
     },

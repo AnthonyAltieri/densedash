@@ -12,7 +12,7 @@ export default function TabsExample() {
   const [view, setView] = useState<(typeof views)[number]["value"]>("positions");
   const tab = views.findIndex((item) => item.value === view) + 1;
   return (
-    <Frame title="Trading views" count={`tab ${tab} of ${views.length}`}>
+    <Frame title="Trading views" count={`tab ${tab} of ${views.length}`} variant="tabs">
       <Tabs.Root items={views} label="Trading views" value={view} onValueChange={setView}>
         <Tabs.List />
         <Tabs.Panel value="positions">3 open positions. Net exposure 42,800.</Tabs.Panel>

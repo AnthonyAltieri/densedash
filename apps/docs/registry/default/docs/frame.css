@@ -1,4 +1,6 @@
-/* <Frame>: the card every example is drawn inside. Docs only; variables in src/styles.css. */
+/* <Frame>: the card every example is drawn inside. Docs only; variables in src/styles.css.
+   Each page's section is keyed on the variant its example passes (data-variant), never on the
+   parts inside, so a new example takes no other page's layout by accident. */
 [data-slot="frame"] {
   --dd-footer-padding-inline: var(--dd-docs-frame-padding);
   display: flex;
@@ -56,15 +58,31 @@
   outline-offset: calc(var(--dd-focus-width) * -1);
 }
 
-/* Group total rows: the top level of a nested table sits on the muted surface. */
-[data-slot="frame"]
-  [data-slot="table-row"][data-depth="0"]:not([data-leaf], [data-highlighted], [data-selected]) {
-  background: var(--dd-color-surface-muted);
+/* Rows contain their layout, so they would paint over that inset ring: a list, tree or table
+   isolates, and its viewport sits under it, behind the ring. */
+[data-slot="frame-body"] > :is([data-slot="tree-root"], [data-slot="table-root"]) {
+  isolation: isolate;
 }
 
-/* Footer page: an example that draws its own footer in the body. The desks list and the detail
-   tabs share a band above the bar, and the bar keeps the component's own inline padding. */
-[data-slot="frame-body"]:has(> [data-slot="footer"]) {
+[data-slot="frame-body"]
+  > :is([data-slot="tree-root"], [data-slot="table-root"])
+  > :is([data-slot="tree-viewport"], [data-slot="table-viewport"]) {
+  position: relative;
+  z-index: -1;
+}
+
+/* A one-row footer is --dd-footer-height at both densities, whether the legend lists keys or
+   not: the padding takes what the line leaves. */
+[data-slot="frame"] > [data-slot="footer"] {
+  padding-block: calc(
+    (var(--dd-footer-height) - var(--dd-border-width) - var(--dd-line-height)) / 2
+  );
+}
+
+/* Footer page (variant="footer"): an example that draws its own footer in the body. The desks
+   list and the detail tabs share a band above the bar, and the bar keeps the component's own
+   inline padding. The list holds its three desks' height before its rows render. */
+[data-variant="footer"] > [data-slot="frame-body"] {
   --dd-footer-padding-inline: calc(var(--dd-unit) * 5);
   display: grid;
   grid-template-columns: minmax(var(--dd-zero), var(--dd-main-column)) auto;
@@ -72,23 +90,28 @@
   align-items: center;
 }
 
-[data-slot="frame-body"]:has(> [data-slot="footer"]) > [data-slot="tree-root"] {
+[data-variant="footer"] > [data-slot="frame-body"] > [data-slot="tree-root"] {
   align-self: stretch;
   border-inline-end: var(--dd-border-width) solid var(--dd-color-border-muted);
 }
 
-[data-slot="frame-body"]:has(> [data-slot="footer"]) > [data-slot="tabs"] {
+[data-variant="footer"] [data-slot="tree-viewport"] {
+  block-size: calc(var(--dd-row-height) * var(--dd-docs-footer-rows));
+}
+
+[data-variant="footer"] > [data-slot="frame-body"] > [data-slot="tabs"] {
   padding-inline: calc(var(--dd-unit) * 4);
 }
 
-[data-slot="frame-body"] > [data-slot="footer"] {
+[data-variant="footer"] > [data-slot="frame-body"] > [data-slot="footer"] {
   grid-column: 1 / -1;
 }
 
-/* List (the /list page): the frames sit side by side while they fit and stack when they do not.
-   Rows sit on the frame's padding. A flat list is padded at its ends; a nested list (one with
-   toggles) has row dividers, taller top-level rows, smaller deeper rows and a fixed height. */
-[data-slot="preview-stage"]:has(> [data-slot="frame"] [role="listbox"]) {
+/* List page (variant="list" and "nested-list"): the frames sit side by side while they fit and
+   stack when they do not. Rows sit on the frame's padding. A flat list is padded at its ends;
+   a nested list has row dividers, taller top-level rows, smaller deeper rows. Both hold a fixed
+   height, so the card keeps its size before the rows render. */
+[data-slot="preview-stage"]:has(> :is([data-variant="list"], [data-variant="nested-list"])) {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -96,99 +119,80 @@
   gap: calc(var(--dd-unit) * 6);
 }
 
-[data-slot="frame"]:has([role="listbox"]) {
-  max-inline-size: var(--dd-docs-list-width);
+[data-variant="list"] {
+  --dd-docs-frame-width: var(--dd-docs-list-width);
 }
 
-[data-slot="frame"]:has([role="listbox"] [data-slot="tree-toggle"]) {
-  max-inline-size: var(--dd-docs-nested-list-width);
+[data-variant="nested-list"] {
+  --dd-docs-frame-width: var(--dd-docs-nested-list-width);
 }
 
-[data-slot="frame"] [role="listbox"] [data-slot="tree-row"] {
+:is([data-variant="list"], [data-variant="nested-list"]) [data-slot="tree-row"] {
   gap: calc(var(--dd-unit) * 2);
   padding-inline: var(--dd-docs-frame-padding);
 }
 
-[data-slot="frame"]
-  [role="listbox"]:not(:has([data-slot="tree-toggle"]))
-  [data-slot="tree-viewport"] {
+/* The indent and the toggle read as one leading space, so no gap opens between them. */
+:is([data-variant="list"], [data-variant="nested-list"]) [data-slot="tree-indent"] {
+  margin-inline-end: calc(var(--dd-unit) * -2);
+}
+
+[data-variant="list"] [data-slot="tree-viewport"] {
+  block-size: calc(var(--dd-row-height) * var(--dd-docs-list-rows) + var(--dd-unit) * 2);
   padding-block: var(--dd-unit);
 }
 
-[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="tree-viewport"] {
+[data-variant="nested-list"] [data-slot="tree-viewport"] {
   block-size: var(--dd-docs-nested-list-height);
 }
 
-[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="tree-row"] {
+[data-variant="nested-list"] [data-slot="tree-row"] {
   block-size: calc(var(--dd-row-height) - var(--dd-docs-nested-row-step));
   border-block-end: var(--dd-border-width) solid var(--dd-color-border-subtle);
 }
 
-[data-slot="frame"]
-  [role="listbox"]:has([data-slot="tree-toggle"])
-  [data-slot="tree-row"][data-depth="0"] {
+[data-variant="nested-list"] [data-slot="tree-row"][data-depth="0"] {
   block-size: calc(var(--dd-row-height) + var(--dd-docs-nested-row-step));
 }
 
-[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="tree-toggle"] {
+[data-variant="nested-list"] [data-slot="tree-toggle"] {
   color: var(--dd-color-text-muted);
 }
 
-[data-slot="frame"]
-  [role="listbox"]:has([data-slot="tree-toggle"])
-  [data-depth="0"]
-  > [data-slot="cell-name"] {
+[data-variant="nested-list"] [data-depth="0"] > [data-slot="cell-name"] {
   font-weight: var(--dd-font-weight-semibold);
 }
 
-[data-slot="frame"]
-  [role="listbox"]:has([data-slot="tree-toggle"])
+[data-variant="nested-list"]
   [data-slot="tree-row"]:not([data-depth="0"])
   > [data-slot="cell-name"] {
   font-family: var(--dd-font-mono);
   font-size: var(--dd-text-sm);
 }
 
-[data-slot="frame"]
-  [role="listbox"]:has([data-slot="tree-toggle"])
-  [data-depth="2"]
-  > [data-slot="cell-name"] {
+[data-variant="nested-list"] [data-depth="2"] > [data-slot="cell-name"] {
   color: var(--dd-color-text-secondary);
 }
 
-[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="cell-note"] {
+[data-variant="nested-list"] [data-slot="cell-note"] {
   font-size: var(--dd-text-sm);
 }
 
-[data-slot="frame"] [role="listbox"]:has([data-slot="tree-toggle"]) [data-slot="cell-change"] {
+[data-variant="nested-list"] [data-slot="cell-change"] {
   inline-size: var(--dd-docs-return-width);
 }
 
-/* The indent and the toggle read as one leading space, so no gap opens between them. */
-[data-slot="frame"] [role="listbox"] [data-slot="tree-indent"] {
-  margin-inline-end: calc(var(--dd-unit) * -2);
-}
-
-/* The tree page: a frame whose whole body is one tree (role="tree"; List and Table use other
-   roles). Rows are divided, keep the frame's padding at every depth, and scroll in a fixed
-   viewport. */
-[data-slot="frame"]:has(> [data-slot="frame-body"] > [role="tree"]:only-child) {
+/* Tree page (variant="tree"): rows are divided, keep the frame's padding at every depth, and
+   scroll in a fixed viewport. */
+[data-variant="tree"] {
   --dd-docs-frame-width: var(--dd-docs-tree-width);
 }
 
-/* Rows contain their layout, so they would paint over the root's inset focus ring; the root
-   isolates and the viewport sits under it, behind the ring. */
-[data-slot="frame-body"] > [role="tree"]:only-child {
-  isolation: isolate;
-}
-
-[data-slot="frame-body"] > [role="tree"]:only-child > [data-slot="tree-viewport"] {
-  position: relative;
-  z-index: -1;
+[data-variant="tree"] [data-slot="tree-viewport"] {
   block-size: var(--dd-docs-tree-height);
 }
 
-[data-slot="frame-body"] > [role="tree"]:only-child [data-slot="tree-row"] {
+[data-variant="tree"] [data-slot="tree-row"] {
   gap: var(--dd-docs-tree-gap);
   /* The depth-0 indent is empty but still takes a gap, so the start padding gives it back. */
   padding-inline: calc(var(--dd-docs-frame-padding) - var(--dd-docs-tree-gap))
@@ -196,94 +200,95 @@
   border-block-end: var(--dd-border-width) solid var(--dd-docs-row-divider);
 }
 
-[data-slot="frame-body"] > [role="tree"]:only-child [data-slot="tree-toggle"] {
+[data-variant="tree"] [data-slot="tree-toggle"] {
   color: var(--dd-color-text-muted);
 }
 
 /* Every top-level row's name, Cash included. */
-[data-slot="frame-body"] > [role="tree"]:only-child [data-depth="0"] > [data-slot="cell-name"] {
+[data-variant="tree"] [data-depth="0"] > [data-slot="cell-name"] {
   font-weight: var(--dd-font-weight-semibold);
 }
 
-/* Tabs (tabs board): a narrower card, a padded tab row with no gap above the panel, and a panel
-   of fixed height so switching tabs never moves the footer. Only tabs that are the frame's
-   whole example match, not tabs beside other parts (the footer page). */
-[data-slot="frame"]:has(> [data-slot="frame-body"] > [data-slot="tabs"]:only-child) {
+/* Tabs page (variant="tabs", the tabs board): a narrower card, a padded tab row with no gap
+   above the panel, and a panel of fixed height so switching tabs never moves the footer. */
+[data-variant="tabs"] {
   --dd-docs-frame-width: var(--dd-docs-tabs-width);
 }
 
-[data-slot="frame-body"] > [data-slot="tabs"]:only-child {
+[data-variant="tabs"] [data-slot="tabs"] {
   gap: var(--dd-zero);
 }
 
-[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-list"] {
+[data-variant="tabs"] [data-slot="tabs-list"] {
   padding: calc(var(--dd-unit) * 1.5) calc(var(--dd-unit) * 2);
 }
 
-[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-tab"] {
+[data-variant="tabs"] [data-slot="tabs-tab"] {
   gap: calc(var(--dd-unit) * 1.5);
 }
 
-[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-panel"] {
+[data-variant="tabs"] [data-slot="tabs-panel"] {
   box-sizing: border-box;
   block-size: var(--dd-docs-tabs-panel-height);
   padding: calc(var(--dd-unit) * 4) calc(var(--dd-unit) * 3.5);
   color: var(--dd-color-text-secondary);
 }
 
-/* Tabs are buttons: drop the docs-wide button ring so the component's own ring shows. */
-[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-tab"]:focus-visible {
-  outline: revert-layer;
-  outline-offset: revert-layer;
-}
-
 /* The panel spans the card, which clips overflow, so its ring draws inside its edge. */
-[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-panel"]:focus-visible {
+[data-variant="tabs"] [data-slot="tabs-panel"]:focus-visible {
   outline-offset: calc(var(--dd-focus-width) * -1);
 }
 
-/* Keymap page: the order size counter. A figure, the scope's legend as rows of label and key,
-   and a hint strip, in a narrower card. */
-[data-slot="frame"]:has([data-slot="cell-figure"]) {
-  max-inline-size: var(--dd-docs-counter-width);
+/* Keymap page (variant="keymap"): the order size counter. A figure, the scope's legend as rows
+   of label and key, and a hint strip, in a narrower card. */
+[data-variant="keymap"] {
+  --dd-docs-frame-width: var(--dd-docs-counter-width);
+  --dd-docs-counter-legend-height: calc(
+    var(--dd-row-height) * 2 + var(--dd-unit) * 3 + var(--dd-border-width)
+  );
 }
 
-[data-slot="frame-body"] > [data-slot="keymap-scope"] {
+/* Keymap.Provider renders its children once its own kernel exists, in the browser; until then
+   the empty body holds the counter's height: figure, legend and hint strip. */
+[data-variant="keymap"] > [data-slot="frame-body"]:empty {
+  min-block-size: calc(
+    var(--dd-docs-figure-height) + var(--dd-docs-counter-legend-height) + var(--dd-footer-height)
+  );
+}
+
+[data-variant="keymap"] [data-slot="keymap-scope"] {
   display: flex;
   flex-direction: column;
 }
 
-[data-slot="frame-body"] > [data-slot="keymap-scope"]:focus-visible {
+[data-variant="keymap"] [data-slot="keymap-scope"]:focus-visible {
   outline: var(--dd-focus-width) solid var(--dd-color-focus);
 }
 
-[data-slot="frame"] [data-slot="keymap-legend"] {
+/* The legend fills only while the scope has focus; keep its two rows so the card holds still. */
+[data-variant="keymap"] [data-slot="keymap-legend"] {
   flex-direction: column;
   align-items: stretch;
   gap: var(--dd-zero);
+  min-block-size: var(--dd-docs-counter-legend-height);
   padding-block: calc(var(--dd-unit) * 1.5);
   border-block-start: var(--dd-border-width) solid var(--dd-color-border-muted);
 }
 
-/* The legend fills only while the scope has focus; keep its two rows so the card holds still. */
-[data-slot="frame"]:has([data-slot="cell-figure"]) [data-slot="keymap-legend"] {
-  min-block-size: calc(var(--dd-row-height) * 2 + var(--dd-unit) * 3 + var(--dd-border-width));
-}
-
-[data-slot="frame"] [data-slot="keymap-legend-group"] {
+[data-variant="keymap"] [data-slot="keymap-legend-group"] {
   flex-direction: column;
   align-items: stretch;
   gap: var(--dd-zero);
 }
 
-[data-slot="frame"] [data-slot="keymap-legend-item"] {
+[data-variant="keymap"] [data-slot="keymap-legend-item"] {
   flex-direction: row-reverse;
   justify-content: space-between;
   block-size: var(--dd-row-height);
   padding-inline: var(--dd-docs-frame-padding);
 }
 
-[data-slot="frame-body"] > [data-slot="keymap-scope"] > [data-slot="cell-note"] {
+[data-variant="keymap"] [data-slot="keymap-scope"] > [data-slot="cell-note"] {
   display: flex;
   flex: none;
   align-items: center;
@@ -295,70 +300,67 @@
   font-size: var(--dd-text-sm);
 }
 
-/* Table page: the quote board. Header and rows space their cells with a gap instead of cell
-   padding; rows are divided by a hairline, and the viewport shows the header and eleven rows. */
-[data-slot="frame"] [data-slot="table-viewport"] {
+/* Table page (variant="table"): the quote board. Header and rows space their cells with a gap
+   instead of cell padding; rows are divided by a hairline, and the viewport shows the header
+   and eleven rows. Group total rows (the top level) sit on the muted surface. */
+[data-variant="table"] [data-slot="table-viewport"] {
   block-size: calc(var(--dd-row-height) * 12);
 }
 
-/* As on the tree page: the root isolates and the viewport sits under it, so the rows do not
-   paint over the root's inset focus ring. */
-[data-slot="frame-body"] > [data-slot="table-root"] {
-  isolation: isolate;
-}
-
-[data-slot="frame-body"] > [data-slot="table-root"] > [data-slot="table-viewport"] {
-  position: relative;
-  z-index: -1;
-}
-
-[data-slot="frame"] [data-slot="table-header"],
-[data-slot="frame"] [data-slot="table-row"] {
+[data-variant="table"] [data-slot="table-header"],
+[data-variant="table"] [data-slot="table-row"] {
   column-gap: calc(var(--dd-unit) * 3.5);
   padding-inline: var(--dd-docs-frame-padding);
 }
 
-[data-slot="frame"] [data-slot="table-header"] {
+[data-variant="table"] [data-slot="table-header"] {
   background: var(--dd-color-surface-muted);
   color: var(--dd-color-text-secondary);
   font-size: var(--dd-text-sm);
 }
 
-[data-slot="frame"] [data-slot="table-row"] {
+[data-variant="table"] [data-slot="table-row"] {
   border-block-end: var(--dd-border-width) solid var(--dd-docs-row-divider);
 }
 
-[data-slot="frame"] [data-slot="table-header-cell"],
-[data-slot="frame"] [data-slot="table-cell"] {
+[data-variant="table"]
+  [data-slot="table-row"][data-depth="0"]:not([data-leaf], [data-highlighted], [data-selected]) {
+  background: var(--dd-color-surface-muted);
+}
+
+[data-variant="table"] [data-slot="table-header-cell"],
+[data-variant="table"] [data-slot="table-cell"] {
   padding-inline: var(--dd-zero);
 }
 
-[data-slot="frame"] [data-slot="table-header-cell"] {
+[data-variant="table"] [data-slot="table-header-cell"] {
   font-weight: var(--dd-font-weight-semibold);
 }
 
-[data-slot="frame"] [data-slot="table-header-cell"][data-sorted] {
+[data-variant="table"] [data-slot="table-header-cell"][data-sorted] {
   color: var(--dd-color-accent);
 }
 
-[data-slot="frame"] [data-slot="table-toggle"] {
+[data-variant="table"] [data-slot="table-toggle"] {
   color: var(--dd-color-text-muted);
   font-weight: var(--dd-weight-normal);
 }
 
 /* The name cell: desks semibold, sectors medium, instruments' tickers in monospace. It centres
    the toggle on the name at every density. */
-[data-slot="frame"] [data-slot="table-row"] > [data-slot="table-cell"]:first-child {
+[data-variant="table"] [data-slot="table-row"] > [data-slot="table-cell"]:first-child {
   display: flex;
   align-items: center;
   font-weight: var(--dd-font-weight-medium);
 }
 
-[data-slot="frame"] [data-slot="table-row"][data-depth="0"] > [data-slot="table-cell"]:first-child {
+[data-variant="table"]
+  [data-slot="table-row"][data-depth="0"]
+  > [data-slot="table-cell"]:first-child {
   font-weight: var(--dd-font-weight-semibold);
 }
 
-[data-slot="frame"] [data-slot="table-row"][data-leaf] > [data-slot="table-cell"]:first-child {
+[data-variant="table"] [data-slot="table-row"][data-leaf] > [data-slot="table-cell"]:first-child {
   font-family: var(--dd-font-mono);
   font-size: var(--dd-text-sm);
 }

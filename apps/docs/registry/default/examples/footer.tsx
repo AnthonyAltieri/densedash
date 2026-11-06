@@ -46,7 +46,7 @@ const filter = (entry: KeymapEntry) =>
 export default function FooterExample() {
   const [status, setStatus] = useState("updated 09:41");
   return (
-    <Frame title="Footer" footer={false}>
+    <Frame title="Footer" footer={false} variant="footer">
       <Desks onOpen={(name) => setStatus(`opened ${name}`)} />
       <DetailTabs />
       <Footer.Root>

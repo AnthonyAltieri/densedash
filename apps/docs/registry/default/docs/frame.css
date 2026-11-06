@@ -1,0 +1,63 @@
+/* <Frame>: the card every example is drawn inside. Docs only; variables in src/styles.css. */
+[data-slot="frame"] {
+  --dd-footer-padding-inline: var(--dd-docs-frame-padding);
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--dd-full);
+  max-inline-size: var(--dd-docs-frame-width);
+  overflow: hidden;
+  border: var(--dd-border-width) solid var(--dd-color-border);
+  border-radius: var(--dd-docs-frame-radius);
+  background: var(--dd-color-surface);
+  box-shadow: var(--dd-docs-frame-shadow);
+  color: var(--dd-color-text);
+  font-family: var(--dd-font-sans);
+  font-size: var(--dd-font-size);
+  line-height: var(--dd-line-height);
+}
+
+[data-slot="frame-header"] {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--dd-docs-frame-padding);
+  block-size: var(--dd-docs-frame-header-height);
+  padding-inline: var(--dd-docs-frame-padding);
+  border-block-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+}
+
+[data-slot="frame-title"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="frame-count"] {
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-text-sm);
+  line-height: var(--dd-kbd-line-height);
+  white-space: nowrap;
+}
+
+[data-slot="frame-body"] {
+  min-block-size: var(--dd-zero);
+}
+
+[data-slot="frame-body"][data-columns] {
+  display: grid;
+  grid-template-columns: repeat(
+    var(--dd-docs-frame-columns),
+    minmax(var(--dd-zero), var(--dd-main-column))
+  );
+}
+
+/* The card clips overflow, so a focused part's ring draws inside its edge. */
+[data-slot="frame-body"] > :focus-visible {
+  outline-offset: calc(var(--dd-focus-width) * -1);
+}
+
+/* Group total rows: the top level of a nested table sits on the muted surface. */
+[data-slot="frame"]
+  [data-slot="table-row"][data-depth="0"]:not([data-leaf], [data-highlighted], [data-selected]) {
+  background: var(--dd-color-surface-muted);
+}

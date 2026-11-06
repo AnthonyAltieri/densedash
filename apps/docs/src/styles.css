@@ -735,3 +735,41 @@ main {
   font: var(--dd-app-shell-small-font-size) / var(--dd-example-log-leading) var(--dd-font-mono);
   white-space: pre-wrap;
 }
+
+/* Docs-only Frame and Cell helpers (registry/default/docs). Values from the example boards;
+   the rules live in frame.css and cell.css beside the helpers. */
+:root {
+  --dd-docs-frame-width: 660px;
+  --dd-docs-frame-radius: 6px;
+  --dd-docs-frame-header-height: 38px;
+  --dd-docs-frame-padding: 12px;
+  --dd-docs-frame-shadow: 0 1px 2px rgb(15 23 42 / 6%), 0 8px 24px rgb(15 23 42 / 8%);
+  --dd-docs-code-width: 64px;
+  --dd-docs-change-width: 62px;
+  --dd-docs-chip-width: 54px;
+  --dd-docs-chip-leading: 18px;
+  --dd-docs-count-width: 20px;
+  --dd-docs-pill-leading: 16px;
+  --dd-docs-bar-height: 6px;
+  --dd-docs-bar-value-width: 42px;
+  --dd-docs-diverging-height: 10px;
+  --dd-docs-diverging-value-width: 44px;
+  --dd-docs-bar-fill: var(--dd-base-neutral-500);
+  --dd-docs-axis: var(--dd-base-neutral-500);
+  --dd-docs-positive-surface: #f0fdf4;
+  --dd-docs-negative-surface: #fef2f2;
+  --dd-docs-accent-surface: var(--dd-base-blue-50);
+  --dd-docs-neutral-surface: var(--dd-base-neutral-100);
+  --dd-docs-specimen-height: 150px;
+  --dd-docs-specimen-sample-height: 44px;
+  --dd-docs-specimen-text-size: 18px;
+  --dd-docs-specimen-key-size: 22px;
+}
+
+[data-theme="dark"] {
+  --dd-docs-frame-shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 8px 24px rgb(0 0 0 / 40%);
+  --dd-docs-positive-surface: #052e16;
+  --dd-docs-negative-surface: #450a0a;
+  --dd-docs-accent-surface: var(--dd-base-blue-950);
+  --dd-docs-neutral-surface: var(--dd-base-neutral-800);
+}

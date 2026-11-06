@@ -7,6 +7,8 @@ import { createTwoslasher } from "twoslash";
 import type { Plugin } from "vite";
 
 const examplesDirectory = fileURLToPath(new URL("../registry/default/examples/", import.meta.url));
+/** Docs-only helpers the examples import; their types appear in the examples' hovers. */
+const helpersDirectory = fileURLToPath(new URL("../registry/default/docs/", import.meta.url));
 /** Maps each example name to a loader for its own module, so a page downloads only its examples. */
 const indexId = "virtual:densedash-previews";
 /** One module per example: the component, its source, highlighted code and type hovers. */
@@ -126,7 +128,9 @@ export function previewPlugin(): Plugin {
       ].join("\n");
     },
     handleHotUpdate({ file, server }) {
-      if (file.startsWith(examplesDirectory) && file.endsWith(".tsx")) {
+      const example = file.startsWith(examplesDirectory) && file.endsWith(".tsx");
+      const helper = file.startsWith(helpersDirectory) && /\.tsx?$/.test(file);
+      if (example || helper) {
         rendered = undefined;
         for (const module of server.moduleGraph.idToModuleMap.values()) {
           if (module.id?.startsWith(`\0${examplePrefix}`) || module.id === `\0${indexId}`) {

@@ -1,5 +1,12 @@
 # @densedash/plugin-effect
 
+## 0.1.3
+
+### Patch Changes
+
+- Updated dependencies [[`9fc91be`](https://github.com/densedash/densedash/commit/9fc91beaaebdd9560f5f21fa7b60af26993380eb), [`e8bd989`](https://github.com/densedash/densedash/commit/e8bd98960e336fca126c7f6370b5424d111f8aeb)]:
+  - @densedash/core@0.3.0
+
 ## 0.1.2
 
 ### Patch Changes

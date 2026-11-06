@@ -1,6 +1,6 @@
 {
   "name": "@densedash/plugin-tanstack-virtual",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Deprecated: virtualization is built into @densedash/react (the viewport's virtual prop). Re-exports tanstackVirtual from @densedash/react.",
   "license": "MIT",
   "repository": {

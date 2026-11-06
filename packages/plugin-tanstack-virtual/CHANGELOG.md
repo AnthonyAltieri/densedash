@@ -1,5 +1,12 @@
 # @densedash/plugin-tanstack-virtual
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [[`e8bd989`](https://github.com/densedash/densedash/commit/e8bd98960e336fca126c7f6370b5424d111f8aeb)]:
+  - @densedash/react@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

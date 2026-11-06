@@ -197,12 +197,39 @@
   background: var(--dd-color-accent);
 }
 
-/* A table's group total rows: bold figures, no tint behind the change, a darker volume bar. */
+[data-slot="cell-diverging-key"] {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 2.5);
+  font-family: var(--dd-font-sans);
+}
+
+[data-slot="cell-diverging-key-item"] {
+  display: flex;
+  align-items: center;
+  gap: var(--dd-unit);
+}
+
+[data-slot="cell-diverging-key-item"]::before {
+  content: "";
+  inline-size: calc(var(--dd-unit) * 2);
+  block-size: calc(var(--dd-unit) * 2);
+}
+
+[data-slot="cell-diverging-key-item"][data-side="long"]::before {
+  background: var(--dd-color-accent);
+}
+
+[data-slot="cell-diverging-key-item"][data-side="short"]::before {
+  background: var(--dd-color-warning);
+}
+
+/* A table's group total rows: bold figures, no tint behind the change (which keeps its weight),
+   a darker volume bar. */
 [data-slot="table-row"]:not([data-leaf])
   :is(
     [data-slot="cell-price"],
     [data-slot="cell-change"],
-    [data-slot="cell-chip"],
     [data-slot="cell-bar-value"],
     [data-slot="cell-diverging-value"]
   ) {

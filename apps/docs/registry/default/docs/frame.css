@@ -294,3 +294,71 @@
   background: var(--dd-color-surface-muted);
   font-size: var(--dd-text-sm);
 }
+
+/* Table page: the quote board. Header and rows space their cells with a gap instead of cell
+   padding; rows are divided by a hairline, and the viewport shows the header and eleven rows. */
+[data-slot="frame"] [data-slot="table-viewport"] {
+  block-size: calc(var(--dd-row-height) * 12);
+}
+
+/* As on the tree page: the root isolates and the viewport sits under it, so the rows do not
+   paint over the root's inset focus ring. */
+[data-slot="frame-body"] > [data-slot="table-root"] {
+  isolation: isolate;
+}
+
+[data-slot="frame-body"] > [data-slot="table-root"] > [data-slot="table-viewport"] {
+  position: relative;
+  z-index: -1;
+}
+
+[data-slot="frame"] [data-slot="table-header"],
+[data-slot="frame"] [data-slot="table-row"] {
+  column-gap: calc(var(--dd-unit) * 3.5);
+  padding-inline: var(--dd-docs-frame-padding);
+}
+
+[data-slot="frame"] [data-slot="table-header"] {
+  background: var(--dd-color-surface-muted);
+  color: var(--dd-color-text-secondary);
+  font-size: var(--dd-text-sm);
+}
+
+[data-slot="frame"] [data-slot="table-row"] {
+  border-block-end: var(--dd-border-width) solid var(--dd-docs-row-divider);
+}
+
+[data-slot="frame"] [data-slot="table-header-cell"],
+[data-slot="frame"] [data-slot="table-cell"] {
+  padding-inline: var(--dd-zero);
+}
+
+[data-slot="frame"] [data-slot="table-header-cell"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="frame"] [data-slot="table-header-cell"][data-sorted] {
+  color: var(--dd-color-accent);
+}
+
+[data-slot="frame"] [data-slot="table-toggle"] {
+  color: var(--dd-color-text-muted);
+  font-weight: var(--dd-weight-normal);
+}
+
+/* The name cell: desks semibold, sectors medium, instruments' tickers in monospace. It centres
+   the toggle on the name at every density. */
+[data-slot="frame"] [data-slot="table-row"] > [data-slot="table-cell"]:first-child {
+  display: flex;
+  align-items: center;
+  font-weight: var(--dd-font-weight-medium);
+}
+
+[data-slot="frame"] [data-slot="table-row"][data-depth="0"] > [data-slot="table-cell"]:first-child {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="frame"] [data-slot="table-row"][data-leaf] > [data-slot="table-cell"]:first-child {
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-text-sm);
+}

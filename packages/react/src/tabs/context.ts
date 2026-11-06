@@ -24,9 +24,19 @@ export interface TabsContextValue {
   readonly tabStop: string | undefined;
   /** Returns false when the item is missing or disabled, or the change was canceled. */
   select(value: string, reason: TabsChangeReason, event: Event | undefined): boolean;
+  /** The mounted `<Tabs.List>`s in mount order; the first renders the ids panels point at. */
+  readonly lists: readonly string[];
+  /** Adds a list to `lists` and returns its removal. */
+  registerList(list: string): () => void;
 }
 
 export const TabsContext = createContext<TabsContextValue | null>(null);
+
+/**
+ * The id prefix of the enclosing list's tabs. Every list shows the same tabs, so a second list
+ * prefixes its tab ids with its own id to keep them unique.
+ */
+export const TabsListContext = createContext<string | undefined>(undefined);
 
 export function useTabsContext(consumer: string): TabsContextValue {
   const context = useContext(TabsContext);

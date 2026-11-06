@@ -20,6 +20,22 @@
     border-block-end: var(--dd-border-width) solid var(--dd-color-border);
   }
 
+  /* A vertical list stands beside its panels. */
+  [data-slot="tabs"]:has(> [data-slot="tabs-list"][data-orientation="vertical"]) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  [data-slot="tabs-list"][data-orientation="vertical"] {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    padding-block-end: 0;
+    padding-inline-end: var(--dd-gap);
+    border-block-end: none;
+    border-inline-end: var(--dd-border-width) solid var(--dd-color-border);
+  }
+
   [data-slot="tabs-tab"] {
     display: inline-flex;
     align-items: center;

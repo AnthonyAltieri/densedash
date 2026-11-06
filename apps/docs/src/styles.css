@@ -775,6 +775,36 @@ main {
   --dd-docs-counter-width: 360px;
   --dd-docs-figure-height: 96px;
   --dd-docs-figure-size: 40px;
+  /* Keymap page: the go-to sequences (Keymap C board) and the order confirmation (Keymap D). */
+  --dd-docs-sequence-width: 500px;
+  --dd-docs-sequence-body-height: 190px;
+  --dd-docs-sequence-nav-width: 180px;
+  --dd-docs-page-title-size: 18px;
+  --dd-docs-page-title-leading: 26px;
+  /* Three placeholder lines of text under the page title, 9px tall, 10px apart. */
+  --dd-docs-skeleton: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='86%25' height='9' rx='3'/%3E%3Crect y='19' width='64%25' height='9' rx='3'/%3E%3Crect y='38' width='74%25' height='9' rx='3'/%3E%3C/svg%3E");
+  --dd-docs-skeleton-height: 47px;
+  --dd-docs-tag-radius: 3px;
+  --dd-docs-hint-width: 190px;
+  --dd-docs-hint-surface: var(--dd-base-neutral-900);
+  --dd-docs-hint-border: var(--dd-base-neutral-900);
+  --dd-docs-hint-text: var(--dd-base-neutral-100);
+  --dd-docs-hint-muted: var(--dd-base-neutral-300);
+  --dd-docs-hint-key-surface: var(--dd-base-neutral-800);
+  --dd-docs-hint-key-border: var(--dd-base-neutral-500);
+  --dd-docs-hint-shadow: 0 8px 24px rgb(15 23 42 / 25%);
+  --dd-docs-confirm-width: 460px;
+  --dd-docs-order-height: 124px;
+  --dd-docs-order-title-size: 16px;
+  --dd-docs-order-title-leading: 24px;
+  --dd-docs-prompt-height: 40px;
+  --dd-docs-prompt-button-height: 26px;
+  --dd-docs-prompt-border: var(--dd-base-amber-300);
+  --dd-docs-prompt-confirm-surface: var(--dd-base-neutral-900);
+  --dd-docs-prompt-confirm-text: var(--dd-base-neutral-0);
+  --dd-docs-prompt-confirm-key-surface: var(--dd-base-neutral-800);
+  --dd-docs-prompt-confirm-key-border: var(--dd-base-neutral-400);
+  --dd-docs-warning-surface: #fffbeb;
   /* Footer page: the desks list's rows, held before they render. */
   --dd-docs-footer-rows: 3;
 }
@@ -785,6 +815,18 @@ main {
   --dd-docs-negative-surface: #450a0a;
   --dd-docs-accent-surface: var(--dd-base-blue-950);
   --dd-docs-neutral-surface: var(--dd-base-neutral-800);
+  /* The chord hint sits a step lighter than the dark card; the confirm button turns light. */
+  --dd-docs-hint-surface: var(--dd-base-neutral-800);
+  --dd-docs-hint-border: var(--dd-base-neutral-700);
+  --dd-docs-hint-key-surface: var(--dd-base-neutral-900);
+  --dd-docs-hint-key-border: var(--dd-base-neutral-600);
+  --dd-docs-hint-shadow: 0 8px 24px rgb(0 0 0 / 50%);
+  --dd-docs-prompt-border: var(--dd-base-amber-700);
+  --dd-docs-prompt-confirm-surface: var(--dd-base-neutral-100);
+  --dd-docs-prompt-confirm-text: var(--dd-base-neutral-900);
+  --dd-docs-prompt-confirm-key-surface: var(--dd-base-neutral-0);
+  --dd-docs-prompt-confirm-key-border: var(--dd-base-neutral-400);
+  --dd-docs-warning-surface: var(--dd-base-amber-950);
   /* The subtle border is the dark surface's own colour, so row dividers step up one. */
   --dd-docs-row-divider: var(--dd-color-border-muted);
 }

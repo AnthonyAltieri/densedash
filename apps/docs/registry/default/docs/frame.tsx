@@ -8,7 +8,16 @@ import { Footer } from "../ui/footer.js";
 import "./frame.css";
 
 /** The page layouts in frame.css, one per example that needs more than the plain card. */
-export type FrameVariant = "tree" | "list" | "nested-list" | "table" | "tabs" | "keymap" | "footer";
+export type FrameVariant =
+  | "tree"
+  | "list"
+  | "nested-list"
+  | "table"
+  | "tabs"
+  | "keymap"
+  | "keymap-sequence"
+  | "keymap-confirm"
+  | "footer";
 
 export interface FrameProps {
   /** The card's title, at the start of its header. */

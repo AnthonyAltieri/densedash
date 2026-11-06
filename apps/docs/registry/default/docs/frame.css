@@ -300,6 +300,301 @@
   font-size: var(--dd-text-sm);
 }
 
+/* Keymap page, sequences (variant="keymap-sequence", the Keymap C board): pages on the left,
+   the current page on the right, a hint strip under both, and the chord hint floating above
+   the strip's end while a sequence is in progress. */
+[data-variant="keymap-sequence"] {
+  --dd-docs-frame-width: var(--dd-docs-sequence-width);
+}
+
+/* Keymap.Provider renders its children in the browser only; hold the body and strip. */
+[data-variant="keymap-sequence"] > [data-slot="frame-body"]:empty {
+  min-block-size: calc(var(--dd-docs-sequence-body-height) + var(--dd-footer-height));
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-scope"] {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--dd-docs-sequence-nav-width) minmax(var(--dd-zero), 1fr);
+  grid-template-rows: var(--dd-docs-sequence-body-height) auto;
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-scope"]:focus-visible {
+  outline: var(--dd-focus-width) solid var(--dd-color-focus);
+}
+
+[data-variant="keymap-sequence"] [data-slot="pages"] {
+  display: flex;
+  flex-direction: column;
+  padding-block: calc(var(--dd-unit) * 1.5);
+  border-inline-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+}
+
+[data-variant="keymap-sequence"] [data-slot="pages"] > button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  block-size: var(--dd-row-height);
+  margin: var(--dd-zero);
+  padding-inline: var(--dd-docs-frame-padding);
+  border: var(--dd-zero);
+  background: transparent;
+  color: var(--dd-color-text);
+  font: inherit;
+  text-align: start;
+  cursor: default;
+}
+
+[data-variant="keymap-sequence"] [data-slot="pages"] > button:focus-visible {
+  outline: var(--dd-focus-width) solid var(--dd-color-focus);
+  outline-offset: calc(var(--dd-focus-width) * -1);
+}
+
+[data-variant="keymap-sequence"] [data-slot="pages"] > button[aria-current="page"] {
+  background: var(--dd-color-selection);
+}
+
+[data-variant="keymap-sequence"] [data-slot="pages"] [data-slot="cell-name"] {
+  font-weight: var(--dd-weight-normal);
+}
+
+[data-variant="keymap-sequence"] [aria-current="page"] > [data-slot="cell-name"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+/* The current page's title over three placeholder lines of text. */
+[data-variant="keymap-sequence"] [data-slot="page"] {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--dd-unit) * 2.5);
+  min-inline-size: var(--dd-zero);
+  padding: calc(var(--dd-unit) * 4);
+  background: var(--dd-color-surface-muted);
+  color: var(--dd-color-text-secondary);
+  font-size: var(--dd-docs-page-title-size);
+  font-weight: var(--dd-font-weight-semibold);
+  line-height: var(--dd-docs-page-title-leading);
+}
+
+[data-variant="keymap-sequence"] [data-slot="page"]::after {
+  content: "";
+  block-size: var(--dd-docs-skeleton-height);
+  background: var(--dd-color-border-muted);
+  mask: var(--dd-docs-skeleton) no-repeat 0 0 / var(--dd-full) var(--dd-full);
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-scope"] > [data-slot="cell-note"] {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 1.5);
+  block-size: var(--dd-footer-height);
+  padding-inline: var(--dd-docs-frame-padding);
+  border-block-start: var(--dd-border-width) solid var(--dd-color-border-muted);
+  background: var(--dd-color-surface-muted);
+  font-size: var(--dd-text-sm);
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-chord-hint"] {
+  position: absolute;
+  inset-block-end: calc(var(--dd-footer-height) + var(--dd-unit) * 2.5);
+  inset-inline-end: var(--dd-docs-frame-padding);
+  gap: var(--dd-zero);
+  inline-size: var(--dd-docs-hint-width);
+  padding: calc(var(--dd-unit) * 2) var(--dd-zero);
+  border-color: var(--dd-docs-hint-border);
+  border-radius: var(--dd-docs-frame-radius);
+  background: var(--dd-docs-hint-surface);
+  box-shadow: var(--dd-docs-hint-shadow);
+  color: var(--dd-docs-hint-text);
+  font-size: var(--dd-text-sm);
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-chord-hint-prefix"] {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 1.5);
+  padding: var(--dd-zero) calc(var(--dd-unit) * 2.5) calc(var(--dd-unit) * 1.5);
+  color: var(--dd-docs-hint-muted);
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-chord-hint-prefix"]::after {
+  content: "then";
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-chord-hint-option"] {
+  gap: calc(var(--dd-unit) * 2);
+  block-size: calc(var(--dd-unit) * 6);
+  padding-inline: calc(var(--dd-unit) * 2.5);
+}
+
+[data-variant="keymap-sequence"] [data-slot="keymap-chord-hint"] [data-slot="kbd"] {
+  border-color: var(--dd-docs-hint-key-border);
+  background: var(--dd-docs-hint-key-surface);
+  color: var(--dd-docs-hint-text);
+}
+
+/* Keymap page, confirmation (variant="keymap-confirm", the Keymap D board): the order and its
+   actions, then a bar that reads the order's status until a command asks to be confirmed, when
+   Keymap.ConfirmPrompt replaces the status and the bar turns amber. The header's count is the
+   order's stage, tinted by it. */
+[data-variant="keymap-confirm"] {
+  --dd-docs-frame-width: var(--dd-docs-confirm-width);
+}
+
+[data-variant="keymap-confirm"] > [data-slot="frame-body"]:empty {
+  min-block-size: calc(var(--dd-docs-order-height) + var(--dd-docs-prompt-height));
+}
+
+[data-variant="keymap-confirm"] [data-slot="frame-count"] {
+  padding-inline: calc(var(--dd-unit) * 1.5);
+  border-radius: var(--dd-docs-tag-radius);
+  background: var(--dd-docs-warning-surface);
+  color: var(--dd-color-warning);
+  font-family: var(--dd-font-sans);
+  font-size: var(--dd-text-xs);
+  font-weight: var(--dd-font-weight-medium);
+  line-height: var(--dd-docs-pill-leading);
+}
+
+[data-variant="keymap-confirm"]:has([data-stage="approved"]) [data-slot="frame-count"] {
+  background: var(--dd-docs-positive-surface);
+  color: var(--dd-color-positive);
+}
+
+[data-variant="keymap-confirm"]:has([data-stage="rejected"]) [data-slot="frame-count"] {
+  background: var(--dd-docs-negative-surface);
+  color: var(--dd-color-negative);
+}
+
+[data-variant="keymap-confirm"] [data-slot="keymap-scope"] {
+  display: flex;
+  flex-direction: column;
+}
+
+[data-variant="keymap-confirm"] [data-slot="keymap-scope"]:focus-visible {
+  outline: var(--dd-focus-width) solid var(--dd-color-focus);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  column-gap: calc(var(--dd-unit) * 2);
+  box-sizing: border-box;
+  block-size: var(--dd-docs-order-height);
+  padding: calc(var(--dd-unit) * 3.5) calc(var(--dd-unit) * 4);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] > [data-slot="cell-name"] {
+  flex-basis: var(--dd-full);
+  font-size: var(--dd-docs-order-title-size);
+  font-weight: var(--dd-font-weight-semibold);
+  line-height: var(--dd-docs-order-title-leading);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] > [data-slot="cell-note"] {
+  flex-basis: var(--dd-full);
+  margin-block: calc(var(--dd-unit) * 0.5) calc(var(--dd-unit) * 2.5);
+  font-size: var(--dd-text-sm);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] > button {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 2);
+  block-size: var(--dd-control-height);
+  padding-inline: calc(var(--dd-unit) * 2.5);
+  border: var(--dd-border-width) solid var(--dd-color-border);
+  border-radius: var(--dd-radius);
+  background: var(--dd-color-surface);
+  color: var(--dd-color-text);
+  font: var(--dd-font-weight-medium) var(--dd-font-size) / var(--dd-line-height) var(--dd-font-sans);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] > button[data-tone="negative"] {
+  color: var(--dd-color-danger);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] > button[data-tone="quiet"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--dd-color-text-muted);
+  font-weight: var(--dd-weight-normal);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order"] > button:focus-visible {
+  outline: var(--dd-focus-width) solid var(--dd-color-focus);
+  outline-offset: var(--dd-border-width);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order-prompt"] {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  block-size: var(--dd-docs-prompt-height);
+  padding-inline: var(--dd-docs-frame-padding);
+  border-block-start: var(--dd-border-width) solid var(--dd-color-border-muted);
+  background: var(--dd-color-surface-muted);
+}
+
+[data-variant="keymap-confirm"] [data-slot="order-prompt"] > [data-slot="cell-note"] {
+  font-size: var(--dd-text-sm);
+}
+
+[data-variant="keymap-confirm"]
+  [data-slot="order-prompt"]:has([data-slot="keymap-confirm-prompt"]) {
+  border-block-start-color: var(--dd-docs-prompt-border);
+  background: var(--dd-color-highlight);
+}
+
+[data-variant="keymap-confirm"]
+  [data-slot="order-prompt"]:has([data-slot="keymap-confirm-prompt"])
+  > [data-slot="cell-note"] {
+  display: none;
+}
+
+[data-variant="keymap-confirm"] [data-slot="keymap-confirm-prompt"] {
+  flex: auto;
+  flex-wrap: nowrap;
+  gap: calc(var(--dd-unit) * 1.5);
+  padding: var(--dd-zero);
+  border: var(--dd-zero);
+  border-radius: var(--dd-zero);
+  background: transparent;
+}
+
+[data-variant="keymap-confirm"] [data-slot="keymap-confirm-prompt-text"] {
+  margin-inline-end: auto;
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+/* The parts put the key first; the board reads the label first. */
+[data-variant="keymap-confirm"]
+  :is([data-slot="keymap-confirm-prompt-confirm"], [data-slot="keymap-confirm-prompt-cancel"]) {
+  flex-direction: row-reverse;
+  gap: calc(var(--dd-unit) * 1.5);
+  block-size: var(--dd-docs-prompt-button-height);
+  min-block-size: var(--dd-zero);
+  padding-inline: calc(var(--dd-unit) * 2);
+  font-size: var(--dd-text-sm);
+  font-weight: var(--dd-font-weight-medium);
+  line-height: var(--dd-kbd-line-height);
+}
+
+[data-variant="keymap-confirm"] [data-slot="keymap-confirm-prompt-confirm"] {
+  border-color: var(--dd-docs-prompt-confirm-surface);
+  background: var(--dd-docs-prompt-confirm-surface);
+  color: var(--dd-docs-prompt-confirm-text);
+}
+
+[data-variant="keymap-confirm"] [data-slot="keymap-confirm-prompt-confirm"] [data-slot="kbd"] {
+  border-color: var(--dd-docs-prompt-confirm-key-border);
+  background: var(--dd-docs-prompt-confirm-key-surface);
+  color: var(--dd-docs-prompt-confirm-text);
+}
+
 /* Table page (variant="table"): the quote board. Header and rows space their cells with a gap
    instead of cell padding; rows are divided by a hairline, and the viewport shows the header
    and eleven rows. Group total rows (the top level) sit on the muted surface. */

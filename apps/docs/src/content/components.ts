@@ -19,6 +19,21 @@ export const components = {
       "Give each Tree, List or Tabs instance a labelled key layer. Drive several cursors anywhere on the page, with live legends, chord hints and confirmation prompts.",
     types:
       "The registry's Keymap.Provider owns a browser kernel and disposes it on unmount. Pass a stable KeysOptions object. With your own kernel, use Densedash.Provider instead. Pass keys: { label, preset?, overrides? } to useTree, useList, Tabs.Root or useCommands for page-wide dispatch. A layer preset replaces its entire map; omitted commands are unbound. Without a preset, overrides replace individual kernel bindings. Omit keys to keep focus-scoped behavior. shiftedTreePreset supplies Shift+J/K/L/H. Duplicate layer keys throw with both owners. Augment core's Register.commands for app-wide command ids. Keymap.Legend and Footer.Legend show one item per group using its short groupLabel, with keys side by side. Primary hints show by default; all includes secondary hints (and Keymap alternative keys). labels overrides group labels by id; explicit groupBy/filter take precedence and see secondary entries too. Instance layer names win over group labels.",
+    /** More examples under the live one, each a preview named after its examples/ file. */
+    examples: [
+      {
+        name: "keymap-sequence",
+        title: "Key sequences",
+        description:
+          "A preset key can be a sequence: click a page and press g, and Keymap.ChordHint lists the keys that can follow until you press one, press any other key, or wait a second.",
+      },
+      {
+        name: "keymap-confirm",
+        title: "Confirmation",
+        description:
+          "A command with confirm asks before it runs: press a or x, and Keymap.ConfirmPrompt waits for Enter to run it or Escape to cancel.",
+      },
+    ],
     parts: [
       ["Provider", "context · no element", "Registry wrapper; keys?: KeysOptions"],
       ["Scope", "div · keymap-scope", "data-scope, data-active, data-page"],

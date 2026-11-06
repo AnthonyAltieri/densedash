@@ -6,21 +6,20 @@ import type { ElementProps } from "../merge-props.js";
 import type { NormalizedProps } from "../normalize-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
-import { useStore } from "../use-store.js";
 import {
   EXPANDED,
   HIGHLIGHTED,
   partStyle,
   RowContext,
-  rowPosition,
   rowProps,
-  rowToken,
   SELECTED,
   toggleProps,
   useRowContext,
+  useRowPosition,
+  useRowToken,
   useTreeContext,
 } from "./context.js";
-import type { TreeRow, TreeSnapshot } from "./handle.js";
+import type { TreeRow } from "./handle.js";
 
 export interface RowState {
   readonly highlighted: boolean;
@@ -53,15 +52,10 @@ export function Row({
 }: RowProps<unknown>): ReactElement {
   const { handle, core } = useTreeContext("<Tree.Row>");
   const id = row.id;
-  const select = useMemo(() => (state: TreeSnapshot<unknown>) => rowToken(state, id), [id]);
-  const token = useStore(handle.state, select);
-  // Position has its own subscription: an insertion changes every sibling's set size, which
+  const token = useRowToken(handle.state, id);
+  // Position is read apart from the token: an insertion changes every sibling's set size, which
   // re-renders this part but not the row's content.
-  const selectPosition = useMemo(
-    () => (state: TreeSnapshot<unknown>) => rowPosition(state, id),
-    [id],
-  );
-  const position = useStore(handle.state, selectPosition);
+  const position = useRowPosition(handle.state, id);
   const own: NormalizedProps =
     core === null ? { "data-slot": "tree-row" } : rowProps(core, row, token, position);
   const context = useMemo(() => ({ row, token }), [row, token]);

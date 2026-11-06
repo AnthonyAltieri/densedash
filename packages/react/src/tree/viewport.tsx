@@ -8,7 +8,7 @@ import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
 import { tanstackVirtual } from "../virtual/tanstack-virtual.js";
 import type { VirtualOptions } from "../virtual/tanstack-virtual.js";
-import { useTreeContext } from "./context.js";
+import { rowIndex, useTreeContext } from "./context.js";
 import { getInternals } from "./handle.js";
 import type { TreeHandleBase, TreeRow, TreeSnapshot } from "./handle.js";
 
@@ -162,8 +162,11 @@ function createAllRows(locate: { current: (index: number) => HTMLElement | null 
   } satisfies Virtualizer;
 }
 
-// The first mounted row whose bottom edge is below the viewport's top edge (rows are in order).
-function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
+// The first mounted row whose bottom edge is below the viewport's top edge (rows are in order),
+// and its offset among the mounted rows.
+function firstVisibleRow(
+  viewport: HTMLElement,
+): { readonly element: HTMLElement; readonly offset: number } | null {
   const rows = viewport.querySelectorAll<HTMLElement>(
     '[data-slot="tree-row"], [data-slot="table-row"]',
   );
@@ -175,7 +178,8 @@ function firstVisibleRow(viewport: HTMLElement): HTMLElement | null {
     if (rows[middle]!.getBoundingClientRect().bottom <= top) low = middle + 1;
     else high = middle;
   }
-  return rows[low] ?? null;
+  const element = rows[low];
+  return element === undefined ? null : { element, offset: low };
 }
 
 const CAN_EXPAND = 1;
@@ -203,18 +207,49 @@ interface SlotProps {
 // sibling's set size, and re-rendering them all costs several frames at thousands of rows.
 // `Tree.Row` subscribes to its set position and `Table.Row` to its index instead. Row state
 // (highlight, selection) reaches each row through its own subscription.
-const RowSlot = memo(
-  function RowSlot({ row, render }: SlotProps): ReactNode {
-    return render(row);
-  },
-  (previous, next) =>
+function sameSlot(previous: SlotProps, next: SlotProps): boolean {
+  return (
     previous.render === next.render &&
     previous.flags === next.flags &&
     previous.row.id === next.row.id &&
     Object.is(previous.row.original, next.row.original) &&
     previous.row.depth === next.row.depth &&
-    previous.row.parentId === next.row.parentId,
-);
+    previous.row.parentId === next.row.parentId
+  );
+}
+
+const RowSlot = memo(function RowSlot({ row, render }: SlotProps): ReactNode {
+  return render(row);
+}, sameSlot);
+
+type Slot = ReactElement<SlotProps>;
+
+// A viewport's last slots for each row function, by row id. An unchanged row reuses its
+// element, so React skips it without comparing props: at thousands of rows, that is most of
+// the viewport's render after an insertion. Each viewport keeps its own, holding only the rows
+// it last rendered, so only a row that stays mounted reuses its element, as `memo` would.
+type Slots = WeakMap<object, ReadonlyMap<string, Slot>>;
+
+function rowSlots(
+  slots: Slots,
+  rows: readonly TreeRow<unknown>[],
+  start: number,
+  end: number,
+  render: (row: TreeRow<unknown>) => ReactNode,
+): Slot[] {
+  const previous = slots.get(render);
+  const next = new Map<string, Slot>();
+  const items = rows.slice(start, end).map((row) => {
+    const props: SlotProps = { row, flags: rowFlags(row), render };
+    const old = previous?.get(row.id);
+    const slot =
+      old !== undefined && sameSlot(old.props, props) ? old : <RowSlot key={row.id} {...props} />;
+    next.set(row.id, slot);
+    return slot;
+  });
+  slots.set(render, next);
+  return items;
+}
 
 interface BuiltIn {
   readonly key: string | null;
@@ -313,6 +348,12 @@ export function Viewport<T>({
   // The header's height as last passed to `sync`.
   const headerStart = useRef(0);
 
+  // The visible index of the first mounted row, for the anchor to find rows by position.
+  const mountedStart = useRef(0);
+  useLayoutEffect(() => {
+    mountedStart.current = start;
+  });
+
   useLayoutEffect(() => {
     locate.current = (index) => {
       const row = tree.state.get().rows[index];
@@ -397,16 +438,25 @@ export function Viewport<T>({
           return;
         }
       }
-      const target =
-        (before.highlighted === null
-          ? null
-          : rowElement(core, element.ownerDocument, before.highlighted)) ??
-        firstVisibleRow(element);
+      const owner = element.ownerDocument;
+      const { highlighted } = before;
+      const highlight = highlighted === null ? null : rowElement(core, owner, highlighted);
+      const first = highlight === null ? firstVisibleRow(element) : null;
+      const target = highlight ?? first?.element ?? null;
       if (target === null || !element.contains(target)) return;
-      const row = before.rows.find((row) => core?.getRowProps(row.id).id === target.id);
-      if (row === undefined) return;
+      // Find the row from its id or mounted position rather than computing every row's element
+      // id, which costs milliseconds per insertion at thousands of rows.
+      const guess =
+        highlighted !== null && highlight !== null
+          ? before.rows[rowIndex(before, highlighted)]
+          : before.rows[mountedStart.current + (first?.offset ?? 0)];
+      const id =
+        guess !== undefined && rowElement(core, owner, guess.id) === target
+          ? guess.id
+          : before.rows.find((row) => core?.getRowProps(row.id).id === target.id)?.id;
+      if (id === undefined) return;
       anchor.current = {
-        id: row.id,
+        id,
         top: target.getBoundingClientRect().top - element.getBoundingClientRect().top,
       };
     });
@@ -455,12 +505,10 @@ export function Viewport<T>({
   }, [tree, highlighted, strategy, element, rows]);
 
   const renderRow = children as (row: TreeRow<unknown>) => ReactNode;
+  const [slots] = useState((): Slots => new WeakMap());
   const items = useMemo(
-    () =>
-      rows
-        .slice(start, end)
-        .map((row) => <RowSlot key={row.id} row={row} flags={rowFlags(row)} render={renderRow} />),
-    [rows, start, end, renderRow],
+    () => rowSlots(slots, rows, start, end, renderRow),
+    [slots, rows, start, end, renderRow],
   );
   const state: ViewportState = { virtualized: active !== undefined };
   return useRender({

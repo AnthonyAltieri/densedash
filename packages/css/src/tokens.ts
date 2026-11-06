@@ -39,6 +39,8 @@ const light = {
   "--dd-color-text-muted": "var(--dd-base-neutral-600)",
   "--dd-color-border": "var(--dd-base-neutral-300)",
   "--dd-color-border-muted": "var(--dd-base-neutral-200)",
+  /** The faintest rule, such as between child rows on a muted band. */
+  "--dd-color-border-subtle": "var(--dd-base-neutral-100)",
   "--dd-color-accent": "var(--dd-base-blue-700)",
   "--dd-color-highlight": "var(--dd-base-amber-100)",
   "--dd-color-selection": "var(--dd-base-blue-100)",
@@ -59,6 +61,7 @@ const dark = {
   "--dd-color-text-muted": "var(--dd-base-neutral-400)",
   "--dd-color-border": "var(--dd-base-neutral-700)",
   "--dd-color-border-muted": "var(--dd-base-neutral-800)",
+  "--dd-color-border-subtle": "var(--dd-base-neutral-900)",
   "--dd-color-accent": "var(--dd-base-blue-300)",
   "--dd-color-highlight": "var(--dd-base-amber-950)",
   "--dd-color-selection": "var(--dd-base-blue-950)",
@@ -97,6 +100,15 @@ const components = {
   "--dd-app-shell-padding-inline": "0.875rem",
   "--dd-app-shell-gap": "0.625rem",
   "--dd-app-shell-nav-padding": "0.375rem",
+  /** The sidebar rows' gap between indent, chevron and label, and their indent per level. */
+  "--dd-app-shell-row-gap": "0.375rem",
+  "--dd-app-shell-indent": "0.875rem",
+  /** The toggles' chevron: a mask image painted in the row's text colour, turned when open. */
+  "--dd-app-shell-chevron":
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' fill='none' stroke='black' stroke-width='1.5'%3E%3Cpath d='M4.5 3 7.5 6 4.5 9'/%3E%3C/svg%3E\")",
+  "--dd-app-shell-chevron-size": "0.75rem",
+  "--dd-app-shell-chevron-color": "currentcolor",
+  "--dd-app-shell-chevron-open-rotate": "90deg",
   "--dd-app-shell-sidebar-width": "14.5rem",
   "--dd-app-shell-sidebar-min-width": "12.5rem",
   "--dd-app-shell-list-width": "23.75rem",

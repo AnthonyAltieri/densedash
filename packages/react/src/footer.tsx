@@ -40,6 +40,11 @@ export interface LegendProps extends ElementAttributes<HTMLDivElement>, PartProp
    * label. Defaults to the instance's `layer`, then the command's `group`.
    */
   readonly groupBy?: ((entry: KeymapEntry) => string | undefined) | undefined;
+  /**
+   * Item names, as `groupBy` returns them, to list first and in this order, such as
+   * `["sidebar", "list"]`. Other items follow in keymap precedence order. Defaults to none.
+   */
+  readonly order?: readonly string[] | undefined;
 }
 
 /** One legend item: the entries it joins, in keymap precedence order. */
@@ -68,6 +73,15 @@ function legendItems(
     else items.set(id, { id, label: group ?? entry.label, group, entries: [entry] });
   }
   return [...items.values()];
+}
+
+// Named items move to the front in the given order; the rest keep their order after them.
+function orderItems(items: LegendItem[], order: readonly string[] | undefined): LegendItem[] {
+  if (order === undefined || order.length === 0) return items;
+  const names = new Set(order);
+  const first = [...names].flatMap((name) => items.filter((item) => item.group === name));
+  const rest = items.filter((item) => item.group === undefined || !names.has(item.group));
+  return [...first, ...rest];
 }
 
 // Three or more consecutive single digits read as a range, `1–3`.
@@ -100,6 +114,7 @@ function itemKeys(entries: readonly KeymapEntry[]): ReactNode {
 export function Legend({
   filter,
   groupBy = byGroup,
+  order,
   render,
   ref,
   className,
@@ -108,7 +123,10 @@ export function Legend({
 }: LegendProps): ReactElement {
   const kernel = useKernelFor("<Footer.Legend>");
   const keymap = useStore(kernel.commands.keymap);
-  const items = legendItems(filter === undefined ? keymap : keymap.filter(filter), groupBy);
+  const items = orderItems(
+    legendItems(filter === undefined ? keymap : keymap.filter(filter), groupBy),
+    order,
+  );
   const state: LegendState = { empty: items.length === 0 };
   const children = items.map((item) => (
     <span

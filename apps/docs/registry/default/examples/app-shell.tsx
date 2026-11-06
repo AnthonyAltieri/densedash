@@ -403,6 +403,15 @@ function legendGroup(item: KeymapEntry): string | undefined {
   return item.layer ?? item.group;
 }
 
+/** The design's legend order: the sidebar's keys, then the list's, then the detail tabs. */
+const legendOrder = [
+  "sidebar",
+  "open · close group",
+  "list",
+  "expand · collapse row",
+  "detail tabs",
+] as const;
+
 function describeSidebar(command: string, before: Moment, after: Moment): string {
   const from = pathTo(before.highlighted ?? "").at(-1);
   const to = pathTo(after.highlighted ?? "").at(-1);
@@ -411,6 +420,8 @@ function describeSidebar(command: string, before: Moment, after: Moment): string
   switch (command) {
     case "tree.next":
     case "tree.prev":
+      if (from === to)
+        return `sidebar: nothing ${command === "tree.next" ? "below" : "above"} ${from.label}`;
       return `sidebar: ${to.label}${to.children === undefined ? "" : " (group)"}`;
     case "tree.expand":
       if (!group) return `${from.label} has nothing to open`;
@@ -440,6 +451,8 @@ function describeList(
   switch (command) {
     case "tree.next":
     case "tree.prev": {
+      if (from === to)
+        return `list: nothing ${command === "tree.next" ? "below" : "above"} ${from.name}`;
       const inside = parentOf(rows, to);
       return `list: ${to.name}${inside === undefined ? "" : ` (inside ${inside.name})`}`;
     }
@@ -694,7 +707,7 @@ function Shell() {
           </Tabs.Panel>
         </AppShell.Detail>
       </AppShell.Panes>
-      <AppShell.Footer groupBy={legendGroup}>
+      <AppShell.Footer groupBy={legendGroup} order={legendOrder}>
         {report === null ? (
           "Try j, k, ⇧J, ⇧K, l, ⇧L anywhere"
         ) : (

@@ -55,16 +55,16 @@ export interface FooterProps
   extends
     ElementAttributes<HTMLElement>,
     PartProps<FooterState>,
-    Pick<LegendProps, "filter" | "groupBy"> {
+    Pick<LegendProps, "filter" | "groupBy" | "order"> {
   /** The status slot at the end of the row, such as the last key and what it did. */
   readonly children?: ReactNode | undefined;
 }
 
 /** `<Footer.Root>` with the live key legend and, when given children, a status slot. */
-export function Footer({ filter, groupBy, children, ...props }: FooterProps): ReactElement {
+export function Footer({ filter, groupBy, order, children, ...props }: FooterProps): ReactElement {
   return (
     <Footers.Root {...props}>
-      <Footers.Legend filter={filter} groupBy={groupBy} />
+      <Footers.Legend filter={filter} groupBy={groupBy} order={order} />
       {children === undefined ? null : <Footers.Status>{children}</Footers.Status>}
     </Footers.Root>
   );

@@ -27,10 +27,8 @@
     overflow: auto;
   }
 
-  /* The design's footer row is the footer's minimum height, with no extra block padding. */
   [data-slot="app-shell"] > [data-slot="footer"] {
     flex: none;
-    padding-block: 0;
   }
 
   /* Panes */
@@ -154,7 +152,12 @@
     padding: var(--dd-app-shell-nav-padding);
   }
 
+  /* The leading padding leaves room for the gap after the indent, which is empty at the top
+     level, so a top-level chevron sits at the row's padding. */
   [data-slot="app-shell-sidebar"] [data-slot="tree-row"] {
+    gap: var(--dd-app-shell-row-gap);
+    padding-inline: calc(var(--dd-cell-padding-inline) - var(--dd-app-shell-row-gap))
+      var(--dd-cell-padding-inline);
     border-radius: var(--dd-radius);
     color: var(--dd-color-text-secondary);
     cursor: pointer;
@@ -184,8 +187,31 @@
     font-weight: var(--dd-font-weight-semibold);
   }
 
+  [data-slot="app-shell-sidebar"] [data-slot="tree-indent"] {
+    inline-size: calc(var(--dd-depth) * var(--dd-app-shell-indent));
+  }
+
   [data-slot="app-shell-sidebar"] [data-slot="tree-toggle"] {
+    inline-size: var(--dd-app-shell-chevron-size);
+    block-size: var(--dd-app-shell-chevron-size);
     cursor: pointer;
+  }
+
+  /* Chevrons in both panes, drawn in the toggle's text colour; an app's own toggle children
+     replace them. */
+  [data-slot="app-shell-sidebar"] [data-slot="tree-toggle"]:empty::before,
+  [data-slot="app-shell-list"] [data-slot="tree-toggle"]:empty::before {
+    content: "";
+    inline-size: var(--dd-app-shell-chevron-size);
+    block-size: var(--dd-app-shell-chevron-size);
+    background: var(--dd-app-shell-chevron-color);
+    mask: var(--dd-app-shell-chevron) center / contain no-repeat;
+  }
+
+  [data-slot="app-shell-sidebar"] [data-slot="tree-toggle"][data-expanded]:empty::before,
+  [data-slot="app-shell-list"] [data-slot="tree-toggle"][data-expanded]:empty::before {
+    content: "";
+    rotate: var(--dd-app-shell-chevron-open-rotate);
   }
 
   /* List: parent rows with a toggle gutter, child rows in a muted band with a guide line. */
@@ -200,6 +226,7 @@
 
   [data-slot="app-shell-list"] [data-slot="tree-row"]:not([data-depth="0"]) {
     block-size: var(--dd-app-shell-child-row-height);
+    border-block-end-color: var(--dd-color-border-subtle);
     background: var(--dd-color-surface-muted);
     font-family: var(--dd-font-mono);
     font-size: var(--dd-app-shell-small-font-size);

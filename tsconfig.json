@@ -2,5 +2,5 @@
   "extends": "./tooling/tsconfig/base.json",
   "compilerOptions": { "types": ["node"], "jsx": "react-jsx" },
   "include": ["packages", "apps", "examples", "tooling", "vitest.config.ts"],
-  "exclude": ["**/dist", "**/node_modules", "tooling/type-bench"]
+  "exclude": ["**/dist", "**/node_modules", "tooling/type-bench", "**/*.test-d.ts"]
 }

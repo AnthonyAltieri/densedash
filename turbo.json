@@ -26,6 +26,7 @@
         "@densedash/core#build",
         "@densedash/css#build",
         "@densedash/react#build",
+        "@densedash/plugin-effect#build",
         "@densedash/plugin-tanstack-virtual#build"
       ]
     }

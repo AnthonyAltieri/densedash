@@ -10,7 +10,8 @@ export default defineConfig({
     ],
     typecheck: {
       include: ["packages/**/*.test-d.ts", "apps/**/*.test-d.ts", "examples/**/*.test-d.ts"],
-      tsconfig: "./tsconfig.json",
+      // App-specific Register augmentation must not constrain the unit tests or docs app.
+      tsconfig: "./tsconfig.test-d.json",
     },
   },
 });

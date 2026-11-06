@@ -1,4 +1,4 @@
-import { useContext, useId, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useContext, useId, useLayoutEffect, useRef, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 import type { ChangeDetails, KeyLayer } from "@densedash/core";
 import type { ElementAttributes } from "../element-attributes.js";
@@ -104,6 +104,11 @@ export function Root<const Value extends string>({
   );
   const selected: string | undefined = value ?? uncontrolled;
   const refocus = useRef(false);
+  const [lists, setLists] = useState<readonly string[]>([]);
+  const registerList = useCallback((list: string) => {
+    setLists((current) => [...current, list]);
+    return () => setLists((current) => current.filter((candidate) => candidate !== list));
+  }, []);
 
   const select = (next: string, reason: TabsChangeReason, event: Event | undefined) => {
     const item = items.find((candidate) => candidate.value === next);
@@ -120,7 +125,16 @@ export function Root<const Value extends string>({
   const tabStop = items.some((item) => item.value === selected && item.disabled !== true)
     ? selected
     : firstEnabled(items);
-  const context: TabsContextValue = { id, label, items, value: selected, tabStop, select };
+  const context: TabsContextValue = {
+    id,
+    label,
+    items,
+    value: selected,
+    tabStop,
+    select,
+    lists,
+    registerList,
+  };
   const state = (scope: ScopeState): TabsRootState => ({
     active: scope.active,
     value: selected ?? "",

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import type { ReactElement, ReactNode } from "react";
 import type { ElementAttributes } from "../element-attributes.js";
 import { useKernelFor } from "../context.js";
@@ -7,7 +7,7 @@ import { mergeProps } from "../merge-props.js";
 import { useRender } from "../use-render.js";
 import type { PartProps } from "../use-render.js";
 import { useStore } from "../use-store.js";
-import { numbered, panelId, tabId, useTabsContext } from "./context.js";
+import { TabsListContext, numbered, panelId, tabId, useTabsContext } from "./context.js";
 
 export interface TabsTabState {
   readonly selected: boolean;
@@ -45,6 +45,7 @@ export function Tab({
     tabStop,
     select,
   } = useTabsContext("<Tabs.Tab>");
+  const prefix = useContext(TabsListContext) ?? id;
   const index = items.findIndex((item) => item.value === value);
   const item = items[index];
   const command = index >= 0 && index < numbered ? `tabs.select.${index + 1}` : undefined;
@@ -75,7 +76,7 @@ export function Tab({
           "data-slot": "tabs-tab",
           type: "button",
           role: "tab",
-          id: tabId(id, index),
+          id: tabId(prefix, index),
           "aria-selected": state.selected,
           "aria-controls": panelId(id, index),
           // Roving tab stop: Tab reaches one tab, and the list's arrow-key commands move focus.

@@ -165,6 +165,20 @@ function Diverging({ value, max }: { readonly value: number; readonly max: numbe
   );
 }
 
+/** The key to `Diverging`'s colours, for a footer: a swatch each for long and short. */
+function DivergingKey(): ReactElement {
+  return (
+    <span data-slot="cell-diverging-key">
+      <span data-slot="cell-diverging-key-item" data-side="long">
+        long
+      </span>
+      <span data-slot="cell-diverging-key-item" data-side="short">
+        short
+      </span>
+    </span>
+  );
+}
+
 /** A large, centred sample with its name under it and, optionally, the code that makes it. */
 function Specimen({
   name,
@@ -207,6 +221,7 @@ export const Cell = {
   Chip,
   Bar,
   Diverging,
+  DivergingKey,
   Specimen,
   Figure,
 };

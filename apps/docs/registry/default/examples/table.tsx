@@ -1,70 +1,57 @@
-import { useState } from "react";
-import { Keymap } from "../ui/keymap.js";
+import { useStore } from "@densedash/react";
+import { Cell } from "../docs/cell.js";
+import { maxVolume, positionLimit, quotes } from "../docs/data.js";
+import type { Quote } from "../docs/data.js";
+import { Frame } from "../docs/frame.js";
 import { Table, columns, useTable } from "../ui/table.js";
 
-interface Position {
-  symbol: string;
-  quantity: number;
-  pnl: number;
-}
-const sample: Position[] = [
-  { symbol: "AAPL", quantity: 120, pnl: 842.5 },
-  { symbol: "MSFT", quantity: 80, pnl: -126.75 },
-  { symbol: "NVDA", quantity: 240, pnl: 1640 },
-];
-// A generated book for the large size; the same every time.
-const generate = (count: number): Position[] =>
-  Array.from({ length: count }, (_, index) => ({
-    symbol: `SYM${String(index + 1).padStart(5, "0")}`,
-    quantity: ((index * 37) % 500) + 10,
-    pnl: (((index * 7919) % 4001) - 2000) / 4,
-  }));
-const sizes = [3, 10_000] as const;
-
-const col = columns<Position>();
+const col = columns<Quote>();
 const fields = [
-  col.accessor("symbol", { header: "Symbol" }),
-  col.accessor("quantity", { header: "Qty", numeric: true }),
-  col.accessor("pnl", { header: "P&L", numeric: true, format: (value) => value.toFixed(2) }),
+  col.accessor("name", { header: "Name" }),
+  col.accessor("last", {
+    header: "Last",
+    numeric: true,
+    width: "68px",
+    format: (last) => <Cell.Price value={last} />,
+  }),
+  col.accessor("change", {
+    header: "Change",
+    numeric: true,
+    width: "64px",
+    sort: "desc",
+    format: (change) => <Cell.Chip value={change} />,
+  }),
+  col.accessor("volume", {
+    header: "Volume, M",
+    numeric: true,
+    width: "124px",
+    sort: "desc",
+    format: (volume) => <Cell.Bar value={volume} max={maxVolume} />,
+  }),
+  col.accessor("position", {
+    header: "Net position",
+    numeric: true,
+    width: "116px",
+    sort: "desc",
+    format: (position) => <Cell.Diverging value={position} max={positionLimit} />,
+  }),
 ];
-
-function Positions() {
-  const [items, setItems] = useState(sample);
-  const table = useTable({ data: items, getRowId: (item) => item.symbol, columns: fields });
-  return (
-    <div data-slot="example-stack">
-      <label>
-        Rows{" "}
-        <select
-          value={items.length}
-          onChange={(event) => {
-            const size = Number(event.target.value);
-            setItems(size === sample.length ? sample : generate(size));
-          }}
-        >
-          {sizes.map((size) => (
-            <option key={size} value={size}>
-              {size.toLocaleString("en-US")}
-            </option>
-          ))}
-        </select>
-      </label>
-      <Table.Root table={table} aria-label="Open positions">
-        {/* `virtual` mounts only the rows in view; the viewport needs a bounded height. */}
-        <Table.Viewport
-          table={table}
-          virtual
-          style={{ maxBlockSize: "calc(var(--dd-row-height) * 12)" }}
-        />
-      </Table.Root>
-    </div>
-  );
-}
 
 export default function TableExample() {
+  const table = useTable({
+    data: quotes,
+    getRowId: (quote) => quote.id,
+    getSubRows: (quote) => quote.children, // desk › sector › instrument
+    expanded: { defaultValue: { equities: true, ustech: true, europe: true } },
+    highlighted: { defaultValue: "nvda" },
+    columns: fields,
+  });
+  const { rows } = useStore(table.state);
   return (
-    <Keymap.Provider>
-      <Positions />
-    </Keymap.Provider>
+    <Frame title="Quote board" count={rows.length} status={<Cell.DivergingKey />}>
+      <Table.Root table={table} aria-label="Quote board">
+        <Table.Viewport table={table} />
+      </Table.Root>
+    </Frame>
   );
 }

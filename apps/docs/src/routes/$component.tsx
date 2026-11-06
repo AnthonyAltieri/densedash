@@ -78,7 +78,10 @@ function ComponentPage() {
             "Focus the example to activate its keys. Hover the code to see inferred types. This imports the exact wrappers installed by the registry."
           )}
         </p>
-        <ComponentPreview name={name} defaultLayout={name === "app-shell" ? "tabs" : "split"} />
+        <ComponentPreview
+          name={name}
+          defaultLayout={name === "app-shell" || name === "table" ? "tabs" : "split"}
+        />
         <p data-slot="footnote">
           Frame and Cell are docs-only presentation helpers, not part of the registry; read{" "}
           <a

@@ -199,6 +199,43 @@ export function totalsOf(row: Desk): Totals {
   };
 }
 
+/**
+ * A row of the quote board: a desk or a sector carries its instruments' totals and has
+ * `children`; an instrument is named by its ticker and has a last price.
+ */
+export interface Quote {
+  readonly id: string;
+  /** The desk or sector name, or the instrument's ticker. */
+  readonly name: string;
+  /** Last price; groups have none. */
+  readonly last?: number;
+  /** Change in percent; a group's is its instruments' mean. */
+  readonly change: number;
+  /** Volume in millions; a group's is its instruments' sum. */
+  readonly volume: number;
+  /** Net position; a group's is its instruments' sum. */
+  readonly position: number;
+  readonly children?: readonly Quote[];
+}
+
+function quoteOf(row: Desk): Quote {
+  const totals = totalsOf(row);
+  if (row.children === undefined) {
+    return {
+      id: row.id,
+      name: row.code ?? row.name,
+      ...totals,
+      ...(row.last === undefined ? {} : { last: row.last }),
+    };
+  }
+  return { id: row.id, name: row.name, ...totals, children: row.children.map(quoteOf) };
+}
+
+/** The equities and energy desks as quote rows: desk › sector › instrument, with group totals. */
+export const quotes: readonly Quote[] = desks
+  .filter((desk) => desk.id === "equities" || desk.id === "energy")
+  .map(quoteOf);
+
 /** An order queue: a flat list. */
 export interface Queue {
   readonly id: string;

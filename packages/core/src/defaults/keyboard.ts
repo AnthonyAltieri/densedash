@@ -130,11 +130,10 @@ export function createKeyboardPort(): KeyboardPort {
       let currentHandler = handler;
       const targetDocument = () => {
         const target = currentOptions.target;
-        return target && "document" in target
-          ? target.document
-          : target && "ownerDocument" in target
-            ? target.ownerDocument
-            : (target ?? (typeof document === "undefined" ? undefined : document));
+        if (target && "document" in target) return target.document;
+        // Document also has ownerDocument, but its value is null.
+        if (target && "defaultView" in target) return target;
+        return target?.ownerDocument ?? (typeof document === "undefined" ? undefined : document);
       };
       const editable = (element: Element | null | undefined): boolean => {
         while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;

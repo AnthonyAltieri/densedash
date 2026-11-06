@@ -1,6 +1,7 @@
 /* <Cell.*>: cells of example rows. Docs only; variables in src/styles.css. */
 [data-slot="cell-code"],
 [data-slot="cell-price"],
+[data-slot="cell-total"],
 [data-slot="cell-change"],
 [data-slot="cell-chip"],
 [data-slot="cell-bar"],
@@ -43,11 +44,13 @@
 }
 
 [data-slot="cell-price"],
+[data-slot="cell-total"],
 [data-slot="cell-count"] {
   margin-inline-start: auto;
 }
 
-[data-slot="cell-price"] {
+[data-slot="cell-price"],
+[data-slot="cell-total"] {
   flex: none;
   text-align: end;
 }

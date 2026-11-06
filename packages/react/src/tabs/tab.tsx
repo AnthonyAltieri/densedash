@@ -37,13 +37,20 @@ export function Tab({
   ...props
 }: TabsTabProps): ReactElement {
   const { commands, ports } = useKernelFor("<Tabs.Tab>");
-  const { id, items, value: selected, tabStop, select } = useTabsContext("<Tabs.Tab>");
+  const {
+    id,
+    commandScope,
+    items,
+    value: selected,
+    tabStop,
+    select,
+  } = useTabsContext("<Tabs.Tab>");
   const index = items.findIndex((item) => item.value === value);
   const item = items[index];
   const command = index >= 0 && index < numbered ? `tabs.select.${index + 1}` : undefined;
   // The keymap republishes after overrides change, so it is the signal to read the keys again.
   const hotkey = useStore(commands.keymap, () => {
-    const [first] = command === undefined ? [] : commands.keys(command);
+    const [first] = command === undefined ? [] : commands.keys(command, commandScope);
     return first === undefined ? undefined : ports.keyboard.format(first);
   });
 

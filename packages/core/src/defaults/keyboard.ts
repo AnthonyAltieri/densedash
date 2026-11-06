@@ -8,7 +8,7 @@ import {
   toHotkeyRegistrationView,
   validateHotkey,
 } from "@tanstack/hotkeys";
-import type { HotkeyRegistrationHandle } from "@tanstack/hotkeys";
+import type { HotkeyOptions, HotkeyRegistrationHandle } from "@tanstack/hotkeys";
 import type {
   KeyboardBindingOptions,
   KeyboardHandler,
@@ -41,8 +41,8 @@ export function createKeyboardPort(): KeyboardPort {
   const register = manager.register as unknown as (
     hotkey: KeyboardHotkey,
     handler: KeyboardHandler,
-    options: KeyboardBindingOptions & { conflictBehavior: "allow" },
-  ) => HotkeyRegistrationHandle<KeyboardBindingOptions>;
+    options: HotkeyOptions & { conflictBehavior: "allow" },
+  ) => HotkeyRegistrationHandle<HotkeyOptions>;
   const platform = detectPlatform();
   const releases = new Set<() => void>();
   let disposed = false;
@@ -128,13 +128,61 @@ export function createKeyboardPort(): KeyboardPort {
       requireLive();
       let currentOptions: KeyboardBindingOptions = options;
       let currentHandler = handler;
-      let handle = register.call(manager, hotkey, handler, {
-        ...options,
-        conflictBehavior: "allow",
-      });
+      const targetDocument = () => {
+        const target = currentOptions.target;
+        return target && "document" in target
+          ? target.document
+          : target && "ownerDocument" in target
+            ? target.ownerDocument
+            : (target ?? (typeof document === "undefined" ? undefined : document));
+      };
+      const editable = (element: Element | null | undefined): boolean => {
+        while (element?.shadowRoot?.activeElement) element = element.shadowRoot.activeElement;
+        return (
+          element?.matches("input, textarea, select") === true ||
+          (element !== null &&
+            element !== undefined &&
+            "isContentEditable" in element &&
+            element.isContentEditable === true)
+        );
+      };
+      const resolvedOptions = (): HotkeyOptions & { conflictBehavior: "allow" } => {
+        const { ignoreInputs, ...bindingOptions } = currentOptions;
+        return {
+          ...bindingOptions,
+          ...(ignoreInputs === undefined
+            ? {}
+            : { ignoreInputs: ignoreInputs === "editable" ? false : ignoreInputs }),
+          enabled:
+            currentOptions.enabled !== false &&
+            (ignoreInputs !== "editable" || !editable(targetDocument()?.activeElement)),
+          conflictBehavior: "allow",
+        };
+      };
+      let handle = register.call(manager, hotkey, handler, resolvedOptions());
+      let releaseFocus = () => {};
+      function watchFocus(): void {
+        releaseFocus();
+        if (currentOptions.ignoreInputs !== "editable") return;
+        const doc = targetDocument();
+        if (!doc) return;
+        const update = (event: FocusEvent) => {
+          const next = event.type === "focusout" ? event.relatedTarget : doc.activeElement;
+          const element = next instanceof (doc.defaultView?.Element ?? Element) ? next : null;
+          handle.setOptions({ enabled: currentOptions.enabled !== false && !editable(element) });
+        };
+        doc.addEventListener("focusin", update, true);
+        doc.addEventListener("focusout", update, true);
+        releaseFocus = () => {
+          doc.removeEventListener("focusin", update, true);
+          doc.removeEventListener("focusout", update, true);
+        };
+      }
+      watchFocus();
       let active = true;
       const dispose = own(() => {
         active = false;
+        releaseFocus();
         handle.unregister();
       });
       return {
@@ -146,14 +194,12 @@ export function createKeyboardPort(): KeyboardPort {
           // Hotkeys setOptions does not move a registration to a different target.
           if (currentOptions.target !== previousTarget) {
             handle.unregister();
-            handle = register.call(manager, hotkey, currentHandler, {
-              ...currentOptions,
-              conflictBehavior: "allow",
-            });
+            handle = register.call(manager, hotkey, currentHandler, resolvedOptions());
           } else {
             handle.callback = currentHandler;
-            handle.setOptions(nextOptions);
+            handle.setOptions(resolvedOptions());
           }
+          watchFocus();
         },
         dispose,
       };

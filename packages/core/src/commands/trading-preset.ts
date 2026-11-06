@@ -44,3 +44,11 @@ export const tradingPreset = definePreset({
   cancel: ["N", "Escape"],
   "p-home": [["G", "H"]],
 });
+
+/** A second Tree/List's complete layer: only the four shifted navigation keys. */
+export const shiftedTreePreset = definePreset({
+  "tree.next": ["Shift+J"],
+  "tree.prev": ["Shift+K"],
+  "tree.expand": ["Shift+L"],
+  "tree.collapse": ["Shift+H"],
+});

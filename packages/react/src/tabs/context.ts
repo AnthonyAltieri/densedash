@@ -15,6 +15,8 @@ export interface TabItem<Value extends string = string> {
 
 export interface TabsContextValue {
   readonly id: string;
+  /** The number-key registration, supplied by the mounted command owner. */
+  readonly commandScope?: string;
   readonly label: string | undefined;
   readonly items: readonly TabItem[];
   readonly value: string | undefined;

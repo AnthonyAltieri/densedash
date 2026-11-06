@@ -19,6 +19,7 @@ export type {
   Commands,
   CommandScopeOptions,
   KeymapEntry,
+  KeyLayer,
   KeyOverrideId,
   KeyOverrides,
   KeysOptions,
@@ -27,7 +28,7 @@ export type {
   Register,
   ValidatedKeyOverrides,
 } from "./types.js";
-export { tradingPreset } from "./trading-preset.js";
+export { shiftedTreePreset, tradingPreset } from "./trading-preset.js";
 
 let nextConfirmScope = 0;
 
@@ -61,22 +62,61 @@ export function createCommands({
     }
   }
 
+  function validateLayers(): void {
+    const owners = new Map<string, Scope>();
+    for (const scope of scopes.values()) {
+      if (!scope.options.keys) continue;
+      for (const command of scope.commands) {
+        for (const key of scope.keys.get(command.id)) {
+          const identity = keyIdentity(key);
+          const owner = owners.get(identity);
+          if (owner && owner !== scope) {
+            throw new Error(
+              `Key layers "${owner.options.keys?.label}" (${owner.name}) and "${scope.options.keys.label}" (${scope.name}) share ${keyboard.format(key)}.`,
+            );
+          }
+          owners.set(identity, scope);
+        }
+      }
+    }
+  }
+
   function publishKeymap(keysChanged = false): void {
+    // Reserve layer keys before element-target handlers can consume them on the way up.
+    // Only the keyboard port matches events and filters editable targets.
+    const layered = new Set<string>();
+    for (const scope of activeScopes(scopes)) {
+      if (!scope.options.keys) continue;
+      for (const command of scope.commands) {
+        for (const key of scope.keys.get(command.id)) layered.add(keyIdentity(key));
+      }
+    }
+    for (const scope of scopes.values()) {
+      if (scope.options.keys) continue;
+      for (const owned of scope.bindings) {
+        const enabled = !layered.has(owned.key);
+        if (enabled === owned.enabled) continue;
+        owned.enabled = enabled;
+        owned.binding.update({ enabled });
+      }
+    }
     const entries: KeymapEntry[] = [];
     const claimed = new Set<string>();
     for (const scope of pending ? [] : activeScopes(scopes).filter(scopeHasFocus)) {
       for (const command of scope.commands) {
-        const available = keys.get(command.id).filter((key) => {
+        const available = scope.keys.get(command.id).filter((key) => {
           const identity = keyIdentity(key);
           if (claimed.has(identity)) return false;
           claimed.add(identity);
           return true;
         });
-        if (command.hidden || (keys.get(command.id).length > 0 && available.length === 0)) continue;
+        if (command.hidden || (scope.keys.get(command.id).length > 0 && available.length === 0))
+          continue;
         entries.push({
           command: command.id,
           label: command.label,
           scope: scope.name,
+          ...(scope.options.keys ? { layer: scope.options.keys.label } : {}),
           ...(command.group === undefined ? {} : { group: command.group }),
           keys: available.map((key) => keyboard.format(key)),
           enabled: commandEnabled(command),
@@ -110,6 +150,7 @@ export function createCommands({
           before.label === entry.label &&
           before.group === entry.group &&
           before.scope === entry.scope &&
+          before.layer === entry.layer &&
           before.enabled === entry.enabled &&
           before.keys.length === entry.keys.length &&
           before.keys.every((key, keyIndex) => key === entry.keys[keyIndex])
@@ -205,11 +246,11 @@ export function createCommands({
   }
 
   function bindScope(scope: Scope): void {
-    for (const binding of scope.bindings) binding.dispose();
+    for (const { binding } of scope.bindings) binding.dispose();
     scope.bindings.length = 0;
     const owners = new Map<string, Command>();
     for (const [index, command] of scope.commands.entries()) {
-      for (const key of keys.get(command.id)) {
+      for (const key of scope.keys.get(command.id)) {
         const identity = keyIdentity(key);
         const owner = owners.get(identity);
         if (owner) {
@@ -223,18 +264,31 @@ export function createCommands({
           continue;
         }
         owners.set(identity, command);
-        const { parent: _parent, only: _only, ...bindingOptions } = scope.options;
-        scope.bindings.push(
-          keyboard.bind(
+        const { parent: _parent, only: _only, keys: layer, ...bindingOptions } = scope.options;
+        const target = bindingOptions.target;
+        const ambientTarget = target && "ownerDocument" in target ? target.ownerDocument : target;
+        scope.bindings.push({
+          key: identity,
+          enabled: true,
+          binding: keyboard.bind(
             key,
             (event) => {
               const current = scope.commands[index];
               if (current && (!event.repeat || !current.confirm))
                 invokeOwned(scope, current, { event });
             },
-            { ...bindingOptions, scope: scope.name },
+            {
+              ...bindingOptions,
+              ...(layer
+                ? {
+                    ...(ambientTarget ? { target: ambientTarget } : {}),
+                    ignoreInputs: "editable" as const,
+                  }
+                : {}),
+              scope: scope.name,
+            },
           ),
-        );
+        });
       }
     }
   }
@@ -246,6 +300,9 @@ export function createCommands({
         throw new Error("The global scope cannot be exclusive. Use a named layer.");
       if (scopes.has(name) || name === confirmScope)
         throw new Error(`Command scope "${name}" already has an owner.`);
+      const scopeKeys = scopeOptions.keys
+        ? createKeys({ keyboard, reporter, options: scopeOptions.keys, fallback: keys.get })
+        : keys;
       const release = keyboard.activateScope(name, {
         ...(scopeOptions.parent === undefined ? {} : { parent: scopeOptions.parent }),
         exclusive: scopeOptions.only ?? false,
@@ -257,6 +314,7 @@ export function createCommands({
       focusDocument?.addEventListener("focusout", onFocus, true);
       const scope: Scope = {
         name,
+        keys: scopeKeys,
         commands: [...commands],
         options: { ...scopeOptions },
         release() {
@@ -269,7 +327,7 @@ export function createCommands({
         unregister() {
           if (scopes.get(name) !== scope) return;
           scopes.delete(name);
-          for (const binding of scope.bindings) binding.dispose();
+          for (const { binding } of scope.bindings) binding.dispose();
           scope.release();
           if (pending?.scope === scope) cancel();
           else publishKeymap();
@@ -277,6 +335,7 @@ export function createCommands({
       };
       scopes.set(name, scope);
       try {
+        validateLayers();
         bindScope(scope);
         publishKeymap();
       } catch (cause) {
@@ -325,12 +384,20 @@ export function createCommands({
     },
     keymap: { get: () => keymap.get(), subscribe: (listener) => keymap.subscribe(listener) },
     confirm: { get: () => confirm.get(), subscribe: (listener) => confirm.subscribe(listener) },
-    keys: (id) => keys.get(id),
+    keys: (id, scope) =>
+      scope === undefined ? keys.get(id) : (scopes.get(scope)?.keys.get(id) ?? []),
     accept,
     cancel,
     setOverrides(overrides) {
       if (disposed) return;
+      const previous = keys.overrides();
       const validated = keys.replace(overrides);
+      try {
+        validateLayers();
+      } catch (cause) {
+        keys.replace(previous);
+        throw cause;
+      }
       store.batch(() => {
         cancel();
         for (const scope of scopes.values()) bindScope(scope);

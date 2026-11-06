@@ -3,6 +3,7 @@ import type {
   ChangeDetails,
   Controllable,
   ExpandedState,
+  KeyLayer,
   NavigableTable,
   NavigationCommands,
   NavigationOptions,
@@ -48,6 +49,8 @@ export interface UseTreeOptions<T> {
   /** Milliseconds between typed characters. Defaults to 500. */
   readonly typeaheadMs?: number;
   readonly labels?: TreeLabels;
+  /** Instance label and optional preset/overrides; keys work throughout the page. */
+  readonly keys?: KeyLayer | undefined;
   onOpen?(item: NoInfer<T>, details: ChangeDetails<TreeChangeReason>): void;
 }
 
@@ -240,6 +243,7 @@ function createHandle<T extends RowData>(initial: TreeHandleOptions<T>, generate
         Object.assign(changes, { [name]: next[name] });
       }
     }
+    if (JSON.stringify(previous.keys) !== JSON.stringify(next.keys)) changes.keys = next.keys;
     // Labels are usually an inline object, so compare them by value.
     const labels = next.labels;
     if (

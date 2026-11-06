@@ -3,6 +3,7 @@
 import {
   createKernel,
   tradingPreset,
+  shiftedTreePreset,
   version as coreVersion,
   type StorePort,
   type KeyboardHotkey,
@@ -178,6 +179,7 @@ export function WideTree({ roots }: { readonly roots: readonly WideRow[] }) {
     getRowId: (row) => row.id,
     getSubRows: (row) => row.children,
     getTextValue: (row) => row.f00,
+    keys: { label: "secondary", preset: shiftedTreePreset },
   });
   return Tree.Root({
     tree,
@@ -202,6 +204,7 @@ const tabs = [
 export const wideTabs = Tabs.Root({
   items: tabs,
   defaultValue: "orders",
+  keys: { label: "detail", overrides: { "tabs.select.1": ["1"] } },
   onValueChange: (value, details) => {
     if (value === "fills") details.cancel();
   },

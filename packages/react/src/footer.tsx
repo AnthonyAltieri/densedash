@@ -37,7 +37,7 @@ export interface LegendProps extends ElementAttributes<HTMLDivElement>, PartProp
   /**
    * Names the legend item an entry joins. Entries with the same name share one item labelled
    * with that name; an entry with no name gets an item of its own labelled with its command's
-   * label. Defaults to the command's `group`.
+   * label. Defaults to the instance's `layer`, then the command's `group`.
    */
   readonly groupBy?: ((entry: KeymapEntry) => string | undefined) | undefined;
 }
@@ -50,7 +50,7 @@ interface LegendItem {
   readonly entries: KeymapEntry[];
 }
 
-const byGroup = (entry: KeymapEntry): string | undefined => entry.group;
+const byGroup = (entry: KeymapEntry): string | undefined => entry.layer ?? entry.group;
 
 // Items keep the keymap's precedence order of first appearance. Disabled and unbound entries
 // are left out: the footer lists only keys that answer now.

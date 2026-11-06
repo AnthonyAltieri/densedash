@@ -133,6 +133,7 @@ export function getNavigationRuntime<T extends RowData>(table: NavigationTable<T
   function register(): void {
     unregister?.();
     unregister = undefined;
+    const keys = model.options().keys;
     unregister = kernel.commands.register(
       scope,
       table.getAllLeafColumns().some((column) => column.getCanSort())
@@ -140,6 +141,7 @@ export function getNavigationRuntime<T extends RowData>(table: NavigationTable<T
         : definitions.filter((command) => !command.id.startsWith("table.")),
       {
         ...model.options().scope,
+        ...(keys === undefined ? {} : { keys }),
         ...(root === undefined ? {} : { target: root }),
       },
     );
@@ -172,6 +174,7 @@ export function getNavigationRuntime<T extends RowData>(table: NavigationTable<T
       if (
         model.active() &&
         ((next.scope !== undefined && next.scope !== previous.scope) ||
+          ("keys" in next && JSON.stringify(next.keys) !== JSON.stringify(previous.keys)) ||
           (next.columns !== undefined && next.columns !== previous.columns))
       )
         register();

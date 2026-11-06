@@ -45,8 +45,18 @@ export interface KeysOptions {
   readonly onChange?: (overrides: ValidatedKeyOverrides) => void;
 }
 
+/** Per-instance keys. Omit to retain focus-scoped bindings. */
+export interface KeyLayer {
+  readonly preset?: Preset;
+  readonly overrides?: KeyOverrides;
+  /** Instance label shown in legends and collision errors. */
+  readonly label: string;
+}
+
 export interface CommandScopeOptions extends Omit<KeyboardBindingOptions, "scope" | "enabled"> {
   readonly parent?: string;
+  /** Bind this instance throughout the document, ahead of focus-scoped keys. */
+  readonly keys?: KeyLayer;
   /** Rebind just the supplied commands in an exclusive scope. */
   readonly only?: boolean;
 }
@@ -56,6 +66,8 @@ export interface KeymapEntry {
   readonly label: string;
   readonly group?: string;
   readonly scope: string;
+  /** Instance label for page-wide key layers. */
+  readonly layer?: string;
   readonly keys: readonly string[];
   /** Evaluated when the keymap is published; update the scope to refresh app state. */
   readonly enabled: boolean;
@@ -83,9 +95,9 @@ export interface Commands {
   readonly confirm: Pick<Store<PendingConfirm | null>, "get" | "subscribe">;
   /**
    * The keys bound to a command id (its override, else its preset keys), whether or not a
-   * scope has focus. `keymap` republishes after `setOverrides`, so subscribe to it to follow.
+   * scope has focus. Pass a registration scope to read its instance layer. `keymap` republishes after `setOverrides`, so subscribe to it to follow.
    */
-  keys(id: CommandId): readonly KeyboardHotkey[];
+  keys(id: CommandId, scope?: string): readonly KeyboardHotkey[];
   accept(): void;
   cancel(): void;
   /** Replaces all overrides, rebinds live scopes, then notifies onChange with validated keys. */

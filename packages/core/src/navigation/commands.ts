@@ -59,8 +59,7 @@ export function createNavigationCommands<T extends RowData>(model: NavigationMod
     },
     collapse(action = {}) {
       if (!model.active()) return;
-      if (target(action)?.expanded) setExpanded(false, action);
-      else navigate({ type: "parent" }, action);
+      setExpanded(false, action);
     },
     toggle(action = {}) {
       setExpanded(!target(action)?.expanded, action);

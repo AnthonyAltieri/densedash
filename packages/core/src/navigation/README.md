@@ -65,7 +65,8 @@ in one scope per controller. The methods are also available under `commands`.
 (descending first for a `sortDescFirst` column), and `table.next-column` moves the
 choice and any active sort. Commands read the current visible TanStack model, skip
 disabled rows, and apply one transaction. Expand on a leaf or an expanded row does nothing. Collapse on a
-collapsed row moves to its enabled parent. Range selection uses visible rows,
+leaf or a collapsed row does nothing at any depth; `tree.parent` moves to the enabled parent.
+Range selection uses visible rows,
 skipping disabled ones. Sorting and expansion call TanStack APIs. The existing
 swappable trading preset owns every key choice. Update `scope.target` when the
 root mounts, or forward the root's `onFocus` handler to attach it automatically.

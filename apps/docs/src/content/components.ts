@@ -201,7 +201,7 @@ export const components = {
         "h",
         "Sidebar",
         "tree.collapse",
-        "Closes an open group; otherwise moves up to the parent. Does nothing on a top-level item.",
+        "Closes an open group. Does nothing on a closed group or a page, at any level.",
       ],
       [
         "Shift+J / Shift+K",
@@ -219,7 +219,7 @@ export const components = {
         "Shift+H",
         "List",
         "tree.collapse",
-        "Collapses an expanded row; on a child row, moves up to its parent. Does nothing on a collapsed row.",
+        "Collapses an expanded row. Does nothing on a collapsed row or a row without children, at any level.",
       ],
       ["1–3", "Detail", "tabs.select.1–3", "Selects Overview, the children tab or Log."],
     ],

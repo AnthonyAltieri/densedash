@@ -13,7 +13,7 @@ import { useTree } from "../ui/tree.js";
 
 // Keys: swap these objects to rebind. The shell's parts never name a key.
 
-/** The sidebar's page-wide layer: j and k move, l opens a group, h closes it or goes up. */
+/** The sidebar's page-wide layer: j and k move, l opens a group, h closes an open group. */
 const sidebarKeys = {
   "tree.next": ["J"],
   "tree.prev": ["K"],
@@ -429,9 +429,10 @@ function describeSidebar(command: string, before: Moment, after: Moment): string
         ? `${from.label} is already open`
         : `opened ${from.label}`;
     case "tree.collapse":
+      if (!group) return `${from.label} has nothing to close`;
       if (isOpen(before.expanded, from.id) && !isOpen(after.expanded, from.id))
         return `closed ${from.label}`;
-      return from === to ? `${from.label} is top level` : `up to ${to.label}`;
+      return `${from.label} is already closed`;
     default:
       return command;
   }
@@ -465,7 +466,7 @@ function describeList(
         : `expanded ${from.name} (${count} ${kind})`;
     }
     case "tree.collapse":
-      if (parent !== undefined) return `up to ${to.name}`;
+      if (!from.children?.length) return `${from.name} has no rows under it`;
       return isOpen(before.expanded, from.id) && !isOpen(after.expanded, from.id)
         ? `collapsed ${from.name}`
         : `${from.name} is already collapsed`;

@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
-import type { TableHandle, TableView } from "./handle.js";
+import type { TableHandleBase, TableView } from "./handle.js";
 
 export interface TableContextValue {
-  readonly table: TableHandle<unknown>;
+  readonly table: TableHandleBase<unknown>;
   readonly view: TableView;
 }
 

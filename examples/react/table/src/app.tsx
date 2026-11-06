@@ -16,48 +16,61 @@ const money = (value: number) =>
   value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const tone = (value: number) => (value < 0 ? "negative" : value > 0 ? "positive" : undefined);
 
-// Ten columns. Numeric accessors type `format` with `number` and align to the end.
+// Ten TanStack columns. Numeric columns align to the end in tabular figures; their accessors
+// type `format` with `number`, and a value that is not a number renders empty and sorts last.
 const ideaColumns = [
   column.accessor("symbol", { header: "Symbol", width: "minmax(0, 2fr)" }),
   column.accessor("side", { header: "Side" }),
-  column.accessor("quantity", { header: "Qty", format: (quantity) => quantity.toLocaleString() }),
-  column.accessor("price", { header: "Price", format: money }),
-  column.cell(
-    "notional",
+  column.accessor("quantity", {
+    header: "Qty",
+    numeric: true,
+    format: (quantity) => quantity.toLocaleString(),
+  }),
+  column.accessor("price", { header: "Price", numeric: true, format: money }),
+  column.accessor(
     (idea) =>
       idea.price === undefined || idea.quantity === undefined
         ? undefined
         : idea.price * idea.quantity,
-    { header: "Notional", format: money },
+    { id: "notional", header: "Notional", numeric: true, format: money },
   ),
   column.accessor("pnl", {
     header: "P&L",
+    numeric: true,
     format: (pnl) => <span className={tone(pnl)}>{money(pnl)}</span>,
   }),
   column.accessor("move", {
     header: "Move",
+    numeric: true,
     format: (move) => <span className={tone(move)}>{`${move.toFixed(2)}%`}</span>,
   }),
-  column.accessor("volume", { header: "Volume", format: (volume) => volume.toLocaleString() }),
+  column.accessor("volume", {
+    header: "Volume",
+    numeric: true,
+    format: (volume) => volume.toLocaleString(),
+  }),
   column.accessor("conviction", { header: "Conviction" }),
-  column.accessor("updated", { header: "Updated", sort: false }),
+  // The newest first: the first sort of this column is descending.
+  column.accessor("updated", { header: "Updated", sort: "desc" }),
 ];
 
-const getChildren = (idea: Idea) => idea.children;
-// Sectors start expanded; ids are stable across sizes.
-const sectorKeys: ReadonlySet<string> = new Set(
-  groupBySector(createIdeas(100)).map((group) => group.id),
+const getSubRows = (idea: Idea) => idea.children;
+// Sectors start expanded (TanStack's expanded state); ids are stable across sizes.
+const sectorsExpanded: Record<string, boolean> = Object.fromEntries(
+  groupBySector(createIdeas(100)).map((group) => [group.id, true]),
 );
 
 function Status({ table, opened }: { table: TableHandle<Idea>; opened: string }) {
   const highlighted = useStore(table.state, (state) => state.highlighted);
   const rows = useStore(table.state, (state) => state.rows.length);
-  const { sort, chosen } = useStore(table.sorting);
+  const sort = useStore(table.state, (state) => state.sorting[0]);
+  const chosen = useStore(table.state, (state) => state.chosenColumn);
   return (
     <p className="status">
       {rows.toLocaleString()} visible rows · highlighted <strong>{highlighted ?? "none"}</strong> ·
-      sort <strong>{sort === null ? "none" : `${sort.column} ${sort.direction}`}</strong> · chosen{" "}
-      <strong>{chosen ?? "none"}</strong> · opened <strong>{opened}</strong>
+      sort{" "}
+      <strong>{sort === undefined ? "none" : `${sort.id} ${sort.desc ? "desc" : "asc"}`}</strong> ·
+      chosen <strong>{chosen ?? "none"}</strong> · opened <strong>{opened}</strong>
     </p>
   );
 }
@@ -74,11 +87,11 @@ function Ideas({
   const [virtualizer] = useState(() => tanstackVirtual({ estimateSize: () => rowHeight }));
   const [opened, setOpened] = useState("nothing yet");
   const table = useTable({
-    roots: grouped ? groupBySector(ideas) : ideas,
+    data: grouped ? groupBySector(ideas) : ideas,
     columns: ideaColumns,
-    getKey: (idea) => idea.id,
+    getRowId: (idea) => idea.id,
     getTextValue: (idea) => idea.symbol,
-    ...(grouped ? { getChildren, expanded: { defaultValue: sectorKeys } } : {}),
+    ...(grouped ? { getSubRows, expanded: { defaultValue: sectorsExpanded } } : {}),
     onOpen: (idea) => setOpened(idea.symbol),
   });
   return (

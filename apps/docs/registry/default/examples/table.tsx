@@ -6,15 +6,15 @@ const items = [
   { symbol: "MSFT", quantity: 80, pnl: -126.75 },
   { symbol: "NVDA", quantity: 240, pnl: 1640 },
 ];
-const column = columns<(typeof items)[number]>();
+const col = columns<(typeof items)[number]>();
 const fields = [
-  column.accessor("symbol", { header: "Symbol" }),
-  column.accessor("quantity", { header: "Qty" }),
-  column.accessor("pnl", { header: "P&L", format: (value) => value.toFixed(2) }),
+  col.accessor("symbol", { header: "Symbol" }),
+  col.accessor("quantity", { header: "Qty", numeric: true }),
+  col.accessor("pnl", { header: "P&L", numeric: true, format: (value) => value.toFixed(2) }),
 ];
 
 function Positions() {
-  const table = useTable({ roots: items, getKey: (item) => item.symbol, columns: fields });
+  const table = useTable({ data: items, getRowId: (item) => item.symbol, columns: fields });
   return (
     <Table.Root table={table} aria-label="Open positions">
       <Table.Viewport table={table} />

@@ -6,9 +6,11 @@ instantiations. Timing and memory are diagnostics, not pass criteria.
 
 ## React part coverage
 
-The bench includes a Tree consumer (`useTree` with inferred callbacks, Root,
-Viewport and Row with a state-dependent class) and a Tabs consumer (Root with
-inferred values and a cancellable change callback, and a Panel). They call the
+The bench includes a 30-column Table consumer (`useTable` with `columns<T>()`
+accessors typing `format` and `compare`, nested rows and TanStack sorting), a
+Tree consumer (`useTree` with inferred callbacks, Root, Viewport and Row with a
+state-dependent class) and a Tabs consumer (Root with inferred values and a
+cancellable change callback, and a Panel). They call the
 parts as functions because this project compiles `.ts` without JSX; the props
 are checked the same way.
 
@@ -27,8 +29,8 @@ instantiations by type:
   distributes over every preset key. It is now an intersection with the same
   result (about 170 fewer instantiations in the baseline).
 - `Omit<TreeOptions<T>, "mode" | "scope">` and `Omit<UseTreeOptions<T>, …>` for
-  `useTree` and `useList`. Core now declares `ListBaseOptions` and
-  `TreeBaseOptions`, and the hooks extend them.
+  `useTree` and `useList`. Since DD-31, React declares `UseTreeOptions` as its
+  own interface, which `UseListOptions` and `UseTableOptions` extend.
 - Variance measurement of `TreeHandle`, `TreeSnapshot` and `ReadableStore`,
   which now declare `out` on their type parameter, and inference of an item type
   that `Tree.Root` and `Tree.Row` never read: both now take `unknown` items.

@@ -92,9 +92,9 @@ export const components = {
   table: {
     title: "Table",
     description:
-      "Typed columns, numeric alignment and stable sorting on the tree model. Nested data becomes a treegrid; flat data becomes a grid.",
+      "TanStack column definitions, numeric alignment and TanStack sorting on the tree's engine. Nested data becomes a treegrid; flat data becomes a grid.",
     types:
-      "columns<T>().accessor checks field names and infers format/sort value types; cell infers computed values. useTable infers T from roots. inferKinds finds runtime value kinds; getSortedRows sorts siblings before they reach the tree. Missing and mismatched values render empty and sort last. Root sets --dd-table-columns; the core sets --dd-depth on rows: these runtime values are not theme tokens.",
+      "columns<T>() wraps TanStack's createColumnHelper. accessor(key) checks the field name and types format and compare with its value; accessor(fn, { id }) types a computed value. useTable infers T from data and takes the tree's options (getRowId, getSubRows, expanded, rowSelection) plus columns and sorting, TanStack's [{ id, desc }]. table.sort, table.next-column and header clicks drive that state, and TanStack sorts sub-rows within their parent. sort: \"desc\" starts a column descending; sort: false makes it unsortable. numeric: true aligns a column to the end in tabular figures. Missing values, and non-numbers in a numeric column, render empty and sort last. table.state holds sorting and chosenColumn; table.table is the TanStack table (null until the root mounts). Root sets --dd-table-columns; the core sets --dd-depth on rows: these runtime values are not theme tokens.",
     parts: [
       ["Root", "div · table-root", rootState],
       [

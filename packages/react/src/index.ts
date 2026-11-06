@@ -19,22 +19,18 @@ export { useTable } from "./table/handle.js";
 export type {
   TableCommands,
   TableHandle,
-  TableSortControl,
-  TableState,
+  TableHandleBase,
   UseTableOptions,
 } from "./table/handle.js";
-export { columns, getSortedRows, inferKinds } from "./table/columns.js";
+export { columns } from "./table/columns.js";
 export type {
-  Column,
   ColumnAlign,
   ColumnHelper,
-  ColumnKinds,
   ColumnOptions,
-  GetSortedRowsOptions,
+  ComputedColumnOptions,
   SortDirection,
-  SortedRows,
-  TableSort,
-  ValueKind,
+  TableColumnDef,
+  TableColumnMeta,
 } from "./table/columns.js";
 export type { Virtualizer, ViewportMeasurements, ViewportRange } from "./tree/viewport.js";
 export { Kbd, KbdRange } from "./kbd.js";

@@ -4,6 +4,7 @@ import type {
   Controllable,
   ExpandedState,
   NavigableTable,
+  NavigationCommands,
   NavigationOptions,
   NavigationSnapshot,
   NavigationTable,
@@ -102,6 +103,17 @@ export interface TreeHandle<in out T extends RowData> extends TreeHandleBase<T> 
   readonly table: NavigationTable<T> | null;
 }
 
+/** Internal: what `useTable` adds to a tree's options, passed through to the navigation. */
+export interface TreeHandleOptions<T extends RowData> extends UseTreeOptions<T> {
+  readonly columns?: NonNullable<NavigationOptions<T>["columns"]>;
+  readonly sorting?: Controllable<NavigationSnapshot["sorting"], TreeChangeReason>;
+}
+
+/** Internal: the handle `useTreeHandle` returns, whose commands include the sort commands. */
+export interface NavigationHandle<in out T extends RowData> extends TreeHandle<T> {
+  readonly commands: NavigationCommands;
+}
+
 export interface TreeHandleInternals {
   /** Creation options with stable callbacks that call the latest render's functions. */
   options(): NavigationOptions<RowData>;
@@ -154,10 +166,16 @@ function signal<S>(initial: S) {
   };
 }
 
-type Controls = "highlighted" | "expanded" | "rowSelection";
-const controls = ["highlighted", "expanded", "rowSelection"] as const satisfies readonly Controls[];
+type Controls = "highlighted" | "expanded" | "rowSelection" | "sorting";
+const controls = [
+  "highlighted",
+  "expanded",
+  "rowSelection",
+  "sorting",
+] as const satisfies readonly Controls[];
 const plain = [
   "data",
+  "columns",
   "focusStrategy",
   "selectionMode",
   "loop",
@@ -165,7 +183,7 @@ const plain = [
   "typeaheadMs",
 ] as const;
 
-function createHandle<T extends RowData>(initial: UseTreeOptions<T>, generatedId: string) {
+function createHandle<T extends RowData>(initial: TreeHandleOptions<T>, generatedId: string) {
   let latest = initial;
   let core: NavigableTable<T> | null = null;
   let reason: TreeChangeReason | undefined;
@@ -204,6 +222,7 @@ function createHandle<T extends RowData>(initial: UseTreeOptions<T>, generatedId
       highlighted: control<string | null>("highlighted", latest.highlighted),
       expanded: control<ExpandedState>("expanded", latest.expanded),
       rowSelection: control<RowSelectionState>("rowSelection", latest.rowSelection),
+      sorting: control<NavigationSnapshot["sorting"]>("sorting", latest.sorting),
     };
   };
 
@@ -248,7 +267,7 @@ function createHandle<T extends RowData>(initial: UseTreeOptions<T>, generatedId
     (run: (commands: TreeCommands, action?: TreeAction) => void) => (action?: TreeAction) => {
       if (core !== null) run(core.commands, action);
     };
-  const commands: TreeCommands = {
+  const commands: NavigationCommands = {
     next: delegate((tree, action) => tree.next(action)),
     prev: delegate((tree, action) => tree.prev(action)),
     first: delegate((tree, action) => tree.first(action)),
@@ -261,9 +280,11 @@ function createHandle<T extends RowData>(initial: UseTreeOptions<T>, generatedId
     select: delegate((tree, action) => tree.select(action)),
     extendSelection: delegate((tree, action) => tree.extendSelection(action)),
     open: delegate((tree, action) => tree.open(action)),
+    sort: (column, action) => core?.commands.sort(column, action),
+    chooseColumn: (direction, action) => core?.commands.chooseColumn(direction, action),
   };
 
-  const handle: TreeHandle<T> = {
+  const handle: NavigationHandle<T> = {
     state: { get: snapshot.get, subscribe: snapshot.subscribe },
     commands,
     get table() {
@@ -297,7 +318,7 @@ function createHandle<T extends RowData>(initial: UseTreeOptions<T>, generatedId
     highlightReason: () => reason,
   };
   internals.set(handle, internal);
-  const record = (next: UseTreeOptions<T>) => {
+  const record = (next: TreeHandleOptions<T>) => {
     latest = next;
   };
   return { handle, record, sync };
@@ -309,6 +330,13 @@ function createHandle<T extends RowData>(initial: UseTreeOptions<T>, generatedId
  * on every render; callbacks need not be stable.
  */
 export function useTree<T extends RowData>(options: UseTreeOptions<T>): TreeHandle<T> {
+  return useTreeHandle(options);
+}
+
+/** Internal: `useTree` with the Table's columns and sorting; `commands` includes `table.*`. */
+export function useTreeHandle<T extends RowData>(
+  options: TreeHandleOptions<T>,
+): NavigationHandle<T> {
   const id = useId();
   const [{ handle, record, sync }] = useState(() => createHandle(options, `dd-tree${id}`));
   // Record before any layout effect, so a root mounting in this commit creates the core from

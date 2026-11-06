@@ -6,8 +6,7 @@ import { Viewport as TreeViewport } from "../tree/viewport.js";
 import type { Virtualizer, ViewportState } from "../tree/viewport.js";
 import type { PartProps } from "../use-render.js";
 import { useTableContext } from "./context.js";
-import { getTableInternals } from "./handle.js";
-import type { TableHandle } from "./handle.js";
+import type { TableHandleBase } from "./handle.js";
 import { Header } from "./header.js";
 import { Cell, Row, Toggle, Value } from "./row.js";
 
@@ -16,7 +15,7 @@ export type { ViewportState } from "../tree/viewport.js";
 export interface ViewportProps<T>
   extends ElementAttributes<HTMLDivElement>, PartProps<ViewportState> {
   /** The table passed to the enclosing root; its item type types `row.original`. */
-  readonly table: TableHandle<T>;
+  readonly table: TableHandleBase<T>;
   /**
    * Renders one visible row, usually `(row) => <Table.Row row={row}>…</Table.Row>`. Defaults to
    * a row with one `<Table.Cell>` per column and, when rows nest, the toggle in the first cell.
@@ -42,7 +41,6 @@ export function Viewport<T>({
   ...props
 }: ViewportProps<T>): ReactElement {
   const { view } = useTableContext("<Table.Viewport>");
-  const { tree } = getTableInternals(table as TableHandle<unknown>);
   const { columns, nested } = view;
   const fallback = useCallback(
     (row: TreeRow<unknown>) => (
@@ -66,7 +64,7 @@ export function Viewport<T>({
       data-slot="table-viewport"
       role="rowgroup"
       {...props}
-      tree={tree}
+      tree={table}
       header={header}
       children={(children ?? fallback) as (row: TreeRow<unknown>) => ReactNode}
     />

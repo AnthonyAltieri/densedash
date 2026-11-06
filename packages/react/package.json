@@ -29,7 +29,8 @@
     "attw": "attw --pack --profile esm-only"
   },
   "dependencies": {
-    "@densedash/core": "workspace:*"
+    "@densedash/core": "workspace:*",
+    "@tanstack/table-core": "9.3.1"
   },
   "devDependencies": {
     "react": "19.3.1"

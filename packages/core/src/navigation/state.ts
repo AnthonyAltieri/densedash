@@ -229,7 +229,8 @@ export function createNavigationModel<T extends RowData>(
             if (options[key]?.value !== undefined) Object.assign(final, { [key]: baseline[key] });
           }
           write(final);
-          if (!disposed) store.set({ snapshot: read(), tree: project() });
+          if (!disposed && (update !== undefined || read() !== store.get().snapshot))
+            store.set({ snapshot: read(), tree: project() });
         } catch (cause) {
           options = previousOptions;
           if (update !== undefined) configure(previousOptions);

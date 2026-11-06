@@ -27,6 +27,8 @@ export function createNavigationProps<T extends RowData>({
   let root: HTMLElement | undefined;
   let text = "";
   let lastTyped = -Infinity;
+  const typeahead: (() => void)[] = [];
+  let frame: { view: Window; id: number } | undefined;
   const rowId = (key: Key) =>
     `${id}-row-${Array.from(key, (character) => character.codePointAt(0)!.toString(16)).join("-")}`;
   const roving = () => model.options().focusStrategy === "roving";
@@ -95,11 +97,15 @@ export function createNavigationProps<T extends RowData>({
     };
   }
 
-  function onKeyDown(event: KeyboardEvent): void {
+  function onKeyDown(event: KeyboardEvent & { readonly nativeEvent?: KeyboardEvent }): void {
+    // React copies defaultPrevented before the document's keyboard listener runs.
+    // Read the underlying event again after bubbling, including sequence prefixes.
+    const nativeEvent = event.nativeEvent ?? event;
     if (
       !model.active() ||
       event.defaultPrevented ||
-      event.isComposing ||
+      nativeEvent.defaultPrevented ||
+      nativeEvent.isComposing ||
       event.ctrlKey ||
       event.metaKey ||
       event.altKey ||
@@ -117,9 +123,8 @@ export function createNavigationProps<T extends RowData>({
     }
     const at = clock.now();
     const character = event.key;
-    // The keyboard port handles bubbling events first. A consumed preset key must not also type ahead.
-    queueMicrotask(() => {
-      if (!model.active() || event.defaultPrevented) return;
+    const apply = () => {
+      if (!model.active() || event.defaultPrevented || nativeEvent.defaultPrevented) return;
       text = at - lastTyped <= (model.options().typeaheadMs ?? 500) ? text + character : character;
       lastTyped = at;
       const state = model.get();
@@ -130,7 +135,21 @@ export function createNavigationProps<T extends RowData>({
         { loop: true },
       );
       model.change({ highlighted }, { reason: "typeahead", event });
-    });
+    };
+    const view = root?.ownerDocument.defaultView;
+    if (!view) return;
+    // Browsers can drain microtasks between bubbling listeners. Wait for the frame so
+    // document/window command handlers have finished before checking native prevention.
+    typeahead.push(apply);
+    if (!frame) {
+      frame = {
+        view,
+        id: view.requestAnimationFrame(() => {
+          frame = undefined;
+          for (const apply of typeahead.splice(0)) apply();
+        }),
+      };
+    }
   }
 
   return {
@@ -226,6 +245,9 @@ export function createNavigationProps<T extends RowData>({
       };
     },
     dispose() {
+      if (frame) frame.view.cancelAnimationFrame(frame.id);
+      frame = undefined;
+      typeahead.length = 0;
       root = undefined;
       text = "";
     },

@@ -54,6 +54,8 @@ export interface KeyLayer {
 }
 
 export interface CommandScopeOptions extends Omit<KeyboardBindingOptions, "scope" | "enabled"> {
+  /** Defaults to "editable": declared commands beat widget typeahead, but leave text fields alone. */
+  readonly ignoreInputs?: boolean | "auto" | "editable";
   readonly parent?: string;
   /** Bind this instance throughout the document, ahead of focus-scoped keys. */
   readonly keys?: KeyLayer;

@@ -59,6 +59,16 @@
   --dd-source-column: 1.2fr;
   --dd-half: 50%;
   --dd-full: 100%;
+  --dd-example-shell-height: 640px;
+  --dd-example-title-size: 18px;
+  --dd-example-title-leading: 26px;
+  --dd-example-log-leading: 20px;
+  --dd-example-pill-radius: 8px;
+  --dd-example-status-width: 64px;
+  --dd-example-term-width: 140px;
+  --dd-example-facts-width: 640px;
+  --dd-example-lines-width: 760px;
+  --dd-example-line-columns: minmax(0, 1.2fr) 90px 110px minmax(0, 1.4fr);
 }
 
 [data-theme="dark"] {
@@ -237,14 +247,14 @@ main {
   justify-content: space-between;
   gap: calc(var(--dd-unit) * 4);
 }
-h1 {
+[data-slot="intro"] h1 {
   margin-block: calc(var(--dd-unit) * 8) calc(var(--dd-unit) * 5);
   font-size: var(--dd-title-size);
   font-weight: var(--dd-weight-medium);
   line-height: var(--dd-title-leading);
   letter-spacing: var(--dd-tracking);
 }
-h1 span {
+[data-slot="intro"] h1 span {
   color: var(--dd-accent);
 }
 [data-slot="lede"] {
@@ -594,4 +604,134 @@ h1 span {
 }
 [data-slot="install-command"] + [data-slot="install-command"] {
   margin-top: calc(var(--dd-unit) * 3);
+}
+
+/* The app shell example: the shell fills a fixed-height stage; the rest is the app's content. */
+[data-slot="preview-stage"] > [data-slot="app-shell"] {
+  block-size: var(--dd-example-shell-height);
+  border: var(--dd-hairline) solid var(--dd-border);
+}
+[data-slot="example-badge"] {
+  flex: none;
+  padding: var(--dd-zero) calc(var(--dd-unit) * 1.25);
+  border: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-radius: var(--dd-example-pill-radius);
+  background: var(--dd-color-surface);
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-app-shell-heading-font-size);
+  font-weight: var(--dd-weight-normal);
+}
+[data-slot="example-status"] {
+  flex: none;
+  inline-size: var(--dd-example-status-width);
+  font-family: var(--dd-font-sans);
+  font-size: var(--dd-app-shell-small-font-size);
+  font-weight: var(--dd-font-weight-medium);
+  text-align: end;
+}
+[data-slot="app-shell"] [data-tone] {
+  color: var(--dd-color-text-muted);
+}
+[data-slot="app-shell"] [data-tone="accent"] {
+  color: var(--dd-color-accent);
+}
+[data-slot="app-shell"] [data-tone="positive"] {
+  color: var(--dd-color-positive);
+}
+[data-slot="app-shell"] [data-tone="negative"] {
+  color: var(--dd-color-negative);
+}
+[data-slot="app-shell"] [data-tone="warning"] {
+  color: var(--dd-color-warning);
+}
+[data-slot="example-path"] {
+  color: var(--dd-color-text-muted);
+  font-size: var(--dd-app-shell-small-font-size);
+}
+[data-slot="example-heading"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--dd-unit) * 3);
+}
+[data-slot="example-heading"] h2 {
+  margin: var(--dd-zero);
+  font-size: var(--dd-example-title-size);
+  font-weight: var(--dd-font-weight-bold);
+  line-height: var(--dd-example-title-leading);
+  letter-spacing: normal;
+}
+[data-slot="example-heading"] [data-slot="example-state"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+[data-slot="example-updated"] {
+  margin-inline-start: auto;
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-app-shell-small-font-size);
+}
+[data-slot="example-facts"] {
+  display: grid;
+  grid-template-columns: var(--dd-example-term-width) minmax(var(--dd-zero), var(--dd-main-column));
+  gap: calc(var(--dd-unit) * 2) calc(var(--dd-unit) * 4);
+  max-inline-size: var(--dd-example-facts-width);
+  margin: var(--dd-zero);
+}
+[data-slot="example-facts"] dt {
+  color: var(--dd-color-text-muted);
+}
+[data-slot="example-facts"] dd {
+  margin: var(--dd-zero);
+}
+[data-slot="example-facts"] dd[data-mono] {
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-app-shell-small-font-size);
+}
+[data-slot="example-lines"] {
+  max-inline-size: var(--dd-example-lines-width);
+  border: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-radius: var(--dd-radius);
+}
+[data-slot="example-line"] {
+  display: grid;
+  grid-template-columns: var(--dd-example-line-columns);
+  gap: calc(var(--dd-unit) * 4);
+  align-items: center;
+  block-size: var(--dd-row-height);
+  padding: var(--dd-zero) calc(var(--dd-unit) * 3);
+  border-block-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-app-shell-small-font-size);
+}
+[data-slot="example-line"] [data-slot="example-state"] {
+  font-family: var(--dd-font-sans);
+  font-size: var(--dd-font-size);
+  font-weight: var(--dd-font-weight-medium);
+}
+[data-slot="example-meta"] {
+  color: var(--dd-color-text-muted);
+}
+[data-slot="example-name"],
+[data-slot="example-figure"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-slot="example-figure"] {
+  color: var(--dd-color-text-secondary);
+}
+[data-slot="example-empty"] {
+  padding: calc(var(--dd-unit) * 2) calc(var(--dd-unit) * 3);
+  color: var(--dd-color-text-muted);
+}
+[data-slot="example-log"] {
+  max-inline-size: var(--dd-example-lines-width);
+  padding: calc(var(--dd-unit) * 3);
+  border: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-radius: var(--dd-radius);
+  background: var(--dd-color-surface-muted);
+  color: var(--dd-color-text-secondary);
+  font: var(--dd-app-shell-small-font-size) / var(--dd-example-log-leading) var(--dd-font-mono);
+  white-space: pre-wrap;
 }

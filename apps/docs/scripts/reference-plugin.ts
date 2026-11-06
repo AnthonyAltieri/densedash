@@ -15,6 +15,7 @@ const styles = {
   table: ["table"],
   tabs: ["tabs", "kbd"],
   footer: ["footer", "kbd"],
+  "app-shell": ["app-shell", "tree", "tabs", "footer", "kbd"],
 };
 
 /** Emit reference data only: source CSS, kernel construction and formatting stay on the build side. */

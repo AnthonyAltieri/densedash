@@ -14,11 +14,18 @@ const tabs: { value: Tab; label: string }[] = [
   { value: "code", label: "Code" },
 ];
 
-export function ComponentPreview({ name }: { name: string }) {
+export function ComponentPreview({
+  name,
+  defaultLayout = "split",
+}: {
+  name: string;
+  /** "tabs" gives the preview the full width, for examples such as the app shell. */
+  defaultLayout?: Layout;
+}) {
   const preview = previews[name];
   if (!preview) throw new Error(`Unknown component preview: ${name}`);
   const { Component, html, hovers, fileName, source } = preview;
-  const [layout, setLayout] = useState<Layout>("split");
+  const [layout, setLayout] = useState<Layout>(defaultLayout);
   const [tab, setTab] = useState<Tab>("preview");
   const id = useId();
   const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({});

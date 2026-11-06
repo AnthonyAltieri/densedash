@@ -74,7 +74,7 @@ function Overview() {
       </section>
 
       <section data-slot="docs-section">
-        <h2>Eight items. One model.</h2>
+        <h2>Nine items. One model.</h2>
         <div data-slot="registry-grid">
           {componentNames.map((name) => (
             <a key={name} href={`/${name}`}>

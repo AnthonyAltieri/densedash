@@ -35,7 +35,7 @@ Repository configuration:
   is built. A failed registry invocation removes `public/r` and exits nonzero,
   so Vercel fails the deployment and keeps the previous successful deployment.
 - Nitro emits `.vercel/output/config.json`, static assets under
-  `.vercel/output/static/` (including the eight `r/*.json` items), and a serverless
+  `.vercel/output/static/` (including the nine `r/*.json` items), and a serverless
   function under `.vercel/output/functions/__server.func/`. Intermediate Vite
   files live in `node_modules/.nitro/`. No output-directory override or
   `vercel.json` is needed.
@@ -107,7 +107,9 @@ Each preview starts side by side; its toolbar switches to Preview and Code
 tabs (arrow keys move between tabs). The choice is the preview's
 `data-layout="split|tabs"` and `data-tab="preview|code"` attributes, held in
 component state for the current page. Below 1000px side by side stacks the
-preview above the code.
+preview above the code. Pass `defaultLayout="tabs"` to start a wide example
+full width; the app shell page does, and its preview stage gives the shell a
+fixed height.
 
 Every example imports `registry/default/ui/*`: these are the exact files embedded
 in registry output. Thin re-exports preserve the packages' generic component
@@ -139,10 +141,12 @@ manifest and every item, reads all referenced source files, then writes
 commands run it first. Re-run `registry:build` after editing registry content
 while a dev server is running.
 
-The catalog contains `theme`, `keymap`, `kbd`, `tree`, `list`, `table`, and
-`tabs`; the scaffold placeholder was removed. `list` intentionally copies
-`tree.css` because List shares tree slots. Collection items depend on keymap,
-keymap depends on kbd, and kbd depends on theme. Registry dependency addresses
+The catalog contains `theme`, `keymap`, `kbd`, `tree`, `list`, `table`, `tabs`,
+`footer`, and `app-shell`; the scaffold placeholder was removed. `list`
+intentionally copies `tree.css` because List shares tree slots. Collection items
+depend on keymap, keymap depends on kbd, and kbd depends on theme. `app-shell`
+adds `app-shell.css` and depends on the items whose parts and styles it composes:
+theme, keymap, kbd, tree, list, tabs, and footer. Registry dependency addresses
 stay namespaced so preview installations use the configured preview host too.
 
 The validated shadcn subset is:

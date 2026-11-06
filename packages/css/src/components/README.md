@@ -1,7 +1,8 @@
 # Component styles
 
 The shipped styles cover Keymap scopes, legends, chord hints and confirmation prompts,
-Kbd/KbdRange key caps, Footer, Tree and List rows, Tabs and Table. Rules are keyed on `data-slot`
+Kbd/KbdRange key caps, Footer, Tree and List rows, Tabs, Table and the AppShell panes
+(`app-shell.css`, used with the tree, tabs, footer and kbd styles). Rules are keyed on `data-slot`
 and state attributes. `tree.css` serves both Tree and List; `index.css` declares
 the component layer without importing the individual styles.
 

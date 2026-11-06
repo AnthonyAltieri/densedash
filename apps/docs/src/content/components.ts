@@ -148,6 +148,82 @@ export const components = {
       ["Status", "div · footer-status", "Pushed to the end of the row; mono"],
     ],
   },
+  "app-shell": {
+    title: "App shell",
+    description:
+      "A keyboard-driven three-pane shell: a sidebar Tree of pages and nested groups, a List whose rows expand to show their children, and a detail pane with numbered Tabs, above a Footer with the live key legend and a status slot. Every pane's keys answer anywhere on the page.",
+    types:
+      "The app owns every handle and value: pass useTree's handle to Sidebar and useList's to List, each with its own keys: { label, preset } layer, and keys: { label } to Detail for page-wide 1–3. The shell keeps no navigation state. The cursor and expanded rows stay in each handle's TanStack state; the open page (Sidebar's page), the highlighted list item (a controlled highlighted value) and the tab (Detail's value) stay in the app. Sidebar calls onPageChange(item) when its cursor lands on a page, a row without children. Children render functions receive TanStack's row, so row.original keeps your item type, and both panes accept virtual. Detail infers its Value union from items. Pane headers read their keys from the handle's layer, so a preset change relabels them. This example passes its own reporter port, whose trace wraps every command, to describe each key in the footer status, so it creates its kernel itself and exposes it with Densedash.Provider.",
+    parts: [
+      [
+        "Root",
+        "div · app-shell",
+        "A page Keymap.Scope (page={false} opts out): data-scope, data-active, data-page",
+      ],
+      ["Panes", "div · app-shell-panes", "Flex row that wraps: sidebar, then list, then detail"],
+      [
+        "Sidebar",
+        "aside · app-shell-sidebar",
+        "app-shell-header with app-shell-brand and app-shell-keys; a Tree whose rows take data-current and aria-current=page on the open page, plus the tree-row states",
+      ],
+      [
+        "List",
+        "section · app-shell-list",
+        "app-shell-header with h1 · app-shell-title, span · app-shell-breadcrumb and app-shell-keys; a List of tree-row rows (data-highlighted, data-expanded, data-depth, data-leaf)",
+      ],
+      [
+        "Detail",
+        "section · app-shell-detail",
+        "Tabs: app-shell-detail-header (the header prop and tabs-list), then app-shell-detail-body; tabs-tab data-selected",
+      ],
+      [
+        "Footer",
+        "footer · footer",
+        "footer-legend from the live keymap (filter, groupBy); footer-status for children",
+      ],
+      ["Label", "span · app-shell-label", "Row text that ends in an ellipsis"],
+      ["Count", "span · app-shell-count", "Muted monospace count at the end of a row"],
+    ],
+    keys: [
+      [
+        "j / k",
+        "Sidebar",
+        "tree.next / tree.prev",
+        "Next or previous visible item, groups included. Landing on a page opens it in the list.",
+      ],
+      [
+        "l",
+        "Sidebar",
+        "tree.expand",
+        "Opens a closed group. Does nothing on an open group or a page.",
+      ],
+      [
+        "h",
+        "Sidebar",
+        "tree.collapse",
+        "Closes an open group; otherwise moves up to the parent. Does nothing on a top-level item.",
+      ],
+      [
+        "Shift+J / Shift+K",
+        "List",
+        "tree.next / tree.prev",
+        "Next or previous row, stepping into the children of expanded rows.",
+      ],
+      [
+        "Shift+L",
+        "List",
+        "tree.expand",
+        "Expands a row with children. Does nothing on an expanded row, a row without children or a child row.",
+      ],
+      [
+        "Shift+H",
+        "List",
+        "tree.collapse",
+        "Collapses an expanded row; on a child row, moves up to its parent. Does nothing on a collapsed row.",
+      ],
+      ["1–3", "Detail", "tabs.select.1–3", "Selects Overview, the children tab or Log."],
+    ],
+  },
   theme: {
     title: "Theming",
     description:

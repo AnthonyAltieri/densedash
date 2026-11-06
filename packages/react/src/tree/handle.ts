@@ -1,4 +1,5 @@
 import { useId, useInsertionEffect, useLayoutEffect, useState } from "react";
+import { treePreset } from "@densedash/core";
 import type {
   ChangeDetails,
   Controllable,
@@ -334,7 +335,13 @@ function createHandle<T extends RowData>(initial: TreeHandleOptions<T>, generate
  * on every render; callbacks need not be stable.
  */
 export function useTree<T extends RowData>(options: UseTreeOptions<T>): TreeHandle<T> {
-  return useTreeHandle(options);
+  return useTreeHandle({
+    ...options,
+    keys:
+      options.keys === undefined
+        ? undefined
+        : { ...options.keys, preset: options.keys.preset ?? treePreset },
+  });
 }
 
 /** Internal: `useTree` with the Table's columns and sorting; `commands` includes `table.*`. */

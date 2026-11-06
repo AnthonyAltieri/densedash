@@ -28,7 +28,7 @@ export type {
   Register,
   ValidatedKeyOverrides,
 } from "./types.js";
-export { shiftedTreePreset, tradingPreset } from "./trading-preset.js";
+export { shiftedTreePreset, tradingPreset, treePreset } from "./trading-preset.js";
 
 let nextConfirmScope = 0;
 

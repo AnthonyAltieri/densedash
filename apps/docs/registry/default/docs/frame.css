@@ -204,3 +204,40 @@
 [data-slot="frame-body"] > [role="tree"]:only-child [data-depth="0"] > [data-slot="cell-name"] {
   font-weight: var(--dd-font-weight-semibold);
 }
+
+/* Tabs (tabs board): a narrower card, a padded tab row with no gap above the panel, and a panel
+   of fixed height so switching tabs never moves the footer. Only tabs that are the frame's
+   whole example match, not tabs beside other parts (the footer page). */
+[data-slot="frame"]:has(> [data-slot="frame-body"] > [data-slot="tabs"]:only-child) {
+  --dd-docs-frame-width: var(--dd-docs-tabs-width);
+}
+
+[data-slot="frame-body"] > [data-slot="tabs"]:only-child {
+  gap: var(--dd-zero);
+}
+
+[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-list"] {
+  padding: calc(var(--dd-unit) * 1.5) calc(var(--dd-unit) * 2);
+}
+
+[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-tab"] {
+  gap: calc(var(--dd-unit) * 1.5);
+}
+
+[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-panel"] {
+  box-sizing: border-box;
+  block-size: var(--dd-docs-tabs-panel-height);
+  padding: calc(var(--dd-unit) * 4) calc(var(--dd-unit) * 3.5);
+  color: var(--dd-color-text-secondary);
+}
+
+/* Tabs are buttons: drop the docs-wide button ring so the component's own ring shows. */
+[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-tab"]:focus-visible {
+  outline: revert-layer;
+  outline-offset: revert-layer;
+}
+
+/* The panel spans the card, which clips overflow, so its ring draws inside its edge. */
+[data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-panel"]:focus-visible {
+  outline-offset: calc(var(--dd-focus-width) * -1);
+}

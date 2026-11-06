@@ -47,3 +47,37 @@ jobs:
           fi
       - name: Enforce type instantiation budget
         run: pnpm type-budget
+
+  e2e:
+    runs-on: ubuntu-24.04
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /tmp/densedash/ms-playwright
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22.20.0"
+      - uses: pnpm/action-setup@v6
+        with:
+          cache: true
+      - run: pnpm install --frozen-lockfile
+      - name: Build production docs and registry
+        run: pnpm turbo run build --filter @densedash/docs
+      - name: Use Ubuntu HTTPS archive for browser dependencies
+        # The runner's Azure HTTP mirror can stall on WebKit's system packages.
+        run: sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+      - name: Install Chromium and WebKit with system dependencies
+        run: pnpm exec playwright install --with-deps chromium webkit
+      - name: Browser happy paths and fresh npm/pnpm registry installs
+        # Three independent runs prove repeatability; retries stay disabled.
+        run: |
+          for pass in 1 2 3; do
+            pnpm test:e2e || exit 1
+          done
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: e2e-failures
+          path: e2e/.results/
+          include-hidden-files: true
+          retention-days: 7

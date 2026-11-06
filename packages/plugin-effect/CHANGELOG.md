@@ -1,5 +1,12 @@
 # @densedash/plugin-effect
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`eaae1b6`](https://github.com/densedash/densedash/commit/eaae1b65aad56909a7e7e44270586b80669c745f), [`ee39b82`](https://github.com/densedash/densedash/commit/ee39b82a58ce2eb0c4affb6b44f230af01abb778), [`5d91f44`](https://github.com/densedash/densedash/commit/5d91f447eacd3b215b23ab0b2052caddb36f1184), [`6db025a`](https://github.com/densedash/densedash/commit/6db025a50d3bd2f62a3b3610697b13a1ad92d7c5), [`f68c3b2`](https://github.com/densedash/densedash/commit/f68c3b2582d834720d63e7d0215770ed0478f95a), [`4128aa6`](https://github.com/densedash/densedash/commit/4128aa69300b20e179a07e3a9c950d2795d5e95d), [`b09bc6f`](https://github.com/densedash/densedash/commit/b09bc6ffad007b46132f51744bc4e907311300a8), [`0966602`](https://github.com/densedash/densedash/commit/0966602f0e024005672c9b0022db21ae2294bb4b), [`c491b60`](https://github.com/densedash/densedash/commit/c491b606722707adcf5e55846d59227615884d01), [`72174d9`](https://github.com/densedash/densedash/commit/72174d993962b729318eaf8ef393400c34fac9b3), [`76c1287`](https://github.com/densedash/densedash/commit/76c12878c1cc7f9d17a4fc0befaabcb81db4bd20), [`2c5b9bf`](https://github.com/densedash/densedash/commit/2c5b9bff57be8dc9a2b39bcfd6db965b10b2d7f0), [`d1baf4c`](https://github.com/densedash/densedash/commit/d1baf4cf68f717a28d920142026f3e8b759b5ffe), [`d3f0406`](https://github.com/densedash/densedash/commit/d3f0406d6a88206d15a9cffdbf6bae58fc1e6e20), [`d8ca710`](https://github.com/densedash/densedash/commit/d8ca710f04961f347d23f61604df069dce909b1f)]:
+  - @densedash/core@0.2.0
+
 ## 0.1.1
 
 ### Patch Changes

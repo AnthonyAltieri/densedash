@@ -49,7 +49,7 @@ jobs:
         run: pnpm type-budget
 
   e2e:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       PLAYWRIGHT_BROWSERS_PATH: /tmp/densedash/ms-playwright
     steps:
@@ -63,6 +63,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build production docs and registry
         run: pnpm turbo run build --filter @densedash/docs
+      - name: Use Ubuntu HTTPS archive for browser dependencies
+        # The runner's Azure HTTP mirror can stall on WebKit's system packages.
+        run: sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
       - name: Install Chromium and WebKit with system dependencies
         run: pnpm exec playwright install --with-deps chromium webkit
       - name: Browser happy paths and fresh npm/pnpm registry installs

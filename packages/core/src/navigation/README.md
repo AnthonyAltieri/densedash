@@ -61,6 +61,10 @@ as a whole, and do not give the same slice a second owner through raw table
 
 Commands retain all `tree.*` IDs and `table.sort` / `table.next-column`, registered
 in one scope per controller. The methods are also available under `commands`.
+`tree.open` is enabled only while `onOpen` is supplied. Without a handler it is omitted from
+legends and leaves Enter available to outer commands and the browser. Updating `onOpen`
+(including setting it to `undefined`) refreshes this availability; double-click uses the
+current handler too.
 `table.sort` cycles the chosen sortable column ascending, descending, unsorted
 (descending first for a `sortDescFirst` column), and `table.next-column` moves the
 choice and any active sort. Commands read the current visible TanStack model, skip

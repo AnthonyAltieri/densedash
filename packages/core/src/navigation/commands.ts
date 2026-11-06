@@ -177,7 +177,10 @@ export function createNavigationCommands<T extends RowData>(model: NavigationMod
     define("tree.toggle", "Toggle expansion", groups.toggle, commands.toggle),
     define("tree.select", "Select row", groups.select, commands.select),
     define("tree.extend-selection", "Extend selection", groups.select, commands.extendSelection),
-    define("tree.open", "Open row", groups.open, commands.open),
+    {
+      ...define("tree.open", "Open row", groups.open, commands.open),
+      enabled: () => model.options().onOpen !== undefined,
+    },
     define("table.sort", "Sort column", groups.sort, (action) => commands.sort(undefined, action)),
     define("table.next-column", "Next sort column", groups.sort, (action) =>
       commands.chooseColumn(1, action),

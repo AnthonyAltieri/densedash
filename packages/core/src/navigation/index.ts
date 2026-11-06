@@ -130,21 +130,19 @@ export function getNavigationRuntime<T extends RowData>(table: NavigationTable<T
   const { commands, definitions } = createNavigationCommands(model);
   let root: HTMLElement | undefined;
   let unregister: (() => void) | undefined;
+  const commandDefinitions = () =>
+    table.getAllLeafColumns().some((column) => column.getCanSort())
+      ? definitions
+      : definitions.filter((command) => !command.id.startsWith("table."));
   function register(): void {
     unregister?.();
     unregister = undefined;
     const keys = model.options().keys;
-    unregister = kernel.commands.register(
-      scope,
-      table.getAllLeafColumns().some((column) => column.getCanSort())
-        ? definitions
-        : definitions.filter((command) => !command.id.startsWith("table.")),
-      {
-        ...model.options().scope,
-        ...(keys === undefined ? {} : { keys }),
-        ...(root === undefined ? {} : { target: root }),
-      },
-    );
+    unregister = kernel.commands.register(scope, commandDefinitions(), {
+      ...model.options().scope,
+      ...(keys === undefined ? {} : { keys }),
+      ...(root === undefined ? {} : { target: root }),
+    });
   }
   const props = createNavigationProps({
     model,
@@ -178,6 +176,8 @@ export function getNavigationRuntime<T extends RowData>(table: NavigationTable<T
           (next.columns !== undefined && next.columns !== previous.columns))
       )
         register();
+      else if (model.active() && "onOpen" in next)
+        kernel.commands.update(scope, commandDefinitions());
     },
     dispose() {
       if (!model.active()) return;

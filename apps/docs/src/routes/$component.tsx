@@ -9,7 +9,11 @@ export const Route = createFileRoute("/$component")({
     if (!isComponentName(params.component)) throw notFound();
     return { name: params.component };
   },
-  loader: ({ context }) => loadPreviews([context.name]),
+  loader: ({ context }) => {
+    const component = components[context.name];
+    const examples = "examples" in component ? component.examples : [];
+    return loadPreviews([context.name, ...examples.map(({ name }) => name)]);
+  },
   head: ({ match }) => ({ meta: [{ title: `${match.params.component} · densedash` }] }),
   component: ComponentPage,
 });
@@ -18,6 +22,7 @@ function ComponentPage() {
   const { name } = Route.useRouteContext();
   const component = components[name];
   const shellKeys = "keys" in component ? component.keys : null;
+  const examples = "examples" in component ? component.examples : [];
   const css = reference.css[name] ?? [];
   const keys = reference.keys.filter(({ command }) => {
     if (name === "keymap") return command === "confirm" || command === "cancel";
@@ -92,6 +97,13 @@ function ComponentPage() {
           </a>
         </p>
       </section>
+      {examples.map((example) => (
+        <section key={example.name} data-slot="docs-section">
+          <h2>{example.title}</h2>
+          <p data-slot="section-description">{example.description}</p>
+          <ComponentPreview name={example.name} />
+        </section>
+      ))}
       <section data-slot="docs-section">
         <h2>Types and composition</h2>
         <p data-slot="section-description">{component.types}</p>

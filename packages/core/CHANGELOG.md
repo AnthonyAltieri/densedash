@@ -1,5 +1,15 @@
 # @densedash/core
 
+## 0.3.0
+
+### Minor Changes
+
+- [#63](https://github.com/densedash/densedash/pull/63) [`e8bd989`](https://github.com/densedash/densedash/commit/e8bd98960e336fca126c7f6370b5424d111f8aeb) Thanks [@AnthonyAltieri](https://github.com/AnthonyAltieri)! - Bind `tree.parent` to `U` in `treePreset` and `Shift+U` in `shiftedTreePreset`, so page-wide Tree and List layers can return to a parent row. Top-level rows stay highlighted. Keep secondary hints hidden by default in named layers too; pass `all` to include the parent key in legends.
+
+### Patch Changes
+
+- [#65](https://github.com/densedash/densedash/pull/65) [`9fc91be`](https://github.com/densedash/densedash/commit/9fc91beaaebdd9560f5f21fa7b60af26993380eb) Thanks [@AnthonyAltieri](https://github.com/AnthonyAltieri)! - Avoid notifying navigation subscribers when a command leaves the state unchanged.
+
 ## 0.2.0
 
 ### Minor Changes

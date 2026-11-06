@@ -1,6 +1,6 @@
 {
   "name": "@densedash/css",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Typed design tokens, themes and density settings for densedash.",
   "license": "MIT",
   "repository": {

@@ -64,6 +64,15 @@ function ComponentPage() {
                 : "Focus the example to activate its keys. Hover the code to see inferred types. This imports the exact wrappers installed by the registry."}
         </p>
         <ComponentPreview name={name} defaultLayout={name === "app-shell" ? "tabs" : "split"} />
+        <p data-slot="footnote">
+          Frame and Cell are docs-only presentation helpers, not part of the registry; read{" "}
+          <a
+            data-slot="text-link"
+            href="https://github.com/densedash/densedash/tree/main/apps/docs/registry/default/docs"
+          >
+            their source on GitHub ↗
+          </a>
+        </p>
       </section>
       <section data-slot="docs-section">
         <h2>Types and composition</h2>

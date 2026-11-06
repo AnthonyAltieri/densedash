@@ -1,0 +1,260 @@
+/* <Cell.*>: cells of example rows. Docs only; variables in src/styles.css. */
+[data-slot="cell-code"],
+[data-slot="cell-price"],
+[data-slot="cell-change"],
+[data-slot="cell-chip"],
+[data-slot="cell-bar"],
+[data-slot="cell-diverging"] {
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+[data-slot="cell-code"] {
+  flex: none;
+  min-inline-size: var(--dd-docs-code-width);
+  font-weight: var(--dd-font-weight-medium);
+}
+
+[data-slot="cell-code"]:empty {
+  display: none;
+}
+
+[data-slot="cell-name"] {
+  flex: none;
+  font-weight: var(--dd-font-weight-medium);
+}
+
+/* After a ticker, the name is the instrument's full name: secondary, and it takes the space. */
+[data-slot="cell-code"]:not(:empty) + [data-slot="cell-name"],
+[data-slot="cell-note"] {
+  flex: auto;
+  min-inline-size: var(--dd-zero);
+  overflow: hidden;
+  color: var(--dd-color-text-muted);
+  font-weight: var(--dd-weight-normal);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A top-level group's name. */
+[data-depth="0"]:not([data-leaf]) > [data-slot="cell-name"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="cell-price"],
+[data-slot="cell-count"] {
+  margin-inline-start: auto;
+}
+
+[data-slot="cell-price"] {
+  flex: none;
+  text-align: end;
+}
+
+[data-slot="cell-change"] {
+  flex: none;
+  inline-size: var(--dd-docs-change-width);
+  font-weight: var(--dd-font-weight-medium);
+  text-align: end;
+}
+
+[data-slot="cell-change"][data-tone="positive"],
+[data-slot="cell-chip"][data-tone="positive"],
+[data-slot="cell-tag"][data-tone="positive"] {
+  color: var(--dd-color-positive);
+}
+
+[data-slot="cell-change"][data-tone="negative"],
+[data-slot="cell-chip"][data-tone="negative"] {
+  color: var(--dd-color-negative);
+}
+
+[data-slot="cell-count"] {
+  flex: none;
+  min-inline-size: var(--dd-docs-count-width);
+  padding-inline: calc(var(--dd-unit) * 1.25);
+  border-radius: var(--dd-example-pill-radius);
+  background: var(--dd-color-border-muted);
+  color: var(--dd-color-text-secondary);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-text-xs);
+  font-weight: var(--dd-font-weight-medium);
+  line-height: var(--dd-docs-pill-leading);
+  text-align: center;
+}
+
+[data-slot="cell-tag"] {
+  flex: none;
+  padding-inline: calc(var(--dd-unit) * 1.5);
+  border-radius: var(--dd-doc-radius);
+  font-family: var(--dd-font-sans);
+  font-size: var(--dd-text-xs);
+  font-weight: var(--dd-font-weight-medium);
+  line-height: var(--dd-docs-pill-leading);
+}
+
+[data-slot="cell-tag"][data-tone="positive"] {
+  background: var(--dd-docs-positive-surface);
+}
+
+[data-slot="cell-tag"][data-tone="accent"] {
+  background: var(--dd-docs-accent-surface);
+  color: var(--dd-color-accent);
+}
+
+[data-slot="cell-tag"][data-tone="neutral"] {
+  background: var(--dd-docs-neutral-surface);
+  color: var(--dd-color-text-muted);
+}
+
+[data-slot="cell-chip"] {
+  display: inline-block;
+  min-inline-size: var(--dd-docs-chip-width);
+  padding-inline: calc(var(--dd-unit) * 1.25);
+  border-radius: var(--dd-doc-radius);
+  font-weight: var(--dd-font-weight-medium);
+  line-height: var(--dd-docs-chip-leading);
+  text-align: end;
+}
+
+[data-slot="cell-chip"][data-tone="positive"] {
+  background: var(--dd-docs-positive-surface);
+}
+
+[data-slot="cell-chip"][data-tone="negative"] {
+  background: var(--dd-docs-negative-surface);
+}
+
+[data-slot="cell-bar"],
+[data-slot="cell-diverging"] {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 1.5);
+  inline-size: var(--dd-full);
+}
+
+[data-slot="cell-bar-track"],
+[data-slot="cell-diverging-track"] {
+  display: flex;
+  flex: auto;
+}
+
+[data-slot="cell-bar-track"] {
+  block-size: var(--dd-docs-bar-height);
+  border-radius: var(--dd-border-width);
+  background: var(--dd-color-border-muted);
+}
+
+[data-slot="cell-bar-fill"],
+[data-slot="cell-diverging-fill"] {
+  inline-size: var(--dd-docs-bar-share);
+}
+
+[data-slot="cell-bar-fill"] {
+  border-radius: var(--dd-border-width);
+  background: var(--dd-docs-bar-fill);
+}
+
+[data-slot="cell-bar-value"],
+[data-slot="cell-diverging-value"] {
+  color: var(--dd-color-text-secondary);
+  text-align: end;
+}
+
+[data-slot="cell-bar-value"] {
+  flex: none;
+  inline-size: var(--dd-docs-bar-value-width);
+}
+
+[data-slot="cell-diverging-value"] {
+  flex: none;
+  inline-size: var(--dd-docs-diverging-value-width);
+}
+
+[data-slot="cell-diverging-track"] {
+  block-size: var(--dd-docs-diverging-height);
+}
+
+[data-slot="cell-diverging-half"] {
+  display: flex;
+  flex: var(--dd-flex);
+}
+
+[data-slot="cell-diverging-half"][data-side="short"] {
+  justify-content: flex-end;
+  border-inline-end: var(--dd-border-width) solid var(--dd-docs-axis);
+}
+
+[data-side="short"] > [data-slot="cell-diverging-fill"] {
+  background: var(--dd-color-warning);
+}
+
+[data-side="long"] > [data-slot="cell-diverging-fill"] {
+  background: var(--dd-color-accent);
+}
+
+/* A table's group total rows: bold figures, no tint behind the change, a darker volume bar. */
+[data-slot="table-row"]:not([data-leaf])
+  :is(
+    [data-slot="cell-price"],
+    [data-slot="cell-change"],
+    [data-slot="cell-chip"],
+    [data-slot="cell-bar-value"],
+    [data-slot="cell-diverging-value"]
+  ) {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="table-row"]:not([data-leaf]) [data-slot="cell-chip"] {
+  background: none;
+}
+
+[data-slot="table-row"]:not([data-leaf]) [data-slot="cell-bar-fill"] {
+  background: var(--dd-color-text-secondary);
+}
+
+[data-slot="cell-specimen"] {
+  --dd-kbd-font-size: var(--dd-docs-specimen-key-size);
+  --dd-kbd-padding-block: calc(var(--dd-unit) * 1.75);
+  --dd-kbd-padding-inline: calc(var(--dd-unit) * 2.75);
+  --dd-kbd-border-bottom-width: var(--dd-unit);
+  --dd-kbd-radius: var(--dd-docs-frame-radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 2.5);
+  block-size: var(--dd-docs-specimen-height);
+  margin: var(--dd-zero);
+  padding: calc(var(--dd-unit) * 5.5) calc(var(--dd-unit) * 2.5) calc(var(--dd-unit) * 3);
+  border-inline-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+  border-block-end: var(--dd-border-width) solid var(--dd-color-border-muted);
+}
+
+[data-slot="cell-specimen-sample"],
+[data-slot="cell-specimen"] [data-slot="kbd-range"] {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--dd-unit) * 2);
+}
+
+[data-slot="cell-specimen-sample"] {
+  block-size: var(--dd-docs-specimen-sample-height);
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-docs-specimen-text-size);
+  font-weight: var(--dd-weight-normal);
+  line-height: var(--dd-kbd-line-height);
+}
+
+[data-slot="cell-specimen-name"] {
+  font-weight: var(--dd-font-weight-semibold);
+}
+
+[data-slot="cell-specimen-code"] {
+  color: var(--dd-color-text-muted);
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-text-xs);
+  line-height: var(--dd-docs-pill-leading);
+  text-align: center;
+}

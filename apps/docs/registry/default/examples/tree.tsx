@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Keymap } from "../ui/keymap.js";
+import { useStore } from "@densedash/react";
+import { Frame } from "../docs/frame.js";
 import { Tree, useTree } from "../ui/tree.js";
 
 interface Desk {
@@ -20,7 +21,7 @@ const items: Desk[] = [
   { id: "cash", label: "Cash" },
 ];
 
-function Explorer() {
+export default function TreeExample() {
   const [opened, setOpened] = useState("Nothing opened");
   const tree = useTree({
     data: items,
@@ -30,8 +31,9 @@ function Explorer() {
     expanded: { defaultValue: { equities: true } },
     onOpen: (item) => setOpened(item.label),
   });
+  const { rows } = useStore(tree.state);
   return (
-    <div data-slot="example-stack">
+    <Frame title="Desks" count={rows.length} status={opened}>
       <Tree.Root tree={tree} aria-label="Trading desks">
         <Tree.Viewport tree={tree}>
           {(row) => (
@@ -43,15 +45,6 @@ function Explorer() {
           )}
         </Tree.Viewport>
       </Tree.Root>
-      <output>{opened}</output>
-    </div>
-  );
-}
-
-export default function TreeExample() {
-  return (
-    <Keymap.Provider>
-      <Explorer />
-    </Keymap.Provider>
+    </Frame>
   );
 }

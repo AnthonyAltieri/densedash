@@ -13,3 +13,6 @@ import "../../../../packages/css/src/components/keymap-legend.css";
 import "../../../../packages/css/src/components/keymap-chord-hint.css";
 import "../../../../packages/css/src/components/keymap-confirm-prompt.css";
 import "../../../../packages/css/src/components/table.css";
+// The docs-only Frame and Cell helpers that examples are drawn inside.
+import "../../registry/default/docs/frame.css";
+import "../../registry/default/docs/cell.css";

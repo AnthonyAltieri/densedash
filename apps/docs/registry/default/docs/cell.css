@@ -264,3 +264,24 @@
   line-height: var(--dd-docs-pill-leading);
   text-align: center;
 }
+
+/* A large number and its unit, centred, such as the keymap page's order size. */
+[data-slot="cell-figure"] {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: calc(var(--dd-unit) * 2);
+  block-size: var(--dd-docs-figure-height);
+}
+
+[data-slot="cell-figure-value"] {
+  font-family: var(--dd-font-mono);
+  font-size: var(--dd-docs-figure-size);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--dd-font-weight-medium);
+  line-height: var(--dd-docs-figure-height);
+}
+
+[data-slot="cell-figure-unit"] {
+  color: var(--dd-color-text-muted);
+}

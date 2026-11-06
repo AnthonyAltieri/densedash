@@ -20,8 +20,7 @@ function ComponentPage() {
   const shellKeys = "keys" in component ? component.keys : null;
   const css = reference.css[name] ?? [];
   const keys = reference.keys.filter(({ command }) => {
-    if (name === "keymap")
-      return ["next", "approve", "confirm", "cancel", "p-home"].includes(command);
+    if (name === "keymap") return command === "confirm" || command === "cancel";
     if (name === "tabs") return command.startsWith("tabs.");
     if (name === "tree" || name === "list" || name === "table") {
       return command.startsWith("tree.") || (name === "table" && command.startsWith("table."));
@@ -55,13 +54,29 @@ function ComponentPage() {
       <section data-slot="docs-section">
         <h2>Live example</h2>
         <p data-slot="section-description">
-          {name === "keymap"
-            ? "The two trees and detail tabs have separate key layers that answer throughout this page. Try their keys from either tree, a button or a tab, then type in Notes."
-            : name === "theme"
-              ? "Both lists use the same parts and stylesheet. Only the second wrapper sets variables; compare with the theme and density controls above."
-              : name === "app-shell"
-                ? "The sidebar, list and detail tabs each have a key layer that answers anywhere on this page, whatever has focus. The footer lists the keys and reports the last one pressed and what it did, including keys that change nothing. Switch to Code to read the file that runs it."
-                : "Focus the example to activate its keys. Hover the code to see inferred types. This imports the exact wrappers installed by the registry."}
+          {name === "keymap" ? (
+            <>
+              Click the number or tab to it, then press n or p. The provider's preset binds the two
+              commands from useCommands, and the legend lists their keys while the counter has
+              focus; typing in a field elsewhere leaves the size alone. For key layers that answer
+              anywhere on the page, see the{" "}
+              <a data-slot="text-link" href="/app-shell">
+                app shell
+              </a>
+              ; to rebind keys, see{" "}
+              <a data-slot="text-link" href="/changing-keys">
+                Changing keys
+              </a>
+              . A preset key can also be a sequence and a command can ask for confirmation;
+              Keymap.ChordHint and Keymap.ConfirmPrompt show them.
+            </>
+          ) : name === "theme" ? (
+            "Both lists use the same parts and stylesheet. Only the second wrapper sets variables; compare with the theme and density controls above."
+          ) : name === "app-shell" ? (
+            "The sidebar, list and detail tabs each have a key layer that answers anywhere on this page, whatever has focus. The footer lists the keys and reports the last one pressed and what it did, including keys that change nothing. Switch to Code to read the file that runs it."
+          ) : (
+            "Focus the example to activate its keys. Hover the code to see inferred types. This imports the exact wrappers installed by the registry."
+          )}
         </p>
         <ComponentPreview name={name} defaultLayout={name === "app-shell" ? "tabs" : "split"} />
         <p data-slot="footnote">
@@ -155,9 +170,11 @@ function ComponentPage() {
         <p data-slot="section-description">
           {shellKeys !== null
             ? "The example's own presets: a four-key sidebar preset, shiftedTreePreset for the list, and the kernel's tabs.select keys for the detail tabs. Each answers throughout the page. Swap a preset to rebind; the pane headers and the footer legend follow."
-            : keys.length === 0
-              ? "This item registers no commands. Kbd formats labels, Footer reads the live keymap, and the theme sets variables."
-              : "Generated from tradingPreset, formatted by the kernel's keyboard port at build time. Keys act within the focused scope. An empty key list leaves the command available programmatically. Change keys with one preset or per-command overrides."}
+            : name === "keymap"
+              ? "The example's own preset binds increase to N and decrease to P. Every preset also keeps the confirm and cancel keys from tradingPreset, listed below; they answer while a confirmation prompt is pending."
+              : keys.length === 0
+                ? "This item registers no commands. Kbd formats labels, Footer reads the live keymap, and the theme sets variables."
+                : "Generated from tradingPreset, formatted by the kernel's keyboard port at build time. Keys act within the focused scope. An empty key list leaves the command available programmatically. Change keys with one preset or per-command overrides."}
         </p>
         {shellKeys !== null && (
           <div data-slot="reference-scroll">

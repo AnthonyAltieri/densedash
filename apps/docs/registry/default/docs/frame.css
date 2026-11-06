@@ -241,3 +241,56 @@
 [data-slot="frame-body"] > [data-slot="tabs"]:only-child [data-slot="tabs-panel"]:focus-visible {
   outline-offset: calc(var(--dd-focus-width) * -1);
 }
+
+/* Keymap page: the order size counter. A figure, the scope's legend as rows of label and key,
+   and a hint strip, in a narrower card. */
+[data-slot="frame"]:has([data-slot="cell-figure"]) {
+  max-inline-size: var(--dd-docs-counter-width);
+}
+
+[data-slot="frame-body"] > [data-slot="keymap-scope"] {
+  display: flex;
+  flex-direction: column;
+}
+
+[data-slot="frame-body"] > [data-slot="keymap-scope"]:focus-visible {
+  outline: var(--dd-focus-width) solid var(--dd-color-focus);
+}
+
+[data-slot="frame"] [data-slot="keymap-legend"] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--dd-zero);
+  padding-block: calc(var(--dd-unit) * 1.5);
+  border-block-start: var(--dd-border-width) solid var(--dd-color-border-muted);
+}
+
+/* The legend fills only while the scope has focus; keep its two rows so the card holds still. */
+[data-slot="frame"]:has([data-slot="cell-figure"]) [data-slot="keymap-legend"] {
+  min-block-size: calc(var(--dd-row-height) * 2 + var(--dd-unit) * 3 + var(--dd-border-width));
+}
+
+[data-slot="frame"] [data-slot="keymap-legend-group"] {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--dd-zero);
+}
+
+[data-slot="frame"] [data-slot="keymap-legend-item"] {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  block-size: var(--dd-row-height);
+  padding-inline: var(--dd-docs-frame-padding);
+}
+
+[data-slot="frame-body"] > [data-slot="keymap-scope"] > [data-slot="cell-note"] {
+  display: flex;
+  flex: none;
+  align-items: center;
+  box-sizing: border-box;
+  block-size: var(--dd-footer-height);
+  padding-inline: var(--dd-docs-frame-padding);
+  border-block-start: var(--dd-border-width) solid var(--dd-color-border-muted);
+  background: var(--dd-color-surface-muted);
+  font-size: var(--dd-text-sm);
+}

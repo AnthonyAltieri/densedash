@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { Suspense, use, useEffect, useId, useRef, useState } from "react";
 import type { FocusEvent, KeyboardEvent, PointerEvent } from "react";
-import previews from "virtual:densedash-previews";
+import "./example-styles.ts";
+import { loadPreview } from "./previews.ts";
 
 type Layout = "split" | "tabs";
 type Tab = "preview" | "code";
@@ -14,17 +15,27 @@ const tabs: { value: Tab; label: string }[] = [
   { value: "code", label: "Code" },
 ];
 
-export function ComponentPreview({
-  name,
-  defaultLayout = "split",
-}: {
+interface ComponentPreviewProps {
   name: string;
   /** "tabs" gives the preview the full width, for examples such as the app shell. */
   defaultLayout?: Layout;
-}) {
-  const preview = previews[name];
-  if (!preview) throw new Error(`Unknown component preview: ${name}`);
-  const { Component, html, hovers, fileName, source } = preview;
+}
+
+/**
+ * Renders one example from its own module. The page's route loader must load it
+ * with `loadPreviews` first; the boundary only holds the server HTML while the
+ * module downloads during hydration.
+ */
+export function ComponentPreview(props: ComponentPreviewProps) {
+  return (
+    <Suspense fallback={null}>
+      <LoadedPreview {...props} />
+    </Suspense>
+  );
+}
+
+function LoadedPreview({ name, defaultLayout = "split" }: ComponentPreviewProps) {
+  const { Component, html, hovers, fileName, source } = use(loadPreview(name));
   const [layout, setLayout] = useState<Layout>(defaultLayout);
   const [tab, setTab] = useState<Tab>("preview");
   const id = useId();

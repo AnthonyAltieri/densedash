@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ComponentPreview } from "../components/component-preview.tsx";
+import { loadPreviews } from "../components/previews.ts";
 
 export const Route = createFileRoute("/changing-keys")({
   head: () => ({ meta: [{ title: "Changing keys · densedash" }] }),
+  loader: () => loadPreviews(["preset", "override"]),
   component: ChangingKeys,
 });
 

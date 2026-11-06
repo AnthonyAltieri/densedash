@@ -196,3 +196,51 @@ example at 10,000 rows, viewport capped at 12 row heights): compact
 with `scrollHeight` 280,028 px (header plus 10,000 × 28); comfortable
 (2.25rem = 36 px) mounts 19 at the top and 29 mid-list, with `scrollHeight`
 360,036 px. The estimate followed each density switch without a remount.
+
+## DD-42: insertion at 5,000 unvirtualized rows
+
+Measured 2026-11-05 on the DD-23 host and browser (Playwright-driven headless shell, no CPU
+throttling), with the DD-22 insert method: Tree example, 5,000 rows, all rows mounted, five
+unmeasured ArrowDown presses and three unmeasured fills, then 30 measured "Add fill" clicks
+(one row at the top) and 60 measured ArrowDown presses, each read as `TaskDuration` around
+the action and two frames. Each batch alternated a production build of `main` (dd97f52,
+"before") and of the DD-42 branch ("after") in fresh browsers. The host was shared with other
+builds; treat these as loaded-host numbers.
+
+Root cause: a CPU profile and trace of one insertion (about 20 ms before) showed 3.9 ms of
+store notifications (two subscriptions per mounted row, 10,000 listeners, each running its
+selector), 2.3 ms of React rendering, about 2 ms rebuilding the TanStack row model, and about
+10 ms of browser layout, pre-paint and paint for 5,000 shifted rows. With the highlight deep in
+the list, anchoring also computed every row's element id up to it (5.3 ms at the last row).
+Rows now share one subscription per tree that notifies only the rows whose token or position
+can have changed; unchanged rows reuse their element so React skips them without comparing
+props; and the anchor finds its row by id. Key presses notify two rows instead of 10,000.
+
+Median / max milliseconds per action:
+
+| Scenario                                    | Batch, host load (1 min) | Before      | After       |
+| ------------------------------------------- | ------------------------ | ----------- | ----------- |
+| Tree, 5,000 rows, insert one row            | 1, 9.7–9.8               | 19.7 / 29.4 | 13.8 / 18.5 |
+| Tree, 5,000 rows, insert one row            | 2, 9.9–10.0              | 17.0 / 24.7 | 14.1 / 20.6 |
+| Tree, 5,000 rows, insert one row            | 3, 9.4–9.9               | 17.5 / 28.5 | 13.7 / 18.4 |
+| Tree, 5,000 rows, insert one row            | 4, 9.0–9.3               | 17.6 / 27.1 | 15.0 / 18.6 |
+| Tree, 5,000 rows, insert one row            | 5, 8.7–9.0               | 22.0 / 28.8 | 14.5 / 23.5 |
+| Tree, 5,000 rows, insert, highlight at last | 6–8, 7.6–7.8             | 22.1–23.9   | 14.6–15.5   |
+| Tree, 5,000 rows, ArrowDown                 | 1–5, 8.7–10.0            | 6.6–9.7     | 3.5–3.9     |
+
+Insertion is now under one 60 Hz frame (16.7 ms) at the median in every batch above; maxima still
+reach 18–24 ms. Later batches tracked host load. After rebasing onto d8ca710, six batches at load
+6–8 gave insertion medians of 17.4–23.3 ms before and 14.0–18.9 ms after (five of six under 16.7
+ms). While the host was busier (load 10–11), eleven batches gave 18.6–40.2 ms before and 15.0–26.1
+ms after, lower after in nine of eleven. On the final head, rebased onto 72c9578, four batches at
+load 8–9 gave 20.7–21.5 ms before and 14.6–16.9 ms after, and ArrowDown 7.5–10.1 ms before and
+4.1–4.6 ms after. Repeat on an idle host before setting a threshold. Most of what remains is the
+browser laying out and pre-painting 5,000 moved rows (about 9 ms), which only virtualization
+removes. A scratch render counter confirmed that an insertion re-renders the new row and the 38
+top-level siblings whose `aria-setsize` changed, and a key press the two rows whose highlight
+changed, as before. The rendered DOM after the same inserts, key presses, selection, collapse and
+expansion was identical to `main` in all-rows, `virtual` and custom-virtualizer modes, and the
+highlighted (or first visible) row kept its screen position across insertions.
+
+Type budget (`pnpm type-budget`): 1,679 instantiations before and 1,679 after, under the
+1,800 budget.

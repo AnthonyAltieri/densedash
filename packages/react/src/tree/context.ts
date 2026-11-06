@@ -1,9 +1,10 @@
-import { createContext, useContext } from "react";
+import { createContext, useCallback, useContext, useSyncExternalStore } from "react";
 import type { CSSProperties } from "react";
 import type { NavigableTable, RowData } from "@densedash/core";
 import { normalizeProps } from "../normalize-props.js";
 import type { NormalizedProps } from "../normalize-props.js";
 import type { StyleProps } from "../use-render.js";
+import type { ReadableStore } from "../use-store.js";
 import type { TreeHandleBase, TreeRow, TreeSnapshot } from "./handle.js";
 
 export interface TreeContextValue {
@@ -98,7 +99,7 @@ export const SELECTED = 2;
 export const TAB_STOP = 4;
 export const EXPANDED = 8;
 
-/** Everything a row's props read from tree state, packed so `useStore` compares it cheaply. */
+/** Everything a row's props read from tree state, packed so React compares it cheaply. */
 export function rowToken(snapshot: TreeSnapshot<unknown>, id: string): number {
   const { expanded } = snapshot;
   return (
@@ -107,6 +108,115 @@ export function rowToken(snapshot: TreeSnapshot<unknown>, id: string): number {
     (tabStop(snapshot) === id ? TAB_STOP : 0) |
     (expanded === true || expanded[id] ? EXPANDED : 0)
   );
+}
+
+// Adds every id whose flag differs between two `{ [id]: boolean }` states.
+function addChangedKeys(
+  ids: Set<string>,
+  before: Readonly<Record<string, boolean>>,
+  next: Readonly<Record<string, boolean>>,
+): void {
+  for (const id in before) if (!before[id] !== !next[id]) ids.add(id);
+  for (const id in next) if (next[id] && !before[id]) ids.add(id);
+}
+
+/**
+ * The rows whose `rowToken` or `rowPosition` can differ between two snapshots, or `true` for
+ * every row. Inserting a row changes the positions of its siblings only, so the others are
+ * never asked.
+ */
+function changedRows(
+  before: TreeSnapshot<unknown>,
+  next: TreeSnapshot<unknown>,
+): ReadonlySet<string> | true {
+  const ids = new Set<string>();
+  const add = (id: string | null | undefined) => {
+    if (id !== null && id !== undefined) ids.add(id);
+  };
+  if (before.expanded !== next.expanded) {
+    if (before.expanded === true || next.expanded === true) return true;
+    addChangedKeys(ids, before.expanded, next.expanded);
+  }
+  if (before.highlighted !== next.highlighted) {
+    add(before.highlighted);
+    add(next.highlighted);
+  }
+  const stop = tabStop(before);
+  const nextStop = tabStop(next);
+  if (stop !== nextStop) {
+    add(stop);
+    add(nextStop);
+  }
+  if (before.rowSelection !== next.rowSelection) {
+    addChangedKeys(ids, before.rowSelection, next.rowSelection);
+  }
+  if (before.rows !== next.rows) {
+    const previous = rowsIndex(before.rows).position;
+    for (const [id, position] of rowsIndex(next.rows).position) {
+      if (previous.get(id) !== position) ids.add(id);
+    }
+  }
+  return ids;
+}
+
+/**
+ * One subscription to a tree's state for all of its rows. Each snapshot notifies only the rows
+ * whose token or position can have changed, rather than every mounted row: at thousands of
+ * rows, a subscription per row costs milliseconds on every insertion and key press.
+ */
+function createRowStore(state: ReadableStore<TreeSnapshot<unknown>>) {
+  const listeners = new Map<string, Set<() => void>>();
+  let previous = state.get();
+  let unsubscribe: (() => void) | undefined;
+  const changed = (next: TreeSnapshot<unknown>) => {
+    const before = previous;
+    previous = next;
+    const ids = changedRows(before, next);
+    for (const id of ids === true ? listeners.keys() : ids) {
+      const group = listeners.get(id);
+      if (group !== undefined) for (const listener of group) listener();
+    }
+  };
+  return {
+    subscribe(id: string, listener: () => void): () => void {
+      if (unsubscribe === undefined) {
+        previous = state.get();
+        unsubscribe = state.subscribe(changed);
+      }
+      let group = listeners.get(id);
+      if (group === undefined) listeners.set(id, (group = new Set()));
+      group.add(listener);
+      return () => {
+        group.delete(listener);
+        if (group.size === 0 && listeners.get(id) === group) listeners.delete(id);
+        if (listeners.size === 0 && unsubscribe !== undefined) {
+          unsubscribe();
+          unsubscribe = undefined;
+        }
+      };
+    },
+  };
+}
+
+const rowStores = new WeakMap<object, ReturnType<typeof createRowStore>>();
+
+// The shared subscription only notifies rows whose token or position can have changed, so
+// `read` is `rowToken` or `rowPosition`.
+function useRowValue<V extends number | string>(
+  state: ReadableStore<TreeSnapshot<unknown>>,
+  id: string,
+  read: (snapshot: TreeSnapshot<unknown>, id: string) => V,
+): V {
+  const subscribe = useCallback(
+    (listener: () => void) => {
+      let store = rowStores.get(state);
+      if (store === undefined) rowStores.set(state, (store = createRowStore(state)));
+      return store.subscribe(id, listener);
+    },
+    [state, id],
+  );
+  const get = useCallback(() => read(state.get(), id), [state, id, read]);
+  return useSyncExternalStore(subscribe, get, get);
 }
 
 // The core getters read mutable state. Each wrapper takes the state it depends on as an
@@ -140,4 +250,14 @@ export function partStyle<State>(
 ): StyleProps<State>["style"] {
   if (style === undefined) return base;
   return (state) => ({ ...base, ...(typeof style === "function" ? style(state) : style) });
+}
+
+/** The row's `rowToken`, re-rendering only when it changes. */
+export function useRowToken(state: ReadableStore<TreeSnapshot<unknown>>, id: string): number {
+  return useRowValue(state, id, rowToken);
+}
+
+/** The row's `rowPosition`, re-rendering only when it changes. */
+export function useRowPosition(state: ReadableStore<TreeSnapshot<unknown>>, id: string): string {
+  return useRowValue(state, id, rowPosition);
 }
